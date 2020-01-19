@@ -25,23 +25,25 @@
 <p>So you want to edit the HUD to display custom info to the player. Obviously, this requires at least basic ASM knowledge. Fear not! Once you got the pattern down, you'll understand how it works!</p>
 
 <p>You should know by now after reading Ersanio's tutorial<sup><a href="https://www.smwcentral.net/?p=section&a=details&id=15073">[1]</a><a href="https://www.smwcentral.net/?p=section&a=details&id=14268">[2]</a></sup>
-on something simple as how to write a value to memory.</p>
+on something simple as how to write a value to memory. You should also know about binary and hexidecimal, since many data store in memory are bitwise.</p>
 
-<p>I have provided several routines to make writing codes much user-friendly as possible.</p>
-<h2>Warm-up: SMW's status bar.</h2>
+<p>I have provided several routines to make writing codes much user-friendly as possible. So lets begin.</p>
+<h2>The warm-up: SMW's status bar.</h2>
 <p>Here, consider looking at this image:<br>
 <img src="Readme_Files/StatusBarMap.png"><br>
 RAM address <kbd>$7E0EF9-$7E0F2E</kbd> controls what tile to display. How do you modify it? Well you edit the
 contents in the mentioned RAM address. There are 2 ways you can edit RAM addresses:
 <ul>
-<li>Most recommended: Using <a href="https://www.smwcentral.net/?p=section&a=details&id=21616">Bsnes+</a>, be at a level, go to the menubar on the window, Tools &rightarrow; Debugger.
-Now on the Debugger window: &rightarrow; Tools &rightarrow; Memory Editor, and enter on the search bar <kbd>7E0EF9</kbd>. It should now scroll to that address and to know what address
-you're editing is displayed at the bottom of the window:
+<li>Most recommended: a debugger, specifically, <a href="https://www.smwcentral.net/?p=section&a=details&id=21616">Bsnes+</a>. This method applies temporary changes to your game for testing purposes,
+it does not actually make &ldquo;permanent&rdquo; changes to your game. To make modifications, be at a level, and on the debugger, go to the menubar on the window, Tools &rightarrow; Debugger.
+Now on the Debugger window: &rightarrow; Tools &rightarrow; Memory Editor, and enter on the search bar &ldquo;<kbd>7E0EF9</kbd>&rdquo; (or just &ldquo;<kbd>0EF9</kbd>&rdquo;, if using a SA-1 ROM, its
+&ldquo;<kbd>6EF9</kbd>&rdquo;). It should now scroll to that address. From here, type in the hexidecimal number. At the time of making this, the memory editor lacks filtering features like entering a range. However, when you select a byte (a pair of hexidecimal digits), the info bar at the bottom shows what address you are on
+to edit:<br>
 <img src="Readme_Files/MemoryEditorAddress.png"></li>
 <li>Create an ASM file to run under <a href="https://www.smwcentral.net/?p=section&a=details&id=19982">uberasm tool</a> as <kbd>level</kbd> under <kbd>main:</kbd> label, and just use <kbd>LDA #$xx : STA $xxxxxx</kbd>.</li>
 </ul>
 
-Now, for the RAM address, each byte is each 8x8 tile:<br>
+Now, for the RAM address, each byte is each 8x8 tile, meaning each time you go to the next address, its the next 8x8 tile number:<br>
 <input type="radio" name="GameType" id="NormalROM" onclick="Calculate()" checked><label for="NormalROM">Normal game</label><br>
 <input type="radio" name="GameType" id="SA1ROM" onclick="Calculate()"><label for="SA1ROM">SA-1</label>
 <span id="SMWStatusBarTable"></span><br>
@@ -49,35 +51,71 @@ All of these bytes stored in RAM <kbd>$7E0EF9-$7E0F2E</kbd> are <kbd>TTTTTTTT</k
 what value should I put? Well, <kbd>TTTTTTTT</kbd> is actually <i>what tile number to use</i>, from the tile data. When viewing the tile data stored in <kbd>GFX28</kbd> via <a href="https://www.smwcentral.net/?p=section&a=details&id=15671">YY-CHR</a>,
 you can find what tile graphic to use by hovering your mouse over the 8x8 tile you want to use. After this, you should see on the bottom bar of the window showing what tile number that is:<br>
 <img src="Readme_Files/TileNumber.png"><br>
+Of course, you can view the tile &ldquo;number&rdquo; with bsnes+'s &ldquo;Tile Viewer&rdquo; (Debugger &rightarrow; S-PPU &rightarrow; Tile Viewer), it will only display its <i>tilemap address</i> (bottom bar of window).
+I've made a conversion <a id="TileDataAddr" href="Readme_Files/TileDataAddr.html">cheatsheet here</a>.
+
 Now you have the value you need. Just write that desired tile number to any tile number you want to write (either debugger or uberasm, if uberasm tool, you have to save, insert to your game, and run it to view the changes). For example, to write an
 item box corner tile on the left of the top row, then it is tile number <kbd>$3A</kbd> to write at <kbd>$7E0EF9</kbd>, if using uberasm tool, its <kbd>LDA #$3A : STA $0EF9|!addr</kbd>.</p>
 
-<p>Now hold up, when you play around with the tiles, many tiles will use the wrong palette, well, this is part of the tile properties (in binary, its <kbd>%YXPCCCTT</kbd>) thats hard-coded.</p>
+<p>Now hold up, when you play around with the tiles, many tiles will use the wrong palette, well, this is part of the tile properties (in binary, its <kbd>%YXPCCCTT</kbd>) that's hard-coded, that's right, there are actually 2 bytes of information
+for each 8x8 tile with the tile numbers being in ROM and RAM and the properties all being hardcoded. When the level loads, the status bar routine will first transfer default tile number and properties from ROM addresses <kbd>$008C81-$008CFE</kbd>,
+which contains all the tiles for the status bar, while the RAM itself only contain some of the tile numbers. To modify hardcoded tiles, I've already presented their addresses that directly correlates to the RAM addresses, for the top and bottom
+lines of the item box:
+<table>
+<tr><th>Position</th><th>Address (%TTTTTTTT, %YXPCCCTT)</th></tr>
+<tr><th colspan="2">Top line of item box</th></tr>
+<tr><td><kbd>(14,1)</kbd> (<kbd>($E,$1)</kbd>)</td><td><kbd>$008C81</kbd>, <kbd>$008C82</kbd></td></tr>
+<tr><td><kbd>(15,1)</kbd> (<kbd>($F,$1)</kbd>)</td><td><kbd>$008C83</kbd>, <kbd>$008C84</kbd></td></tr>
+<tr><td><kbd>(16,1)</kbd> (<kbd>($10,$1)</kbd>)</td><td><kbd>$008C85</kbd>, <kbd>$008C86</kbd></td></tr>
+<tr><td><kbd>(17,1)</kbd> (<kbd>($11,$1)</kbd>)</td><td><kbd>$008C87</kbd>, <kbd>$008C88</kbd></td></tr>
+<tr><th colspan="2">bottom line of item box</th></tr>
+<tr><td><kbd>(14,4)</kbd> (<kbd>($E,$4)</kbd>)</td><td><kbd>$008CF7</kbd>, <kbd>$008CF8</kbd></td></tr>
+<tr><td><kbd>(15,4)</kbd> (<kbd>($F,$4)</kbd>)</td><td><kbd>$008CF9</kbd>, <kbd>$008CFA</kbd></td></tr>
+<tr><td><kbd>(16,4)</kbd> (<kbd>($10,$4)</kbd>)</td><td><kbd>$008CFB</kbd>, <kbd>$008CFC</kbd></td></tr>
+<tr><td><kbd>(17,4)</kbd> (<kbd>($11,$4)</kbd>)</td><td><kbd>$008CFD</kbd>, <kbd>$008CFE</kbd></td></tr>
+</table>
+If you modify these hardcoded values through a debugger, the changes will only apply on the next level reload, since the hardcoded upload only occurs on level load.</p>
 
+<p>You may be wondering, why did I include the tile coordinate in these tables? Well, is because of bsnes+'s ability to display the tile coordinates in the tilemap viewer (Debugger &rightarrow; S-PPU &rightarrow;
+Tilemap Viewer, and select &ldquo;3&rdquo; on the BG.):<br>
+<img src="Readme_Files/TileCoordinate.png"><br>
+and then you can use that coordinate and CTRL+F here on this HTML file to locate what RAM/ROM address to modify, which is way easier than to trial-and-error modifying each address to find the desired location.</p>
 
 <h2>Tile data format</h2>
-<p>Each 8x8 tile is stored as 2 bytes in the binary format of: <kbd>TTTTTTTT</kbd> and <kbd>YXPCCCTT</kbd>:
+<p>As explained earlier about the palette issue, and that each 8x8 tile possess 2 tiles, I'll give you a summary of the entire tile data:
 <ul>
 	<li>
-		<kbd>TTTTTTTT</kbd> is the tile number, refers to what tile to use from the tile stored in VRAM.
+		<kbd>TTTTTTTT</kbd> is the tile number (previously explained already), refers to what tile to use from the tile stored in VRAM. Note that this alone is the tile number within a page.
 	</li>
 	<li>
 		<kbd>YXPCCCTT</kbd> is the tile properties:
 		<ul>
 			<li>
-				<kbd>TT</kbd> (ranges from 0-3): Page number.
+				<kbd>TT</kbd> (ranges from 0-3): Page number. This is technically the upper bits of the tile number, which is why I use the same <kbd>T</kbd> instead
+				another letter, therefore 10 bits used for the tile number (referred to as &ldquo;character&rdquo; in the debugger and the SNES dev manuel),
+				but we refer the upper 2 bits as the page number, while the lower 8 bits as the tile number (within a page):<br>
+				<img src="Readme_Files/PageNumberTT.png">
 			</li>
 			<li>
-				<kbd>CCC</kbd> (ranges from 0-7): Palette number. This refers to what group-4 on the palette to use.
+				<kbd>CCC</kbd> (ranges from 0-7): Palette number. This refers to what group-4 on the palette to use:<br>
+				<img src="Readme_Files/PaletteCCC_0_7.png">
 			</li>
 			<li>
-				<kbd>P</kbd> (0 or 1): Priority (1 is above everything or 0 is behind), effective if the status bar is on the subscreen.
+				<kbd>P</kbd> (0 or 1): Priority (1 is above everything or 0 is behind). Devs usually make these SET to prevent things (such as sprites,
+				layer 1 or layer 2 (including those if they have priority)) from overlapping the HUD:
+			</li>
+			<li>
+				<kbd>X</kbd> (0 or 1): X-flip. i.e: <img src="Readme_Files/HorizFlipX.png">
+			</li>
+			<li>
+				<kbd>Y</kbd> (0 or 1): Y-flip. i.e: <img src="Readme_Files/VertiFlipY.png">
 			</li>
 		</ul>
 	</li>
 </ul>
 
-Now depending on what status bar patches you use, there are 2 types of format on how the array of 8x8 tiles in relation to the array of bytes written in:
+Now there are 2 formats on how a pair of bytes are being stored. SMW uses both, where default tiles are the &ldquo;2-bytes together&rdquo; format while RAM address <kbd>$7E0EF9-$7E0F2E</kbd>
+are &ldquo;TileNumber and Props in their own table&rdquo; format but without the properties.
 <table>
 <tr>
 <th>TileNumber and Props in their own table</th>
@@ -135,7 +173,7 @@ every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead
 			}
 			var Output = ""
 			Output += "<table>"
-			Output += "<tr><th>Tile number/index</th><th>Position</th><th>RAM address</th><th>default tiles and properties ROM address</th></tr>"
+			Output += "<tr><th>Tile number/index</th><th>Position</th><th>RAM address</th><th>default tiles and properties ROM address (%TTTTTTTT, %YXPCCCTT)</th></tr>"
 			for (LoopCount = 0; LoopCount < 55; LoopCount++) {
 				if (LoopCount == 28) {
 					Output += "<tr><th colspan='4'>Second line</th></tr>"
