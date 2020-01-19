@@ -1,0 +1,162 @@
+<html>
+	<head>
+		<style>
+			html {
+			background-color: #000207;
+			color: white;
+			font-family: sans-serif;
+			}
+			
+			table, th, td {
+			border: 1px solid white;
+			border-collapse: collapse;
+			}
+			
+			span.NoLineBreak {
+				white-space: nowrap;
+			}
+			
+			abbr{cursor: help;}
+		</style>
+	</head>
+<body onload="Calculate()">
+<center><h1>How to use the status bar</h1></center>
+<hr>
+<p>So you want to edit the HUD to display custom info to the player. Obviously, this requires at least basic ASM knowledge. Fear not! Once you got the pattern down, you'll understand how it works!</p>
+
+<p>You should know by now after reading Ersanio's tutorial<sup><a href="https://www.smwcentral.net/?p=section&a=details&id=15073">[1]</a><a href="https://www.smwcentral.net/?p=section&a=details&id=14268">[2]</a></sup>
+on something simple as how to write a value to memory.</p>
+
+<p>I have provided several routines to make writing codes much user-friendly as possible.</p>
+<h2>Warm-up: SMW's status bar.</h2>
+<p>Here, consider looking at this image:<br>
+<img src="Readme_Files/StatusBarMap.png"><br>
+RAM address <kbd>$7E0EF9-$7E0F2E</kbd> controls what tile to display. How do you modify it? Well you edit the
+contents in the mentioned RAM address. There are 2 ways you can edit RAM addresses:
+<ul>
+<li>Most recommended: Using <a href="https://www.smwcentral.net/?p=section&a=details&id=21616">Bsnes+</a>, be at a level, go to the menubar on the window, Tools &rightarrow; Debugger.
+Now on the Debugger window: &rightarrow; Tools &rightarrow; Memory Editor, and enter on the search bar <kbd>7E0EF9</kbd>. It should now scroll to that address and to know what address
+you're editing is displayed at the bottom of the window:
+<img src="Readme_Files/MemoryEditorAddress.png"></li>
+<li>Create an ASM file to run under <a href="https://www.smwcentral.net/?p=section&a=details&id=19982">uberasm tool</a> as <kbd>level</kbd> under <kbd>main:</kbd> label, and just use <kbd>LDA #$xx : STA $xxxxxx</kbd>.</li>
+</ul>
+
+Now, for the RAM address, each byte is each 8x8 tile:<br>
+<input type="radio" name="GameType" id="NormalROM" onclick="Calculate()" checked><label for="NormalROM">Normal game</label><br>
+<input type="radio" name="GameType" id="SA1ROM" onclick="Calculate()"><label for="SA1ROM">SA-1</label>
+<span id="SMWStatusBarTable"></span><br>
+All of these bytes stored in RAM <kbd>$7E0EF9-$7E0F2E</kbd> are <kbd>TTTTTTTT</kbd>, which means you can only modify the tile number through RAM in-game. You may be wondering, if I wanted to edit the tiles here,
+what value should I put? Well, <kbd>TTTTTTTT</kbd> is actually <i>what tile number to use</i>, from the tile data. When viewing the tile data stored in <kbd>GFX28</kbd> via <a href="https://www.smwcentral.net/?p=section&a=details&id=15671">YY-CHR</a>,
+you can find what tile graphic to use by hovering your mouse over the 8x8 tile you want to use. After this, you should see on the bottom bar of the window showing what tile number that is:<br>
+<img src="Readme_Files/TileNumber.png"><br>
+Now you have the value you need. Just write that desired tile number to any tile number you want to write (either debugger or uberasm, if uberasm tool, you have to save, insert to your game, and run it to view the changes). For example, to write an
+item box corner tile on the left of the top row, then it is tile number <kbd>$3A</kbd> to write at <kbd>$7E0EF9</kbd>, if using uberasm tool, its <kbd>LDA #$3A : STA $0EF9|!addr</kbd>.</p>
+
+<p>Now hold up, when you play around with the tiles, many tiles will use the wrong palette, well, this is part of the tile properties (in binary, its <kbd>%YXPCCCTT</kbd>) thats hard-coded.</p>
+
+
+<h2>Tile data format</h2>
+<p>Each 8x8 tile is stored as 2 bytes in the binary format of: <kbd>TTTTTTTT</kbd> and <kbd>YXPCCCTT</kbd>:
+<ul>
+	<li>
+		<kbd>TTTTTTTT</kbd> is the tile number, refers to what tile to use from the tile stored in VRAM.
+	</li>
+	<li>
+		<kbd>YXPCCCTT</kbd> is the tile properties:
+		<ul>
+			<li>
+				<kbd>TT</kbd> (ranges from 0-3): Page number.
+			</li>
+			<li>
+				<kbd>CCC</kbd> (ranges from 0-7): Palette number. This refers to what group-4 on the palette to use.
+			</li>
+			<li>
+				<kbd>P</kbd> (0 or 1): Priority (1 is above everything or 0 is behind), effective if the status bar is on the subscreen.
+			</li>
+		</ul>
+	</li>
+</ul>
+
+Now depending on what status bar patches you use, there are 2 types of format on how the array of 8x8 tiles in relation to the array of bytes written in:
+<table>
+<tr>
+<th>TileNumber and Props in their own table</th>
+<th>2-bytes together</th>
+</tr>
+<tr>
+<td><table><tr><td><pre>!TileNumbAddr: TTTTTTTT (tile 0)
+!TileNumbAddr+1: TTTTTTTT (tile 1)
+!TileNumbAddr+2: TTTTTTTT (tile 2)
+!TileNumbAddr+3: TTTTTTTT (tile 3)
+[...]</pre></td></tr></table>
+On a separate table:
+<table><tr><td><pre>!TilePropAddr: YXPCCCTT (tile 0)
+!TilePropAddr+1: YXPCCCTT (tile 1)
+!TilePropAddr+2: YXPCCCTT (tile 2)
+!TilePropAddr+3: YXPCCCTT (tile 3)
+[...]</pre></td></tr></table><br>
+Tile numbers and properties are stored in 2 separate tables, one for each.
+Every time you advance the next byte, you are on the next 8x8 tile.
+</td>
+
+<td><table><tr><td><pre>!TileAddr: TTTTTTTT (tile 0)
+!TileAddr+1: YXPCCCTT (tile 0)
+!TileAddr+2: TTTTTTTT (tile 1)
+!TileAddr+3: YXPCCCTT (tile 1)
+!TileAddr+4: TTTTTTTT (tile 2)
+!TileAddr+5: YXPCCCTT (tile 2)
+!TileAddr+6: TTTTTTTT (tile 3)
+!TileAddr+7: YXPCCCTT (tile 3)
+[...]</pre></td></tr></table><br>
+Every tile have 2 bytes placed one after another, so both tile numbers and properties are alternating
+every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead of one.
+
+</td>
+</tr>
+</table>
+</p>
+
+
+<h2>Other status bar patches</h2>
+
+<h2>Further documentation</h2>
+<p>SMW (or the SNES in general) have layer 3 stored as <kbd>2BPP</kbd> format. Meaning that each pixel will take 2 bits. 2 Bits will give you 4 possible values; 0-3</p>
+
+<script>
+	function Calculate() {
+		//SMW status bar table
+			var LoopCount = 0
+			var CurrentRowYPos = 2
+			var StartOfLineXPos = 2
+			var OnSecondRow = 0
+			var StatusBarAddress = parseInt("0EF9", 16)
+			if (document.getElementById("SA1ROM").checked == true) {
+				StatusBarAddress = parseInt("6EF9", 16)
+			}
+			var Output = ""
+			Output += "<table>"
+			Output += "<tr><th>Tile number/index</th><th>Position</th><th>RAM address</th><th>default tiles and properties ROM address</th></tr>"
+			for (LoopCount = 0; LoopCount < 55; LoopCount++) {
+				if (LoopCount == 28) {
+					Output += "<tr><th colspan='4'>Second line</th></tr>"
+					CurrentRowYPos = 3
+					StartOfLineXPos = 3
+					OnSecondRow = 28
+				}
+				Output += "<tr>"
+				Output += "<td><kbd>" + LoopCount.toString(10) + "</kbd> (<kbd>$" + LoopCount.toString(16).toUpperCase() + "</kbd>)</td>"
+				Output += "<td><kbd>(" + (StartOfLineXPos+(LoopCount-OnSecondRow)).toString(10) + "," + CurrentRowYPos.toString(10) + ")</kbd> (<kbd>($" + (StartOfLineXPos+(LoopCount-OnSecondRow)).toString(16).toUpperCase() + ",$" + CurrentRowYPos.toString(16).toUpperCase() + ")</kbd>)</td>"
+				Output += "<td><kbd>$" + pad((StatusBarAddress+LoopCount).toString(16).toUpperCase(), 4) + "</kbd></td>"
+				Output += "<td><kbd>$00" + (parseInt("8C89", 16)+(LoopCount*2)).toString(16).toUpperCase() + "</kbd>, <kbd>$00" + ((parseInt("8C89", 16)+(LoopCount*2))+1).toString(16).toUpperCase() + "</kbd></td>"
+				Output += "</tr>"
+			}
+			Output += "<table>"
+			document.getElementById("SMWStatusBarTable").innerHTML = Output
+		
+	}
+	function pad(num, size) {
+		var s = num+"";
+		while (s.length < size) s = "0" + s;
+		return s;
+	}
+</script>
