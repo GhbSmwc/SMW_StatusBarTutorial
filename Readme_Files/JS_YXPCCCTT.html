@@ -1,0 +1,142 @@
+<html>
+	<head>
+		<style>
+			html {
+			background-color: #000207;
+			color: white;
+			font-family: sans-serif;
+			}
+			
+			table, th, td {
+			border: 1px solid white;
+			border-collapse: collapse;
+			}
+			
+			span.NoLineBreak {
+				white-space: nowrap;
+			}
+			
+			input[type='text'] { font-family: monospace;}
+			input[type='number'] { font-family: monospace;}
+			abbr{cursor: help;}
+		</style>
+	</head>
+<a href="../HowToUseTheStatusBar.html#JS_YXPCCCTT">Back</a><br>
+
+Hex: $<input type="text" onchange="Calculate()" id="HexInput" value="00"><button onclick="BigintIncreaseDecreaseHexInput(1n, 'HexInput', 0n, 255n)">+</button><button onclick="BigintIncreaseDecreaseHexInput(-1n, 'HexInput', 0n, 255n)">-</button> =
+Binary: %<input type="text" onchange="Calculate2()" id="BinaryInput" value="00000000"><br><br>
+
+<h2>Properties states</h2>
+Page number: <input type="number" id="PageNumber" min="0" max="3" value="0" onchange="Calculate3()"><br>
+Palette number: <input type="number" id="PaletteNumber" min="0" max="7" value="0" onchange="Calculate3()"><br>
+<input type="checkbox" id="Priority" name="Priority" onchange="Calculate3()"><label for="Priority">Priority</label><br>
+<input type="checkbox" id="XFlip" name="XFlip" onchange="Calculate3()"><label for="XFlip">X-flip</label><br>
+<input type="checkbox" id="YFlip" name="YFlip" onchange="Calculate3()"><label for="YFlip">Y-flip</label>
+
+
+
+<script>
+	function Calculate() {
+		//Entered hex, modify all other inputs
+			var HexInput = BigintClamp(CorrectHexBigIntValue(document.getElementById("HexInput").value), 0n, 255n)
+			document.getElementById("HexInput").value = pad(HexInput.toString(16).toUpperCase(), 2)
+			document.getElementById("BinaryInput").value = pad(HexInput.toString(2), 8)
+			ModifyIndividualStates(HexInput)
+	}
+	function Calculate2() {
+		//Entered binary, modify all other inputs
+			var BinaryInput = BigintClamp(CorrectBinaryBigIntValue(document.getElementById("BinaryInput").value), 0n, 255n)
+			document.getElementById("BinaryInput").value = pad(BinaryInput.toString(2), 8)
+			document.getElementById("HexInput").value = pad(BinaryInput.toString(16).toUpperCase(), 2)
+			ModifyIndividualStates(BinaryInput)
+	}
+	function Calculate3() {
+		//Entered as individual states, modify all other inputs
+			var PageNumber = BigintClamp(CorrectDecimalBigIntValue(document.getElementById("PageNumber").value), 0n, 3n)
+			document.getElementById("PageNumber").value = PageNumber.toString(10)
+			var PaletteNumber = BigintClamp(CorrectDecimalBigIntValue(document.getElementById("PaletteNumber").value), 0n, 7n)
+			document.getElementById("PaletteNumber").value = PaletteNumber.toString(10)
+			var Priority = 0n
+			if (document.getElementById("Priority").checked == true) {
+				Priority = 1n
+			}
+			var XFlip = 0n
+			if (document.getElementById("XFlip").checked == true) {
+				XFlip = 1n
+			}
+			var YFlip = 0n
+			if (document.getElementById("YFlip").checked == true) {
+				YFlip = 1n
+			}
+			var ByteValue = (YFlip*128n) + (XFlip*64n) + (Priority*32n) + (PaletteNumber*4n) + (PageNumber)
+			//Modify all others
+				document.getElementById("HexInput").value = pad(ByteValue.toString(16).toUpperCase(), 2)
+			Calculate()
+	}
+	function ModifyIndividualStates(Input) {
+		var PageNumber = (Input % 4n)
+		document.getElementById("PageNumber").value = PageNumber.toString(10)
+		var PaletteNumber = ((Input/4n) % 8n)
+		document.getElementById("PaletteNumber").value = PaletteNumber.toString(10)
+		var Priority = ((Input/32n) % 2n)
+		if (Priority == 0n) {
+			document.getElementById("Priority").checked = false
+		} else {
+			document.getElementById("Priority").checked = true
+		}
+		var XFlip = ((Input/64n) % 2n)
+		if (XFlip == 0n) {
+			document.getElementById("XFlip").checked = false
+		} else {
+			document.getElementById("XFlip").checked = true
+		}
+		var YFlip = ((Input/128n) % 2n)
+		if (YFlip == 0n) {
+			document.getElementById("YFlip").checked = false
+		} else {
+			document.getElementById("YFlip").checked = true
+		}
+	}
+	function BigintClamp(num, min, max) {
+		//Restrict a number within a specified range, bigInt edition.
+		return num <= min ? min : num >= max ? max : num;
+	}
+	function BigintIncreaseDecreaseHexInput(ChangeBy, WhatInput, Min, Max) {
+		//To be used along with a hex input the user enters.
+		//This function is for the increment/decrement buttons since
+		//only the "number" input (only allows characters 0-9) allows
+		//the increment/decrement action (up/down button when selected,
+		//and pressing up and down)
+		document.getElementById(WhatInput).value = BigintClamp((CorrectHexBigIntValue(document.getElementById(WhatInput).value) + ChangeBy), Min, Max).toString(16).toUpperCase()
+		Calculate()
+	}
+	function CorrectHexBigIntValue(String) {
+		//This converts the user's input hex string (negative numbers not allowed)
+		//to BigInt.
+		if ((/^([0-9]|[A-F]|[a-f])+$/).test(String) == false) {
+			String = 0n
+		}
+		return CanConvertHexStringToBigInt = BigInt("0x" + String)
+	}
+	function CorrectBinaryBigIntValue(String) {
+		//This converts the user's input binary string (negative numbers not allowed)
+		//to BigInt.
+		if ((/^([0]|[1])+$/).test(String) == false) {
+			String = 0n
+		}
+		return CanConvertHexStringToBigInt = BigInt("0b" + String)
+	}
+	function CorrectDecimalBigIntValue(String) {
+		//This converts the user's input decimal string (negative numbers not allowed)
+		//to BigInt.
+		if ((/^([0-9])+$/).test(String) == false) {
+			String = 0n
+		}
+		return CanConvertHexStringToBigInt = BigInt(String)
+	}
+	function pad(num, size) {
+		var s = num+"";
+		while (s.length < size) s = "0" + s;
+		return s;
+	}
+</script>
