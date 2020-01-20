@@ -148,7 +148,7 @@
 		if !DisplayLives != 0
 			LDA $0DBE|!addr
 			INC
-			JSR $009045
+			JSR $9045
 			TXY
 			BNE +
 			LDX #$FC
@@ -172,7 +172,7 @@
 			CODE_008FEA: BMI CODE_008FEE                     ;| show yoshi coin if that coin has been collected, otherwise show blank
 			CODE_008FEC: LDY.B #$2E                          ;|
 			CODE_008FEE: TYA                                 ;|
-			CODE_008FEF: STA.W !YoshiCoinsPosition           ;/
+			CODE_008FEF: STA.W !YoshiCoinsPosition,x         ;/
 			CODE_008FF2: DEC $00                             ;\
 			CODE_008FF4: INX                                 ;| Prime for next run of loop, unless we're done
 			CODE_008FF5: CPX.B #$04                          ;|
@@ -186,27 +186,27 @@
 		elseif !DisplayBonusStars == 1
 		
 		elseif !DisplayBonusStars == 2
-			CODE_008F8F: LDA.W $0F48,X                            ;\
+			CODE_008F8F: LDA.W $0F48|!addr,X                      ;\
 			CODE_008F92: STA $02                                  ;/ bonus stars for character = $02
 			CODE_008F94: LDX.B #$09                               ;\
 			CODE_008F96: LDY.B #$10                               ;| handles something
 			CODE_008F98: JSR.W $009051                            ;/
 			CODE_008F9B: LDX.B #$00                               ; Loop-like thing- basically just handling when to put spaces and when to not on the bonus stars
-			CODE_008F9D: LDA.W $0F1E,X                            ;\ if there is no tens digit present, ignore this
+			CODE_008F9D: LDA.W $0F1E|!addr,X                      ;\ if there is no tens digit present, ignore this
 			CODE_008FA0: BNE CODE_008FAF                          ;/
 			CODE_008FA2: LDA.B #$FC                               ;\
-			CODE_008FA4: STA.W $0F1E,X                            ;| if there are no bonus stars in the ones place, then just make that space empty
+			CODE_008FA4: STA.W $0F1E|!addr,X                      ;| if there are no bonus stars in the ones place, then just make that space empty
 			CODE_008FA7: STA.W !BonusStarsPosition1,X             ;/
 			CODE_008FAA: INX                                      ;|
 			CODE_008FAB: CPX.B #$01                               ;| unless X = 01, rerun this loop with a extra tile displacement 
 			CODE_008FAD: BNE CODE_008F9D                          ;/
-			CODE_008FAF: LDA.W $0F1E,X                            ;|
+			CODE_008FAF: LDA.W $0F1E|!addr,X                      ;|
 			CODE_008FB2: ASL                                      ;|
 			CODE_008FB3: TAY                                      ;/ Y = Index to bonus star tiles
-			CODE_008FB4: LDA.W DATA_008E06,Y                      ;\
+			CODE_008FB4: LDA.W $8E06,Y                            ;\
 			CODE_008FB7: STA.W !BonusStarsPosition1,X             ;|
 			CODE_008FBA: LDA.W $008E07,Y                          ;|
-			CODE_008FBD: STA.W $0F1E,X                            ;/ load correct tiles for bonus star counter
+			CODE_008FBD: STA.W $0F1E|!addr,X                      ;/ load correct tiles for bonus star counter
 			CODE_008FC0: INX                                      ;\
 			CODE_008FC1: CPX.B #$02                               ;|
 			CODE_008FC3: BNE CODE_008FAF                          ;/ do it again if X isn't 02 now
@@ -225,7 +225,7 @@
 		
 	org $008F73
 		if !DisplayCoin != 0
-			CODE_008F73: LDA.W RAM_StatusCoins     ; \ Get amount of coins in decimal 
+			CODE_008F73: LDA.W $0DBF|!addr         ; \ Get amount of coins in decimal 
 			CODE_008F76: JSR.W $009045             ; /  
 			CODE_008F79: TXY                       ; \ 
 			CODE_008F7A: BNE CODE_008F7E           ;  |If 10s is 0, replace with space 
