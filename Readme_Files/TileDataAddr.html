@@ -74,7 +74,7 @@
 			for (TileNumbCount = 0n; TileNumbCount < 1024n; TileNumbCount++) {
 				//2^10 = 1024 possible 8x8 tile numbers, if you were to count all the pages.
 				Output += "<tr>"
-				Output += "<td><kbd>$" + pad(TileNumbCount.toString(16), 3) + "</kbd></td>"
+				Output += "<td><kbd>$" + pad(TileNumbCount.toString(16).toUpperCase(), 3) + "</kbd></td>"
 				Output += "<td><kbd>$" + pad((TileNumbCount % 256n).toString(16).toUpperCase(), 2) + "</kbd>, page " + (TileNumbCount/256n).toString(10) + "</td>"
 				Output += "<td><kbd>$" + pad((TileAddress + (TileNumbCount * 16n)).toString(16).toUpperCase(), 4) + "</kbd></td>"
 				Output += "</tr>"
