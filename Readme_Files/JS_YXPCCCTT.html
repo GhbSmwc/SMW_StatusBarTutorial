@@ -21,14 +21,19 @@
 			abbr{cursor: help;}
 		</style>
 	</head>
-<a href="../HowToUseTheStatusBar.html#JS_YXPCCCTT">Back</a><br>
+<a href="../HowToUseTheStatusBar.html#QuickJSTools_JS_YXPCCCTT">Back (table of JS links)</a><br>
+<a href="../HowToUseTheStatusBar.html#JS_YXPCCCTT">Back to info mentioning YXPCCCTT</a><br><br>
+
+<center><h1>Hex and binary converter</h1></center>
+<p>You may be wondering, why did I include this rather simple tool? Well I made this because normally, if a user wants to edit tiles, they have to use a hex editor or a debugger, convert the number to binary (to know what each flags are),
+tweak some bits, convert back to hex, and write it to ROM/RAM to edit the tile properties. This tool will immediately convert it for you.</p>
 
 Hex: $<input type="text" onchange="Calculate()" id="HexInput" value="00"><button onclick="BigintIncreaseDecreaseHexInput(1n, 'HexInput', 0n, 255n)">+</button><button onclick="BigintIncreaseDecreaseHexInput(-1n, 'HexInput', 0n, 255n)">-</button> =
 Binary: %<input type="text" onchange="Calculate2()" id="BinaryInput" value="00000000"><br><br>
 
 <h2>Properties states</h2>
-Page number: <input type="number" id="PageNumber" min="0" max="3" value="0" onchange="Calculate3()"><br>
-Palette number: <input type="number" id="PaletteNumber" min="0" max="7" value="0" onchange="Calculate3()"><br>
+Page number (0-3): <input type="number" id="PageNumber" min="0" max="3" value="0" onchange="Calculate3()"><br>
+Palette number (0-7): <input type="number" id="PaletteNumber" min="0" max="7" value="0" onchange="Calculate3()"><br>
 <input type="checkbox" id="Priority" name="Priority" onchange="Calculate3()"><label for="Priority">Priority</label><br>
 <input type="checkbox" id="XFlip" name="XFlip" onchange="Calculate3()"><label for="XFlip">X-flip</label><br>
 <input type="checkbox" id="YFlip" name="YFlip" onchange="Calculate3()"><label for="YFlip">Y-flip</label>

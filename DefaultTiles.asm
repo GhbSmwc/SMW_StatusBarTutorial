@@ -41,9 +41,51 @@
 	!DisplayYoshiCoins	= 1
 	!YoshiCoinsPosition	= $0EFF|!addr
 
-	!DisplayBonusStars	= 0			;>0 = no, 1 = small 8x8 digits, 2 = 8x16 digits
-	!BonusStarsPosition	= $0F1E|!addr		;>Note: this is the small bonus stars position placed on the bottom half of the number.
-	!BonusStarsPosition1	= $0F03|!addr		;>This is the top position of the large numbers.
+	!DisplayBonusStars	= 2			;>0 = no, 1 = small 8x8 digits, 2 = 8x16 digits
+	;Bonus stars position note: SMW's big number routine works like this:
+	;1) After obtaining the player's current bonus star counter, call the hexdec (convert number to BCD)
+	;   routine at $009051.
+	;2) You have the digits. Currently, if you write these to the status bar, they will be 8x8 digits.
+	;3) The code at $008FAF THEN converts the values to tile numbers of the 8x16 digits graphics.
+	;
+	;Step 2 have the digits (8x8) stored at the bottom line of the status bar at $0F1E ($0F15,X where
+	;X = $09).
+	;Step 3 then loads the BCD digit values, index them for the big digits, and overwrite the smaller digits
+	;with the bigger digits.
+	;
+	;If you're using [!DisplayBonusStars = 2], Because of step 2 and 3, you MUST have it so that
+	;[!BonusStarsPosition1 = !BonusStarsPosition-$1B] or [!BonusStarsPosition = !BonusStarsPosition1+$1B],
+	;else the big digits won't work properly.
+	;
+	;I made a list of all valid positions to display the bonus stars using the 8x16 graphics:
+	; <X coordinate>: <!BonusStarsPosition> : <BonusStarsPosition1>
+	;X = 03 (03) : $0F15 : $0EFA 
+	;X = 04 (04) : $0F16 : $0EFB 
+	;X = 05 (05) : $0F17 : $0EFC 
+	;X = 06 (06) : $0F18 : $0EFD 
+	;X = 07 (07) : $0F19 : $0EFE 
+	;X = 08 (08) : $0F1A : $0EFF 
+	;X = 09 (09) : $0F1B : $0F00 
+	;X = 10 (0A) : $0F1C : $0F01 
+	;X = 11 (0B) : $0F1D : $0F02 
+	;X = 12 (0C) : $0F1E : $0F03 ;>Default bonus stars position.
+	;X = 13 (0D) : $0F1F : $0F04 
+	;X = 14 (0E) : $0F20 : $0F05 
+	;X = 15 (0F) : $0F21 : $0F06 
+	;X = 16 (10) : $0F22 : $0F07 
+	;X = 17 (11) : $0F23 : $0F08 
+	;X = 18 (12) : $0F24 : $0F09 
+	;X = 19 (13) : $0F25 : $0F0A 
+	;X = 20 (14) : $0F26 : $0F0B 
+	;X = 21 (15) : $0F27 : $0F0C 
+	;X = 22 (16) : $0F28 : $0F0D 
+	;X = 23 (17) : $0F29 : $0F0E 
+	;X = 24 (18) : $0F2A : $0F0F 
+	;X = 25 (19) : $0F2B : $0F10 
+	;X = 26 (1A) : $0F2C : $0F11 
+	;The defines !BonusStarsPosition and !BonusStarsPosition1 refer the position in respective of the 10s place.
+		!BonusStarsPosition	= $0F1E|!addr		;>Note: this is the small bonus stars position placed on the bottom half of the number.
+		!BonusStarsPosition1	= $0F03|!addr		;>This is the top position of the large numbers. Only used if !DisplayBonusStars = 2.
 
 	!DisplayTime		= 1			;>Note: timer not shown but will still function and kill the player
 	!TimePosition		= $0F25|!addr
@@ -180,6 +222,8 @@
 		else
 			RTS
 		endif
+	org $009053
+		STZ.w !BonusStarsPosition-$09,x		;CODE_009053: STZ.W $0F15,X
 	org $008F8F
 		if !DisplayBonusStars == 0
 			JMP.w $008FC5
@@ -219,6 +263,8 @@
 				JMP.w $008FC5					;>Jump to $008FC5.
 			endif
 		endif
+	org $009068
+		INC.W !BonusStarsPosition-$09,X
 	org $008E6F
 		if !DisplayTime != 0
 			LDA.W $0F31|!addr
@@ -230,7 +276,23 @@
 		else
 			nop #18
 		endif
-		
+	org $008E81
+		if !DisplayTime != 0
+			CODE_008E81: LDX.B #$10                ;\
+			CODE_008E83: LDY.B #$00                ;|
+			CODE_008E85: LDA.W $0F31|!addr,Y       ;|
+			CODE_008E88: BNE $0B                   ;|handle when to put a space if the time in that digit (10's, 100's place, etc) is 0
+			CODE_008E8A: LDA.B #$FC                ;|
+			CODE_008E8C: STA.W $0F15|!addr,X       ;|
+			CODE_008E8F: INY                       ;|
+			CODE_008E90: INX                       ;|
+			CODE_008E91: CPY.B #$02                ;|
+			CODE_008E93: BNE CODE_008E85           ;/
+		else
+			JMP.w $008E95
+		endif
+
+
 	org $008F73
 		if !DisplayCoin != 0
 			CODE_008F73: LDA.W $0DBF|!addr         ; \ Get amount of coins in decimal 

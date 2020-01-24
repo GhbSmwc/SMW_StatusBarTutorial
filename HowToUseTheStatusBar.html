@@ -25,8 +25,18 @@
 <p>So you want to edit the HUD to display custom info to the player. Obviously, this requires at least basic ASM knowledge. Fear not! Once you got the pattern down, you'll understand how it works!</p>
 
 <p>You should know by now after reading Ersanio's tutorial<sup><a href="https://www.smwcentral.net/?p=section&a=details&id=15073">[1]</a><a href="https://www.smwcentral.net/?p=section&a=details&id=14268">[2]</a></sup>
-on something simple as how to write a value to memory. You should also know about binary and hexidecimal, since many data store in memory are bitwise.</p>
-
+on something simple as how to write a value to memory. You should also know about binary and hexidecimal, since many data explained here store in memory are bitwise.</p>
+<hr>
+<h2>Javascript tools</h2>
+<ul>
+	<li>
+		<a href="Readme_Files/TileDataAddr.html" id="QuickJSTools_TileDataAddr">S-PPU tile addressing tool</a>
+	</li>
+	<li>
+		<a href="Readme_Files/JS_YXPCCCTT.html" id="QuickJSTools_JS_YXPCCCTT">Quick Hex &harr; Binary converter for YXPCCCTT bit format.</a>
+	</li>
+</ul>
+<hr>
 <p>I have provided several routines to make writing codes much user-friendly as possible. So lets begin.</p>
 <h2>The warm-up: SMW's status bar.</h2>
 <p>Here, consider looking at this image:<br>
@@ -62,7 +72,7 @@ for each 8x8 tile with the tile numbers being in ROM and RAM and the properties 
 which contains all the tiles for the status bar, while the RAM itself only contain some of the tile numbers. To modify hardcoded tiles, I've already presented their addresses that directly correlates to the RAM addresses, for the top and bottom
 lines of the item box:
 <table>
-<tr><th>Position</th><th>Address (%TTTTTTTT, %YXPCCCTT)</th></tr>
+<tr><th>Coordinate</th><th>Address (%TTTTTTTT, %YXPCCCTT)</th></tr>
 <tr><th colspan="2">Top line of item box</th></tr>
 <tr><td><kbd>(14,1)</kbd> (<kbd>($E,$1)</kbd>)</td><td><kbd>$008C81</kbd>, <kbd>$008C82</kbd></td></tr>
 <tr><td><kbd>(15,1)</kbd> (<kbd>($F,$1)</kbd>)</td><td><kbd>$008C83</kbd>, <kbd>$008C84</kbd></td></tr>
@@ -176,7 +186,7 @@ every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead
 			}
 			var Output = ""
 			Output += "<table>"
-			Output += "<tr><th>Tile number/index</th><th>Position</th><th>RAM address</th><th>default tiles and properties ROM address (%TTTTTTTT, %YXPCCCTT)</th></tr>"
+			Output += "<tr><th>Tile number/index</th><th>Coordinate</th><th>RAM address</th><th>default tiles and properties ROM address (%TTTTTTTT, %YXPCCCTT)</th></tr>"
 			for (LoopCount = 0; LoopCount < 55; LoopCount++) {
 				if (LoopCount == 28) {
 					Output += "<tr><th colspan='4'>Second line</th></tr>"
