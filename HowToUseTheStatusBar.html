@@ -37,8 +37,19 @@ on something simple as how to write a value to memory. You should also know abou
 	</li>
 </ul>
 <hr>
+<h2>Quick navigation</h2>
+<li><a href="#WarmUp" id="WarmUpBack">The warm-up: SMW's status bar.</a></li>
+<li><a href="#TileFormat" id="TileFormatBack">Tile data format</a></li>
+<li><a href="#SBPatches" id="SBPatchesBack">Other status bar patches</a></li>
+<li><a href="#RoutineControl" id="RoutineControlBack">Adding routine-controlled display to the HUD.</a></li>
+<ul>
+	<li><a href="#DisplayNumbers" id="DisplayNumbersBack">Displaying decimal numbers</a></li>
+	<li><a href="#RepatedSymbol" id="RepatedSymbolBack">Displaying repeated symbol n times.</a></li>
+</ul>
+<li></li>
+<hr>
 <p>I have provided several routines to make writing codes much user-friendly as possible. So lets begin.</p>
-<h2>The warm-up: SMW's status bar.</h2>
+<h2 id="WarmUp"><a href="#WarmUpBack">^</a>The warm-up: SMW's status bar.</h2>
 <p>Here, consider looking at this image:<br>
 <img src="Readme_Files/StatusBarMap.png"><br>
 RAM address <kbd>$7E0EF9-$7E0F2E</kbd> controls what tile to display. How do you modify it? Well you edit the
@@ -91,7 +102,7 @@ Tilemap Viewer, and select &ldquo;3&rdquo; on the BG.):<br>
 <img src="Readme_Files/TileCoordinate.png"><br>
 and then you can use that coordinate and CTRL+F here on this HTML file to locate what RAM/ROM address to modify, which is way easier than to trial-and-error modifying each address to find the desired location.</p>
 <hr>
-<h2>Tile data format</h2>
+<h2 id="TileFormat"><a href="#TileFormatBack">^</a>Tile data format</h2>
 <p>As explained earlier about the palette issue, and that each 8x8 tile possess 2 tiles, I'll give you a summary of the entire tile data:
 <ul>
 	<li>
@@ -171,7 +182,7 @@ every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead
 </p>
 
 <hr>
-<h2>Other status bar patches</h2>
+<h2 id="SBPatches"><a href="#SBPatchesBack">^</a>Other status bar patches</h2>
 <p>Because SMW's status bar is extremely limited, other users decided to make status bar patches:
 <ul>
 	<li><p><a href="https://www.smwcentral.net/?p=section&a=details&id=19247">Super Status Bar</a>. This gives you a 32x5 8x8 tile area,
@@ -191,19 +202,40 @@ every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead
 		SMB3's HUD on the bottom of the screen. This gives you a 32x4 8x8 tile area, therefore 128 8x8 tiles to edit</p></li>
 	</ul>
 </ul>
-<p><sup>1</sup>Uses the &ldquo;2-bytes together&rdquo; format, the <kbd>[TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]</kbd></p>
-<p><sup>2</sup>Uses the &ldquo;TileNumber and Props in their own table&rdquo; format, the <kbd>[TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]</kbd></p>
 
-<p>Thankfully, I made HTML Javascript files for all of these to enable you to search what RAM address of a given tile.</p>
+<p>You may be wondering:
+<ul>
+<li><sup>1</sup>Uses the &ldquo;2-bytes together&rdquo; format, the <kbd>[TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]</kbd></li>
+<li><sup>2</sup>Uses the &ldquo;TileNumber and Props in their own table&rdquo; format, the <kbd>[TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]</kbd></li>
+</ul>
+Therefore, many ASM patches that display on the status bar that I made are hybrid-support of these two formats. The define <kbd>!StatusbarFormat</kbd> is what
+you need to edit to work with other status bar patches, set it to <kbd>$01</kbd> if &ldquo;TileNumber and Props in their own table&rdquo; otherwise set it to
+<kbd>$02</kbd>.</p>
+
+<p>Thankfully, I made HTML Javascript files for all of these ASM resources to enable you to search what RAM address of a given tile.</p>
 
 </p>
 <hr>
-<h2>Adding routine-controlled display to the HUD.</h2>
+<h2 id="RoutineControl"><a href="#RoutineControlBack">^</a>Adding routine-controlled display to the HUD.</h2>
 <p>This method assumes you are using uberasm tool to test your code to write to the status bar.</p>
 
-<h3>Displaying decimal numbers</h3>
+<p>It's pretty darn easy to write a tile that is different depending on a condition using branches:
+<table><tr><td><pre>	LDA &lt;RAM_Address&gt;
+	BEQ +
+	LDA #$00
+	BRA ++
+	+
+	LDA #$01
+	++
+	STA !StatusBarPosition</pre></td></tr></table></p>
+	
+<p>But what about other not-so-simple displays? Well, the following shows you how to do that.</p>
 
-<p>How do you display digits on the status bar? Well, first, copy/cut <kbd>HexDec.asm</kbd> to uberasm tool's library, this will
+<h3 id="DisplayNumbers"><a href="#DisplayNumbersBack">^</a>Displaying decimal numbers</h3>
+
+<p>To display a single digit, just store the value directly to the tile RAM.</p>
+
+<p>How do you display multi-digits on the status bar? Well, first, copy/cut <kbd>HexDec.asm</kbd> to uberasm tool's library, this will
 apply the routine to be used anywhere throughout uberasm tool-related code. HexDec routines converts a number to binary-coded decimal
 to write each digit tiles onto the status bar. Thankfully, the status bar graphic on GFX28 starts with digits 0-9 so you don't have to
 convert digit numbers to digit graphics (except for overworld border).</p>
@@ -316,11 +348,14 @@ converters. Here is the code in question:
 	endif
 	RTL</pre></td></tr></table><br>
 	
-	Greater than 65535? (unlikely for other stuff besides a huge currency counter or custom score). This one is a 32-bit HexDec.
+	Greater than 65535? (unlikely for other stuff besides a huge currency counter or custom score). This one is a 32-bit HexDec, up to
+	4,294,967,295 can be properly displayed.
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
 !StatusBarPosition = $0F09|!addr	;>Where to write on the status bar
 !StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
-!NumberOfDigitsDisplayed = 9		;>How many digits, enter 1-10 (pointless if you enter less than 5).
+;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !MaxNumberOfDigits
+;(the number digits stored in each byte in !Scratchram_32bitHexDecOutput), else garbage will appear.
+	!NumberOfDigitsDisplayed = 9		;>How many digits, enter 1-10 (pointless if you enter less than 5).
 
 	;Don't change this.
 		if defined("sa1") == 0
@@ -368,12 +403,68 @@ converters. Here is the code in question:
 		DEX #2
 		BPL -
 	endif
-	RTL
+	RTL</pre></td></tr></table><br>
+	
+Don't ask me to make an even larger number display, because not many games would ever display 10 digits at once, plus, it takes up space on the HUD.</p>
 
-</pre></td></tr></table>
+<h4>Removing leading zeroes</h4>
+<p>Perhaps, how these routines work is that if there are no more digits left, will output 0. However, you can erase these leading zeroes like so by adding
+this code after the JSL routine and before writing them to the status bar:
+<table><tr><td><pre>	RemoveLeadingZeroes:
+	LDX #$00
+	
+	.Loop
+	LDA !DigitTable,x		;\if current digit non-zero, don't omit trailing zeros
+	BNE .NonZero			;/
+	LDA #$FC			;\blank tile to replace leading zero
+	STA !DigitTable,x		;/
+	INX				;>next digit
+	CPX #!NumberOfDigitsDisplayed-1	;>last digit to check. So that it can display a single 0.
+	BCC .Loop			;>if not done yet, continue looping.
+	
+	.NonZero
+	RTL</pre></td></tr></table>
+	Replace &ldquo;<kbd>!DigitTable</kbd>&rdquo; with &ldquo;<kbd>!Scratchram_32bitHexDecOutput</kbd>&rdquo; if you are using the 32-bit HexDec.
+	
+</p>
+<h2 id="RepatedSymbol"><a href="#RepatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
+<p>You probably have seen something like this that represents n/max number of things graphically:<br>
+<font size="10">&#9642;&#9642;&#9642;&#9642;&#9643;</font><br>
+This is often used to represent things that are small number of units. Code follows:
+<table><tr><td><pre>!MaxNumberOfSymbols = 5
+!StatusBarPosition = $0EF9|!addr
+!RAMToMeasure = $60
+!StatusbarFormat = $01
+
+;Tile numbers
+	!EmptyTile = $00
+	!FullTile = $01
+
+	main:
+	LDX #$00
+	
+	.Loop
+	TXA				;\If tile index is >= Amount (or Amount is less than index), write empty.
+	CMP !RAMToMeasure		;/
+	BCS ..Empty
+	
+	..Full
+	LDA #!FullTile
+	BRA +
+	
+	..Empty
+	LDA #!EmptyTile
+	
+	+
+	STA !StatusBarPosition,x
+	INX #!StatusbarFormat
+	TXA						;\Didn't use INX : BNE .Loop for failsafe should X goes past the max amount.
+	CMP.b #!MaxNumberOfSymbols*!StatusbarFormat	;|
+	BCC .Loop					;/
+	RTL</pre></td></tr></table>
+
 
 </p>
-
 <hr>
 <h2>Further documentation</h2>
 <p>SMW (or the SNES in general) have layer 3 stored as <kbd>2BPP</kbd> format. Meaning that each pixel will take 2 bits. 2 Bits will give you 4 possible values; 0-3</p>
