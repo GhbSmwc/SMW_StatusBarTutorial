@@ -239,7 +239,7 @@ display their decimal version of the hex number:
 <tr><td bgcolor="red">$64</td><td bgcolor="red">A0</td></tr>
 </table>
 What happens if you enter numbers greater than $63? Well, if the number is greater than $64, the 10s place digit start showing graphics other than digits. This is because of how the routine works,
-is that the 10s place digit wasn't wrapped (wrapped, as in digits reset to 0 when going past 9: 8, 9, 0, 1 , 2...), so it can display &ldquo;digits&rdquo; greater than 9</p>
+is that the 10s place digit wasn't wrapped (wrapped, as in digits reset to 0 when going past 9: 8, 9, 0, 1 , 2...), so it can display &ldquo;digits&rdquo; greater than 9 (98, 99, A0, A1, A2...).</p>
 
 <p>You can fix this problem and make it allow the full range of the 8-bit value by after writing the ones digit, TXA, then call the routine again, and after that, A is the 10s, and X is the 100s place:
 <table><tr><td><pre>!RAMToMeasure = $60		;&gt;RAM address you what to show
