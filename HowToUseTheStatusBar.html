@@ -90,7 +90,7 @@ If you modify these hardcoded values through a debugger, the changes will only a
 Tilemap Viewer, and select &ldquo;3&rdquo; on the BG.):<br>
 <img src="Readme_Files/TileCoordinate.png"><br>
 and then you can use that coordinate and CTRL+F here on this HTML file to locate what RAM/ROM address to modify, which is way easier than to trial-and-error modifying each address to find the desired location.</p>
-
+<hr>
 <h2>Tile data format</h2>
 <p>As explained earlier about the palette issue, and that each 8x8 tile possess 2 tiles, I'll give you a summary of the entire tile data:
 <ul>
@@ -145,7 +145,8 @@ On a separate table:
 !TilePropAddr+1: YXPCCCTT (tile 1)
 !TilePropAddr+2: YXPCCCTT (tile 2)
 !TilePropAddr+3: YXPCCCTT (tile 3)
-[...]</pre></td></tr></table><br>
+[...]
+;I refer this as "[TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]"</pre></td></tr></table><br>
 Tile numbers and properties are stored in 2 separate tables, one for each.
 Every time you advance the next byte, you are on the next 8x8 tile.
 </td>
@@ -158,7 +159,9 @@ Every time you advance the next byte, you are on the next 8x8 tile.
 !TileAddr+5: YXPCCCTT (tile 2)
 !TileAddr+6: TTTTTTTT (tile 3)
 !TileAddr+7: YXPCCCTT (tile 3)
-[...]</pre></td></tr></table><br>
+[...]
+
+;I call refer this as "[TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]"</pre></td></tr></table><br>
 Every tile have 2 bytes placed one after another, so both tile numbers and properties are alternating
 every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead of one.
 
@@ -167,9 +170,103 @@ every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead
 </table>
 </p>
 
-
+<hr>
 <h2>Other status bar patches</h2>
+<p>Because SMW's status bar is extremely limited, other users decided to make status bar patches:
+<ul>
+	<li><p><a href="https://www.smwcentral.net/?p=section&a=details&id=19247">Super Status Bar</a>. This gives you a 32x5 8x8 tile area,
+	therefore 160 8x8 tiles to edit.<sup>1</sup></p></li>
+	
+	<li><p><a href="https://www.smwcentral.net/?p=section&a=details&id=21665">Overworld Border +</a>. Not a &ldquo;status bar&rdquo;, but similar
+	in terms of editing the layer 3 8x8 tiles. This gives you 32x<kbd>!TopLines</kbd> (for the top of the screen) and 32x<kbd>!BottomLines</kbd> (for the bottom of the screen)
+	8x8 tile area, therefore, up to 224 8x8 tiles you can edit.<sup>1</sup>. <kbd>!TopLines</kbd> is how many lines for the top of the screen, an integer 0-5.
+	<kbd>!BottomLines</kbd> is same as previously mentioned, but for the bottom of the screen being an integer 0-2.</p></li>
+	
+<li><p><a href="https://www.smwcentral.net/?p=profile&id=4842">Ladida</a>'s status bar patches<sup>2</sup></p></li>
+	<ul>
+		<li><p><a href="https://www.smwcentral.net/?p=section&a=details&id=21562">Minimalist Status Bars</a>. This shrinks your status bar to 1 or
+		2 lines of 8x8 tiles. Therefore, 32 or 64 tiles you can edit.</p></li>
+		
+		<li><p><a href="https://www.smwcentral.net/?p=section&a=details&id=21573">SMB3 Status Bar</a>. True to the name, this replaces SMW's HUD with
+		SMB3's HUD on the bottom of the screen. This gives you a 32x4 8x8 tile area, therefore 128 8x8 tiles to edit</p></li>
+	</ul>
+</ul>
+<p><sup>1</sup>Uses the &ldquo;2-bytes together&rdquo; format, the <kbd>[TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]</kbd></p>
+<p><sup>2</sup>Uses the &ldquo;TileNumber and Props in their own table&rdquo; format, the <kbd>[TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]</kbd></p>
 
+<p>Thankfully, I made HTML Javascript files for all of these to enable you to search what RAM address of a given tile.</p>
+
+</p>
+<hr>
+<h2>Adding routine-controlled display to the HUD.</h2>
+<p>This method assumes you are using uberasm tool to test your code to write to the status bar.</p>
+
+<p>How do you display digits on the status bar? Well, first, copy/cut <kbd>HexDec.asm</kbd> to uberasm tool's library, this will
+apply the routine to be used anywhere throughout uberasm tool-related code. HexDec routines converts a number to binary-coded decimal
+to write each digit tiles onto the status bar. Thankfully, the status bar graphic on GFX28 starts with digits 0-9 so you don't have to
+convert digit numbers to digit graphics (except for overworld border).</p>
+
+
+<p>Create a text file, name it <kbd>StatusBarTest.asm</kbd>. Edit that text file to include this code:
+<table><tr><td><pre>!RAMToMeasure = $60		;&gt;RAM address you what to show
+!StatusBarPosition = $0EF9	;&gt;Where to write on the status bar
+!StatusbarFormat = $01		;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+
+	main:
+	LDA !RAMToMeasure
+	JSL HexDec_EightBitHexDec
+	STA !StatusBarPosition+(1*!StatusbarFormat)	;&gt;Write 1s place
+	TXA						;&gt;if you are using status bar patches, STX $xxxxxx will not work.
+	STA !StatusBarPosition				;&gt;Write 10s place
+</pre></td></tr></table></p>
+
+<p>Now save, and insert in either as gamemode under number 14 (level), or level. Then run the tool to apply the changes.</p>
+
+<p>Test the game (using a debugger, bsnes+) by going to the level that you inserted this created ASM file (or any level if using gamemode 14), you should see the
+digits displayed on the HUD. Again, palettes, X/Y flips and other weird shenanigans can happen if you use SMW's vanilla status bar without
+editing the default values. Now depending on what RAM to use set by <kbd>!RAMToMeasure</kbd>, it could display <kbd>00</kbd> or [<kbd>&lt;digits 0-9 or glitched tile here&gt;&lt;digits 0-9&gt;</kbd>],
+then on the debugger window, go to memory editor and search for the RAM you set for <kbd>!RAMToMeasure</kbd> (example: 60), edit the value in that byte to be any values $00-$63. It should
+display their decimal version of the hex number:
+<table>
+<tr><th>Hex bytes</th><th>Displayed</th></tr>
+<tr><td>$09</td><td>09</td></tr>
+<tr><td>$0A</td><td>10</td></tr>
+<tr><td>$0B</td><td>11</td></tr>
+<tr><td colspan="2">...</td></tr>
+<tr><td>$61</td><td>97</td></tr>
+<tr><td>$62</td><td>98</td></tr>
+<tr><td>$63</td><td>99</td></tr>
+<tr><td bgcolor="red">$64</td><td bgcolor="red">A0</td></tr>
+</table>
+What happens if you enter numbers greater than $63? Well, if the number is greater than $64, the 10s place digit start showing graphics other than digits. This is because of how the routine works,
+is that the 10s place digit wasn't wrapped (wrapped, as in digits reset to 0 when going past 9: 8, 9, 0, 1 , 2...), so it can display &ldquo;digits&rdquo; greater than 9</p>
+
+<p>You can fix this problem and make it allow the full range of the 8-bit value by after writing the ones digit, TXA, then call the routine again, and after that, A is the 10s, and X is the 100s place:
+<table><tr><td><pre>!RAMToMeasure = $60		;&gt;RAM address you what to show
+!StatusBarPosition = $0EF9	;&gt;Where to write on the status bar
+!StatusbarFormat = $01		;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+
+	main:
+	LDA !RAMToMeasure
+	JSL HexDec_EightBitHexDec
+	STA !StatusBarPosition+(2*!StatusbarFormat)	;&gt;Write 1s place
+	TXA						;&gt;Call again to get the 10s and 100s.
+	JSL HexDec_EightBitHexDec
+	STA !StatusBarPosition+(1*!StatusbarFormat)	;&gt;Write 10s place
+	TXA						;&gt;STX $xxxxxx don't exists.
+	STA !StatusBarPosition				;&gt; Write 100s place
+</pre></td></tr></table><br>
+The reason why this works is because A is the modulo result of A/10 of the input. Modulo is the division remainder and wraps a number
+into a range of <kbd>0</kbd> to <kbd>Divisor-1</kbd> (in this case, 0-9). This is the same as repeated subtraction until the number cannot be subtracted any more (when < 10).
+To handle the higher digits, the loop also counts every sucessful subtractions by 10, which is how X increases every 10th value. When handling the 100s digit, you
+basically divided the value by 10 again, which is <kbd>!RAMToMeasure/10/10</kbd>, which is the same as <kbd>!RAMToMeasure/(10^2)</kbd> which leads to <kbd>!RAMToMeasure/100</kbd>,
+resulting A now being the 10s place wrapping every 100 and X increasing every 100. Because the maximum value stored in an 8-bit byte is 255, there is no way the hundreds place digit
+will be able to glitch out at 1000. For more information how base conversion works, I found a wikipedia article on positional notation
+<a href="https://en.wikipedia.org/wiki/Positional_notation#Base_conversion">on converting radixes</a>.</p>
+
+<p>What about if I wanted to convert 16-bit numbers? Well, good news for you, I've provided more than just 8-bit hexdec converters.</p>
+
+<hr>
 <h2>Further documentation</h2>
 <p>SMW (or the SNES in general) have layer 3 stored as <kbd>2BPP</kbd> format. Meaning that each pixel will take 2 bits. 2 Bits will give you 4 possible values; 0-3</p>
 
