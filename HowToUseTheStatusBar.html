@@ -235,7 +235,7 @@ you need to edit to work with other status bar patches, set it to <kbd>$01</kbd>
 
 <p>To display a single digit, just store the value directly to the tile RAM.</p>
 
-<p>How do you display multi-digits on the status bar? Well, first, copy/cut <kbd>HexDec.asm</kbd> to uberasm tool's library, this will
+<p>How do you display multi-digits on the status bar? Well, first, copy/cut <kbd>HexDec.asm</kbd> (inside the StatusBarRoutines folder) to uberasm tool's library, this will
 apply the routine to be used anywhere throughout uberasm tool-related code. HexDec routines converts a number to binary-coded decimal
 to write each digit tiles onto the status bar. Thankfully, the status bar graphic on GFX28 starts with digits 0-9 so you don't have to
 convert digit numbers to digit graphics (except for overworld border).</p>
@@ -461,10 +461,8 @@ This is often used to represent things that are small number of units. Code foll
 	TXA						;\Didn't use INX : BNE .Loop for failsafe should X goes past the max amount.
 	CMP.b #!MaxNumberOfSymbols*!StatusbarFormat	;|
 	BCC .Loop					;/
-	RTL</pre></td></tr></table>
-
-
-</p>
+	RTL</pre></td></tr></table><br>
+You can copy and paste this, and tweek the values if you want multiple repeated icons displays.</p>
 <hr>
 <h2>Further documentation</h2>
 <p>SMW (or the SNES in general) have layer 3 stored as <kbd>2BPP</kbd> format. Meaning that each pixel will take 2 bits. 2 Bits will give you 4 possible values; 0-3</p>
