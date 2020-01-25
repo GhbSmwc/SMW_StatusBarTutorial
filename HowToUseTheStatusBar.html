@@ -242,9 +242,9 @@ convert digit numbers to digit graphics (except for overworld border).</p>
 
 
 <p>Create a text file, name it <kbd>StatusBarTest.asm</kbd>. Edit that text file to include this code:
-<table><tr><td><pre>!RAMToMeasure = $60		;&gt;RAM address you what to show
+<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
-!StatusbarFormat = $01		;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+!StatusbarFormat = $01			;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
 
 	main:
 	LDA !RAMToMeasure
@@ -428,41 +428,36 @@ this code after the JSL routine and before writing them to the status bar:
 	
 </p>
 <h2 id="RepatedSymbol"><a href="#RepatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
-<p>You probably have seen something like this that represents n/max number of things graphically:<br>
+<p>You probably have seen something like this in most video games that represents health using repeated icons:<br>
 <font size="10">&#9642;&#9642;&#9642;&#9642;&#9643;</font><br>
-This is often used to represent things that are small number of units. Code follows:
+This is often used to represent each unit individually. Code follows:
 <table><tr><td><pre>!MaxNumberOfSymbols = 5
 !StatusBarPosition = $0EF9|!addr
 !RAMToMeasure = $60
 !StatusbarFormat = $01
 
 ;Tile numbers
-	!EmptyTile = $00
-	!FullTile = $01
+	!EmptyTile = $26
+	!FullTile = $2E
 
 	main:
-	LDX #$00
-	
-	.Loop
-	TXA				;\If tile index is >= Amount (or Amount is less than index), write empty.
-	CMP !RAMToMeasure		;/
-	BCS ..Empty
-	
-	..Full
-	LDA #!FullTile
-	BRA +
-	
-	..Empty
+	LDA $60
+	STA $00
+	LDA #!MaxNumberOfSymbols
+	STA $01
 	LDA #!EmptyTile
-	
-	+
-	STA !StatusBarPosition,x
-	INX #!StatusbarFormat
-	TXA						;\Didn't use INX : BNE .Loop for failsafe should X goes past the max amount.
-	CMP.b #!MaxNumberOfSymbols*!StatusbarFormat	;|
-	BCC .Loop					;/
+	STA $02
+	LDA #!FullTile
+	STA $03
+	LDA.b #!StatusBarPosition
+	STA $04
+	LDA.b #!StatusBarPosition>>8
+	STA $05
+	LDA.b #!StatusBarPosition>>16
+	STA $06
+	JSL RepeatedSymbols_WriteRepeatedSymbols
 	RTL</pre></td></tr></table><br>
-You can copy and paste this, and tweek the values if you want multiple repeated icons displays.</p>
+To make it fill leftwards, just use <kbd>RepeatedSymbols_WriteRepeatedSymbolsLeftwards</kbd> instead of <kbd>RepeatedSymbols_WriteRepeatedSymbols</kbd>.</p>
 <hr>
 <h2>Further documentation</h2>
 <p>SMW (or the SNES in general) have layer 3 stored as <kbd>2BPP</kbd> format. Meaning that each pixel will take 2 bits. 2 Bits will give you 4 possible values; 0-3</p>
