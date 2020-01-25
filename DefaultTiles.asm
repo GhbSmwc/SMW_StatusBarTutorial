@@ -93,8 +93,10 @@
 	!DisplayCoin		= 1
 	!CoinPosition		= $0F13|!addr
 	
-	!DisplayScore		= 0			;>To completely remove the scoring system, consider using this patch: https://www.smwcentral.net/?p=section&a=details&id=20270
-	!ScorePosition		= $0F29|!addr
+	;Score. To remove, it's better to use this patch: https://www.smwcentral.net/?p=section&a=details&id=20270
+	;Also note that since the score only stores the first 6 digits with the last "0" just being a static graphic, moving
+	;this will not also move the "0" with it, again, edit the default tiles below.
+		!ScorePosition		= $0F29|!addr
 
 ;Default tiles. These are what the tiles will appear if they are not written by a routine.
 ;Format: db $<Hex tile number>, %YXPCCCTT.
@@ -161,7 +163,7 @@
 			db $FC, %00111000	;>Position: (26,03) (($1A,$03)) RAM: $0F2C
 			db $FC, %00111000	;>Position: (27,03) (($1B,$03)) RAM: $0F2D
 			db $FC, %00111000	;>Position: (28,03) (($1C,$03)) RAM: $0F2E
-			db $00, %00111000	;>Position: (29,03) (($1D,$03)) RAM: $0F2F
+			db $00, %00111000	;>Position: (29,03) (($1D,$03)) RAM: $0F2F ;>The "0" that is a static tile.
 	org $008CF7
 		;Bottom 4 tiles of the item box
 			db $3A, %10111000	;>Position: (14,04) (($0E,$04)) RAM: N/A
@@ -264,6 +266,7 @@
 			endif
 		endif
 	org $009068
+		;X=$09 initially
 		INC.W !BonusStarsPosition-$09,X
 	org $008E6F
 		if !DisplayTime != 0
@@ -305,3 +308,18 @@
 		else
 			nop #17
 		endif
+	;Score stuff
+		org $008EE0
+			LDA.w !ScorePosition,x
+		org $008EE7
+			STA.w !ScorePosition,x
+		org $008F0E
+			LDA.w !ScorePosition,x
+		org $008F15
+			STA.W !ScorePosition,x
+	;Modify score position for the hexdec code.
+	;X=$14 initally.
+		org $009014
+			STZ.w !ScorePosition-$14,x
+		org $009034
+			INC.w !ScorePosition-$14,x
