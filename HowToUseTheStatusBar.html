@@ -201,6 +201,8 @@ every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead
 <h2>Adding routine-controlled display to the HUD.</h2>
 <p>This method assumes you are using uberasm tool to test your code to write to the status bar.</p>
 
+<h3>Displaying decimal numbers</h3>
+
 <p>How do you display digits on the status bar? Well, first, copy/cut <kbd>HexDec.asm</kbd> to uberasm tool's library, this will
 apply the routine to be used anywhere throughout uberasm tool-related code. HexDec routines converts a number to binary-coded decimal
 to write each digit tiles onto the status bar. Thankfully, the status bar graphic on GFX28 starts with digits 0-9 so you don't have to
@@ -209,7 +211,7 @@ convert digit numbers to digit graphics (except for overworld border).</p>
 
 <p>Create a text file, name it <kbd>StatusBarTest.asm</kbd>. Edit that text file to include this code:
 <table><tr><td><pre>!RAMToMeasure = $60		;&gt;RAM address you what to show
-!StatusBarPosition = $0EF9	;&gt;Where to write on the status bar
+!StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
 !StatusbarFormat = $01		;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
 
 	main:
@@ -218,6 +220,7 @@ convert digit numbers to digit graphics (except for overworld border).</p>
 	STA !StatusBarPosition+(1*!StatusbarFormat)	;&gt;Write 1s place
 	TXA						;&gt;if you are using status bar patches, STX $xxxxxx will not work.
 	STA !StatusBarPosition				;&gt;Write 10s place
+	RTL
 </pre></td></tr></table></p>
 
 <p>Now save, and insert in either as gamemode under number 14 (level), or level. Then run the tool to apply the changes.</p>
@@ -238,13 +241,14 @@ display their decimal version of the hex number:
 <tr><td>$63</td><td>99</td></tr>
 <tr><td bgcolor="red">$64</td><td bgcolor="red">A0</td></tr>
 </table>
-What happens if you enter numbers greater than $63? Well, if the number is greater than $64, the 10s place digit start showing graphics other than digits. This is because of how the routine works,
-is that the 10s place digit wasn't wrapped (wrapped, as in digits reset to 0 when going past 9: 8, 9, 0, 1 , 2...), so it can display &ldquo;digits&rdquo; greater than 9 (98, 99, A0, A1, A2...).</p>
+What happens if you enter numbers greater than $63? Well, when the routine is used like that, it is designed to display 2 digits. If the number is greater than $64, the 10s place digit start showing graphics
+other than digits. This is because of how the routine works, is that the 10s place digit wasn't wrapped (wrapped, as in digits reset to 0 when going past 9: 8, 9, 0, 1 , 2...), so it can display
+&ldquo;digits&rdquo; greater than 9 (98, 99, A0, A1, A2...).</p>
 
 <p>You can fix this problem and make it allow the full range of the 8-bit value by after writing the ones digit, TXA, then call the routine again, and after that, A is the 10s, and X is the 100s place:
-<table><tr><td><pre>!RAMToMeasure = $60		;&gt;RAM address you what to show
-!StatusBarPosition = $0EF9	;&gt;Where to write on the status bar
-!StatusbarFormat = $01		;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
+!StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
+!StatusbarFormat = $01			;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
 
 	main:
 	LDA !RAMToMeasure
@@ -255,6 +259,7 @@ is that the 10s place digit wasn't wrapped (wrapped, as in digits reset to 0 whe
 	STA !StatusBarPosition+(1*!StatusbarFormat)	;&gt;Write 10s place
 	TXA						;&gt;STX $xxxxxx don't exists.
 	STA !StatusBarPosition				;&gt; Write 100s place
+	RTL
 </pre></td></tr></table><br>
 The reason why this works is because A is the modulo result of A/10 of the input. Modulo is the division remainder and wraps a number
 into a range of <kbd>0</kbd> to <kbd>Divisor-1</kbd> (in this case, 0-9). This is the same as repeated subtraction until the number cannot be subtracted any more (when < 10).
@@ -264,7 +269,110 @@ resulting A now being the 10s place wrapping every 100 and X increasing every 10
 will be able to glitch out at 1000. For more information how base conversion works, I found a wikipedia article on positional notation
 <a href="https://en.wikipedia.org/wiki/Positional_notation#Base_conversion">on converting radixes</a>.</p>
 
-<p>What about if I wanted to convert 16-bit numbers? Well, good news for you, I've provided more than just 8-bit hexdec converters.</p>
+<p>What about if I wanted to convert 16-bit numbers (or if you have 3-4 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit hexdec
+converters. Here is the code in question:
+<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
+!StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
+!StatusbarFormat = $01			;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+!NumberOfDigitsDisplayed = 5		;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+
+	;Don't change this.
+		if defined(!sa1) == 0
+			if read1($00FFD5) == $23
+				!sa1 = 1
+				sa1rom
+			else
+				!sa1 = 0
+			endif
+		endif
+
+		!HexDecDigitTable = $02
+		if !sa1 != 0
+			!HexDecDigitTable = $04
+		endif
+	main:
+	REP #$20
+	LDA !RAMToMeasure
+	STA $00
+	SEP #$20
+	JSL HexDec_SixteenBitHexDec
+	
+	if !StatusbarFormat == $01
+		LDX.b #(!NumberOfDigitsDisplayed-1)
+		-
+		LDA.b !HexDecDigitTable+$04-(!NumberOfDigitsDisplayed-1),x
+		STA !StatusBarPosition,x
+		DEX
+		BPL -
+	else
+		LDX #((!NumberOfDigitsDisplayed-1)*2)
+		LDY #(!NumberOfDigitsDisplayed-1)
+		-
+		LDA.w (!HexDecDigitTable)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
+		STA !StatusBarPosition,x
+		DEY
+		DEX #2
+		BPL -
+	endif
+	RTL</pre></td></tr></table><br>
+	
+	Greater than 65535? (unlikely for other stuff besides a huge currency counter or custom score). This one is a 32-bit HexDec.
+<table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
+!StatusBarPosition = $0F09|!addr	;>Where to write on the status bar
+!StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+!NumberOfDigitsDisplayed = 9		;>How many digits, enter 1-10 (pointless if you enter less than 5).
+
+	;Don't change this.
+		if defined("sa1") == 0
+			if read1($00FFD5) == $23
+				!sa1 = 1
+				sa1rom
+			else
+				!sa1 = 0
+			endif
+		endif
+	;Copied defines from the routines in case of errors.
+		!MaxNumberOfDigits = 9
+		;^Number of digits to be stored. Up to 10 because maximum
+		; 32-bit unsigned integer is 4,294,967,295.
+		
+		!Scratchram_32bitHexDecOutput = $7F844E
+		;^[bytes_used = !MaxNumberOfDigits] The output
+		; formatted each byte is each digit 0-9.
+	main:
+	REP #$20
+	LDA $60
+	STA $00
+	LDA $62
+	STA $02
+	SEP #$20
+	JSL HexDec_Convert32bitIntegerToDecDigits
+	
+	if !StatusbarFormat == $01
+		LDX.b #(!NumberOfDigitsDisplayed-1)
+		-
+		LDA !Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
+		STA !StatusBarPosition,x
+		DEX
+		BPL -
+	else
+		LDX #((!NumberOfDigitsDisplayed-1)*2)
+		LDY #(!NumberOfDigitsDisplayed-1)
+		-
+		PHX
+		TYX												;&gt;Sigh, LDA $xxxxxx,y does not exist.
+		LDA (!Scratchram_32bitHexDecOutput)+(!MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1)|!dp,x
+		PLX
+		STA !StatusBarPosition,x
+		DEY
+		DEX #2
+		BPL -
+	endif
+	RTL
+
+</pre></td></tr></table>
+
+</p>
 
 <hr>
 <h2>Further documentation</h2>

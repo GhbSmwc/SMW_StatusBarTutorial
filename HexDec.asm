@@ -148,3 +148,82 @@ EightBitHexDec:
 				SEP #$20
 				RTL
 	endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;32-bit hex-dec converter
+;input:
+;-$00-$03 = the 32-bit number, in little endian, example:
+; $11223344 ([$44,$33,$22,$11]) should output 287454020.
+;
+;output:
+;-!Scratchram_32bitHexDecOutput to (!Scratchram_32bitHexDecOutput+!MaxNumberOfDigits)-1:
+; Contains value 0-9 on every byte, in big endian digits (last byte is the ones place).
+; Formula to get what RAM of a given digit:
+;
+; !Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)-(DigitIndex)
+;
+; Where DigitIndex is an integer ranging from 0 to !MaxNumberOfDigits-1, representing what digit with 0
+; being the ones, 2 being 10s, and so on:
+; DigitValue = 0: 1s place (ex. w/ 6 digits: $7F8453)
+; DigitValue = 1: 10s place (ex. w/ 6 digits: $7F8452)
+; DigitValue = 2: 100s place (ex. w/ 6 digits: $7F8451)
+; DigitValue = 3: 1000s place (ex. w/ 6 digits: $7F8450)
+; [...]
+; DigitValue = 5: 100000s place (ex. w/ 6 digits: $7F844E)
+;
+;Overwritten
+;-$04 to $05: because remainder of the division.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+!MaxNumberOfDigits = 9
+;^Number of digits to be stored. Up to 10 because maximum
+; 32-bit unsigned integer is 4,294,967,295.
+
+!Scratchram_32bitHexDecOutput = $7F844E
+;^[bytes_used = !MaxNumberOfDigits] The output
+; formatted each byte is each digit 0-9.
+	Convert32bitIntegerToDecDigits:
+	LDX.b #!MaxNumberOfDigits-1
+	
+	.Loop
+	LDA.b #10				;\divide by 10 (the radix)
+	STA $04					;|
+	STZ $05					;/
+	JSL MathDiv32_16			;>divide.
+	LDA $04					;\write remainder digit (obviously shouldn't exceed 255)
+	STA !Scratchram_32bitHexDecOutput,x	;/
+	
+	..Next
+	DEX					;\loop until all digits are written
+	BPL .Loop				;/
+	RTL
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Unsigned 32bit / 16bit Division
+; By Akaginite (ID:8691), fixed the overflow
+; bitshift by GreenHammerBro (ID:18802)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Arguments
+; $00-$03 : Dividend
+; $04-$05 : Divisor
+; Return values
+; $00-$03 : Quotient
+; $04-$05 : Remainder
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+MathDiv32_16:	REP #$20
+		ASL $00
+		ROL $02
+		LDY #$1F
+		LDA.w #$0000
+-		ROL A
+		BCS +
+		CMP $04
+		BCC ++
++		SBC $04
+		SEC
+++		ROL $00
+		ROL $02
+		DEY
+		BPL -
+		STA $04
+		SEP #$20
+		RTL
