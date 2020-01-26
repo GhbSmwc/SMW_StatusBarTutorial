@@ -45,6 +45,7 @@ on something simple as how to write a value to memory. You should also know abou
 <ul>
 	<li><a href="#DisplayNumbers" id="DisplayNumbersBack">Displaying decimal numbers</a></li>
 	<li><a href="#RepatedSymbol" id="RepatedSymbolBack">Displaying repeated symbol n times.</a></li>
+	<li><a href="#GraphicalBar" id="GraphicalBarBack">Display a graphical bar</a></li>
 </ul>
 <li></li>
 <hr>
@@ -428,7 +429,7 @@ this code after the JSL routine and before writing them to the status bar:
 	
 </p>
 <h2 id="RepatedSymbol"><a href="#RepatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
-<p>You probably have seen something like this in most video games that represents health using repeated icons:<br>
+<p>You probably have seen something like this in most video games that represents health using repeated icons with some or all of them &ldquo;filled&rdquo;:<br>
 <font size="10">&#9642;&#9642;&#9642;&#9642;&#9643;</font><br>
 This is often used to represent each unit individually. Code follows:
 <table><tr><td><pre>!MaxNumberOfSymbols = 5
@@ -458,6 +459,14 @@ This is often used to represent each unit individually. Code follows:
 	JSL RepeatedSymbols_WriteRepeatedSymbols
 	RTL</pre></td></tr></table><br>
 To make it fill leftwards, just use <kbd>RepeatedSymbols_WriteRepeatedSymbolsLeftwards</kbd> instead of <kbd>RepeatedSymbols_WriteRepeatedSymbols</kbd>.</p>
+
+<h2 id="GraphicalBar"><a href="#GraphicalBarBack">^</a>Display a graphical bar</h2>
+
+<p>Unlike the repeated symbol, values displayed as a graphical bar is a more &ldquo;continuous&rdquo; value (pixel by pixel, or any amount per tile increments instead of
+tile by tile):<br>
+<img src="Readme_Files/TransperentBackground.png"><br>
+
+<a href="https://www.smwcentral.net/?p=section&a=details&id=19552">See resource here</a>. Reason this package not including this is because too much information to be had here.</p>
 <hr>
 <h2>Further documentation</h2>
 <p>SMW (or the SNES in general) have layer 3 stored as <kbd>2BPP</kbd> format. Meaning that each pixel will take 2 bits. 2 Bits will give you 4 possible values; 0-3</p>
