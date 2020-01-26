@@ -228,7 +228,18 @@ you need to edit to work with other status bar patches, set it to <kbd>$01</kbd>
 	+
 	LDA #$01
 	++
-	STA !StatusBarPosition</pre></td></tr></table></p>
+	STA !StatusBarPosition</pre></td></tr></table><br>
+and if you are tired of branches, then an even simpler approach is to use tables:
+<table><tr><td><pre>	LDA &lt;RAM_Address&gt;
+	TAX
+	LDA Table,x
+	STA !StatusBarPosition
+	RTL
+	
+	Table:
+	db $xx ;&gt;When &lt;RAM_Address&gt; = $00
+	db $xx ;&gt;When &lt;RAM_Address&gt; = $01
+	db $xx ;&gt;When &lt;RAM_Address&gt; = $02</pre></td></tr></table></p>
 	
 <p>But what about other not-so-simple displays? Well, the following shows you how to do that.</p>
 
@@ -429,13 +440,14 @@ this code after the JSL routine and before writing them to the status bar:
 	
 </p>
 <h2 id="RepatedSymbol"><a href="#RepatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
-<p>You probably have seen something like this in most video games that represents health using repeated icons with some or all of them &ldquo;filled&rdquo;:<br>
+<p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example
+4/5 filled shows 5 symbols with 4 of them filled:<br>
 <font size="10">&#9642;&#9642;&#9642;&#9642;&#9643;</font><br>
-This is often used to represent each unit individually. Code follows:
-<table><tr><td><pre>!MaxNumberOfSymbols = 5
-!StatusBarPosition = $0EF9|!addr
-!RAMToMeasure = $60
-!StatusbarFormat = $01
+SMW actually does this with its yoshi coin counter (some or all of them shows a coin symbol with the rest showing tile #$FC). This is often used whenever a number of something is a small amount. Code follows:
+<table><tr><td><pre>!MaxNumberOfSymbols = 5			;>RAM address you what to show
+!StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
+!RAMToMeasure = $60			;>RAM address you what to show
+!StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
 
 ;Tile numbers
 	!EmptyTile = $26
