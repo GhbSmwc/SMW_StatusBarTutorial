@@ -47,7 +47,7 @@ on something simple as how to write a value to memory. You should also know abou
 	<li><a href="#RepatedSymbol" id="RepatedSymbolBack">Displaying repeated symbol n times.</a></li>
 	<li><a href="#GraphicalBar" id="GraphicalBarBack">Display a graphical bar</a></li>
 </ul>
-<li></li>
+<li><a href="#OtherNotes" id="OtherNotesBack">Other Notes</a></li>
 <hr>
 <p>I have provided several routines to make writing codes much user-friendly as possible. So lets begin.</p>
 <h2 id="WarmUp"><a href="#WarmUpBack">^</a>The warm-up: SMW's status bar.</h2>
@@ -218,7 +218,8 @@ you need to edit to work with other status bar patches, set it to <kbd>$01</kbd>
 </p>
 <hr>
 <h2 id="RoutineControl"><a href="#RoutineControlBack">^</a>Adding routine-controlled display to the HUD.</h2>
-<p>This method assumes you are using uberasm tool to test your code to write to the status bar.</p>
+<p>This method assumes you are using uberasm tool to test your code to write to the status bar. The first ting you want to do is have all the ASM files in &ldquo;<kbd>StatusBarRoutines</kbd>&rdquo;
+inserted into uberasm tool's &ldquo;<kbd>library</kbd>&rdquo; folder.</p>
 
 <p>It's pretty darn easy to write a tile that is different depending on a condition using branches:
 <table><tr><td><pre>	LDA &lt;RAM_Address&gt;
@@ -245,12 +246,16 @@ and if you are tired of branches, then an even simpler approach is to use tables
 
 <h3 id="DisplayNumbers"><a href="#DisplayNumbersBack">^</a>Displaying decimal numbers</h3>
 
-<p>To display a single digit, just store the value directly to the tile RAM.</p>
+<p>To display a single digit, just store the value directly to the tile RAM. Digits are correctly displayed if the value is 0-9. Any above that will display more than just digits.</p>
 
-<p>How do you display multi-digits on the status bar? Well, first, copy/cut <kbd>HexDec.asm</kbd> (inside the StatusBarRoutines folder) to uberasm tool's library, this will
-apply the routine to be used anywhere throughout uberasm tool-related code. HexDec routines converts a number to binary-coded decimal
-to write each digit tiles onto the status bar. Thankfully, the status bar graphic on GFX28 starts with digits 0-9 so you don't have to
-convert digit numbers to digit graphics (except for overworld border).</p>
+<p>But how do you display multi-digits on the status bar? Well, you use a routine that would wrap each digits just like how our real-world decimal number works
+(ones place reset every 10s, 10s increases every 10th value, and the 10s resets every 100). The routine, <kbd>HexDec</kbd> converts a given number to
+<a href="https://en.wikipedia.org/wiki/Binary-coded_decimal">binary-coded decimal (BCD, unpacked)</a> to write each digit tiles onto the status bar. Thankfully,
+the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have to convert digit numbers to digit graphics.</p>
+
+<p>For the overworld border, which is stored in <kbd>GFX2A</kbd>, after calling the HexDec routine, you must add each digit by #$22 (<a href="Readme_Files/OWB_Digits.png" target="_blank">digit graphics are stored as tile numbers $22-$2B</a>),
+and make sure you are using page 1 and not 0 on the tile properties (example, to display the number &ldquo;<font color="red">1</font><font color="blue">2</font>&rdquo;, the values must be <kbd><font color="red">$01</font>+$22 = $23</kbd>
+for the tens and <kbd><font color="blue">$02</font>+$22 = $24</kbd> for the ones).</p>
 
 
 <p>Create a text file, name it <kbd>StatusBarTest.asm</kbd>. Edit that text file to include this code:
@@ -314,7 +319,7 @@ will be able to glitch out at 1000. For more information how base conversion wor
 <a href="https://en.wikipedia.org/wiki/Positional_notation#Base_conversion">on converting radixes</a>.</p>
 
 <p>What about if I wanted to convert 16-bit numbers (or if you have 3-4 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit hexdec
-converters. Here is the code in question:
+converters. Here is the code in question (up to 65535):
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
 !StatusbarFormat = $01			;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
@@ -341,23 +346,24 @@ converters. Here is the code in question:
 	SEP #$20
 	JSL HexDec_SixteenBitHexDec
 	
-	if !StatusbarFormat == $01
-		LDX.b #(!NumberOfDigitsDisplayed-1)
-		-
-		LDA.b !HexDecDigitTable+$04-(!NumberOfDigitsDisplayed-1),x
-		STA !StatusBarPosition,x
-		DEX
-		BPL -
-	else
-		LDX #((!NumberOfDigitsDisplayed-1)*2)
-		LDY #(!NumberOfDigitsDisplayed-1)
-		-
-		LDA.w (!HexDecDigitTable)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
-		STA !StatusBarPosition,x
-		DEY
-		DEX #2
-		BPL -
-	endif
+	;Write to status bar
+		if !StatusbarFormat == $01
+			LDX.b #(!NumberOfDigitsDisplayed-1)
+			-
+			LDA.b !HexDecDigitTable+$04-(!NumberOfDigitsDisplayed-1),x
+			STA !StatusBarPosition,x
+			DEX
+			BPL -
+		else
+			LDX.b #((!NumberOfDigitsDisplayed-1)*2)
+			LDY.b #(!NumberOfDigitsDisplayed-1)
+			-
+			LDA.w (!HexDecDigitTable)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
+			STA !StatusBarPosition,x
+			DEY
+			DEX #2
+			BPL -
+		endif
 	RTL</pre></td></tr></table><br>
 	
 	Greater than 65535? (unlikely for other stuff besides a huge currency counter or custom score). This one is a 32-bit HexDec, up to
@@ -395,55 +401,96 @@ converters. Here is the code in question:
 	SEP #$20
 	JSL HexDec_Convert32bitIntegerToDecDigits
 	
-	if !StatusbarFormat == $01
-		LDX.b #(!NumberOfDigitsDisplayed-1)
-		-
-		LDA !Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
-		STA !StatusBarPosition,x
-		DEX
-		BPL -
-	else
-		LDX #((!NumberOfDigitsDisplayed-1)*2)
-		LDY #(!NumberOfDigitsDisplayed-1)
-		-
-		PHX
-		TYX												;&gt;Sigh, LDA $xxxxxx,y does not exist.
-		LDA (!Scratchram_32bitHexDecOutput)+(!MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1)|!dp,x
-		PLX
-		STA !StatusBarPosition,x
-		DEY
-		DEX #2
-		BPL -
-	endif
+	;Write to status bar:
+		if !StatusbarFormat == $01
+			LDX.b #(!NumberOfDigitsDisplayed-1)
+			-
+			LDA !Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
+			STA !StatusBarPosition,x
+			DEX
+			BPL -
+		else
+			LDX #((!NumberOfDigitsDisplayed-1)*2)
+			LDY #(!NumberOfDigitsDisplayed-1)
+			-
+			PHX
+			TYX												;&gt;Sigh, LDA $xxxxxx,y does not exist.
+			LDA (!Scratchram_32bitHexDecOutput)+(!MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1)|!dp,x
+			PLX
+			STA !StatusBarPosition,x
+			DEY
+			DEX #2
+			BPL -
+		endif
 	RTL</pre></td></tr></table><br>
 	
 Don't ask me to make an even larger number display, because not many games would ever display 10 digits at once, plus, it takes up space on the HUD.</p>
 
 <h4>Removing leading zeroes</h4>
-<p>Perhaps, how these routines work is that if there are no more digits left, will output 0. However, you can erase these leading zeroes like so by adding
-this code after the JSL routine and before writing them to the status bar:
+<p>Perhaps, how these routines work is that if there are fewer digits than the routines's digit output, will output a display with leading 0s. However,
+you can erase these leading zeroes like so by adding this code after the JSL routine and before writing them to the status bar:
 <table><tr><td><pre>	RemoveLeadingZeroes:
 	LDX #$00
 	
 	.Loop
-	LDA !DigitTable,x		;\if current digit non-zero, don't omit trailing zeros
-	BNE .NonZero			;/
-	LDA #$FC			;\blank tile to replace leading zero
-	STA !DigitTable,x		;/
-	INX				;>next digit
-	CPX #!NumberOfDigitsDisplayed-1	;>last digit to check. So that it can display a single 0.
-	BCC .Loop			;>if not done yet, continue looping.
+	LDA !DigitTable,x			;\if current digit non-zero, don't omit trailing zeros
+	BNE .NonZero				;/
+	LDA #$FC				;\blank tile to replace leading zero
+	STA !DigitTable,x			;/
+	INX					;>next digit
+	CPX.b #!NumberOfDigitsDisplayed-1	;>last digit to check. So that it can display a single 0.
+	BCC .Loop				;>if not done yet, continue looping.
 	
 	.NonZero
-	RTL</pre></td></tr></table>
-	Replace &ldquo;<kbd>!DigitTable</kbd>&rdquo; with &ldquo;<kbd>!Scratchram_32bitHexDecOutput</kbd>&rdquo; if you are using the 32-bit HexDec.
+	;Status bar write code here.</pre></td></tr></table>
+	Replace &ldquo;<kbd>!DigitTable</kbd>&rdquo; with &ldquo;<kbd>!Scratchram_32bitHexDecOutput</kbd>&rdquo; if you are using the 32-bit HexDec.</p>
+	
+	<p>If handling the overworld graphics,
+	do this instead:
+	<table><tr><td><pre>
+	;After calling the HexDec routine...
+	;Routine that removes leading zeroes
+		.RemoveLeadingZeroes
+		LDX #$00
+		
+		..Loop
+		LDA !DigitTable,x		;\if current digit non-zero, don't omit trailing zeros
+		BNE .NonZero			;/
+		LDA #$FC			;\blank tile to replace leading zero
+		STA !DigitTable,x		;/
+		INX				;>next digit
+		CPX.b #!NumberOfDigitsDisplayed-1	;>last digit to check. So that it can display a single 0.
+		BCC .Loop			;>if not done yet, continue looping.
+	
+	;ConvertToOWBDigits
+		.ConvertToOWBDigits
+		LDX #$00
+		
+		..Loop
+		LDA !DigitTable,x
+		CMP #$FC
+		BEQ ...LeadingZeroes
+		CLC
+		ADC #$22
+		STA !DigitTable,x
+		BRA ...Next
+		
+		...LeadingZeroes
+		LDA #$1F
+		STA !DigitTable,x
+		
+		...Next
+		INX
+		CPX.b #!NumberOfDigitsDisplayed-1
+		BCC .Loop
+	;Write to OWB</pre></td></tr></table></p>
 	
 </p>
 <h2 id="RepatedSymbol"><a href="#RepatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
 <p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example
 4/5 filled shows 5 symbols with 4 of them filled:<br>
 <font size="10">&#9642;&#9642;&#9642;&#9642;&#9643;</font><br>
-SMW actually does this with its yoshi coin counter (some or all of them shows a coin symbol with the rest showing tile #$FC). This is often used whenever a number of something is a small amount. Code follows (make sure you insert
+SMW actually does this with its yoshi coin counter (some or all of them shows a coin symbol with the rest showing tile $FC). This is often used whenever a number of something is a small amount. Code follows (make sure you insert
 &ldquo;<kbd>RepeatedSymbols.asm</kbd>&rdquo; into uberasm tool's library as well):
 <table><tr><td><pre>!MaxNumberOfSymbols = 5			;>RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
@@ -499,7 +546,13 @@ Graphical bar, as in this:<br>
 <a href="https://www.smwcentral.net/?p=section&a=details&id=19552">Resource here</a><sup><a href="https://github.com/GhbSmwc/SMW-Graphical-bar-display">[1]</a></sup>.
 Reason this package not including this is because too much information to be had here.</p>
 <hr>
-
+<h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
+<ul>
+	<li>
+		<p>When using SA-1 ROM, SMW's vanilla status bar RAM address is relocated to address bank <kbd>$40</kbd>. Meaning that instead of entering <kbd>$7E0EF9</kbd> or <kbd>$000EF9</kbd>, you enter <kbd>$400EF9</kbd>
+		for routines that require 24-bit address (such as the repeated symbols display) for the input.</p>
+	</li>
+</ul>
 <script>
 	function Calculate() {
 		//SMW status bar table
