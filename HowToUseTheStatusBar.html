@@ -443,7 +443,8 @@ this code after the JSL routine and before writing them to the status bar:
 <p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example
 4/5 filled shows 5 symbols with 4 of them filled:<br>
 <font size="10">&#9642;&#9642;&#9642;&#9642;&#9643;</font><br>
-SMW actually does this with its yoshi coin counter (some or all of them shows a coin symbol with the rest showing tile #$FC). This is often used whenever a number of something is a small amount. Code follows:
+SMW actually does this with its yoshi coin counter (some or all of them shows a coin symbol with the rest showing tile #$FC). This is often used whenever a number of something is a small amount. Code follows (make sure you insert
+&ldquo;<kbd>RepeatedSymbols.asm</kbd>&rdquo; into uberasm tool's library as well):
 <table><tr><td><pre>!MaxNumberOfSymbols = 5			;>RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
 !RAMToMeasure = $60			;>RAM address you what to show
