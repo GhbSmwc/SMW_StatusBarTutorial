@@ -474,14 +474,26 @@ To make it fill leftwards, just use <kbd>RepeatedSymbols_WriteRepeatedSymbolsLef
 
 <h2 id="GraphicalBar"><a href="#GraphicalBarBack">^</a>Display a graphical bar</h2>
 
-<p>Unlike the repeated symbol, values displayed as a graphical bar is a more &ldquo;continuous&rdquo; value (pixel by pixel, or any amount per tile increments instead of
-tile by tile):<br>
+Graphical bar, as in this:<br>
 <img src="Readme_Files/TransperentBackground.png"><br>
 
-<a href="https://www.smwcentral.net/?p=section&a=details&id=19552">See resource here</a>. Reason this package not including this is because too much information to be had here.</p>
+<p>Unlike the repeated symbols, this allows you to:
+<ul>
+	<li>
+		<p>Have multiple values per symbol, instead of 1 unit per icon. Meaning, fractions of a symbol are displayed. In <i>Legend of zelda</i> series,
+		before <i>Ocarina of Time</i>, Each heart have 2 values, therefore 1/2 a heart can be shown, <i>Ocarina of Time</i> and later games have 4
+		units per heart, so 1/4 hearts displayed</p>
+	</li>
+	<li>
+		<p>Display a value of something more &ldquo;continuous&rdquo;, or more precise, as the amount increases. Not only that, you don't need long bars
+		just to represent huge amounts.</p>
+	</li>
+
+</ul>
+
+
+<a href="https://www.smwcentral.net/?p=section&a=details&id=19552">Resource here</a>. Reason this package not including this is because too much information to be had here.</p>
 <hr>
-<h2>Further documentation</h2>
-<p>SMW (or the SNES in general) have layer 3 stored as <kbd>2BPP</kbd> format. Meaning that each pixel will take 2 bits. 2 Bits will give you 4 possible values; 0-3</p>
 
 <script>
 	function Calculate() {
