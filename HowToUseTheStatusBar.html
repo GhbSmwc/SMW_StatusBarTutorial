@@ -290,7 +290,7 @@ display their decimal version of the hex number:
 <tr><td>$63</td><td>99</td></tr>
 <tr><td bgcolor="red">$64</td><td bgcolor="red">A0</td></tr>
 </table>
-What happens if you enter numbers greater than $63? Well, when the routine is used like that, it is designed to display 2 digits. If the number is greater than $64, the 10s place digit start showing graphics
+What happens if you enter numbers greater than $63? Well, when the routine is used like that, it is designed to display up to 2 digits. If the number is greater than $64, the 10s place digit start showing graphics
 other than digits. This is because of how the routine works, is that the 10s place digit wasn't wrapped (wrapped, as in digits reset to 0 when going past 9: 8, 9, 0, 1 , 2...), so it can display
 &ldquo;digits&rdquo; greater than 9 (98, 99, A0, A1, A2...).</p>
 
@@ -311,14 +311,17 @@ other than digits. This is because of how the routine works, is that the 10s pla
 	RTL
 </pre></td></tr></table><br>
 The reason why this works is because A is the modulo result of A/10 of the input. Modulo is the division remainder and wraps a number
-into a range of <kbd>0</kbd> to <kbd>Divisor-1</kbd> (in this case, 0-9). This is the same as repeated subtraction until the number cannot be subtracted any more (when < 10).
-To handle the higher digits, the loop also counts every sucessful subtractions by 10, which is how X increases every 10th value. When handling the 100s digit, you
+into a range of <kbd>0</kbd> to <kbd>Divisor-1</kbd> (in this case, 0-9). This is the same as repeated subtraction until the number cannot be subtracted any more (without going into the negatives).
+To handle the higher digits, the loop also counts every successful subtractions by 10, which is how X increases every 10th value. When handling the 100s digit, you
 basically divided the value by 10 again, which is <kbd>!RAMToMeasure/10/10</kbd>, which is the same as <kbd>!RAMToMeasure/(10^2)</kbd> which leads to <kbd>!RAMToMeasure/100</kbd>,
 resulting A now being the 10s place wrapping every 100 and X increasing every 100. Because the maximum value stored in an 8-bit byte is 255, there is no way the hundreds place digit
 will be able to glitch out at 1000. For more information how base conversion works, I found a wikipedia article on positional notation
 <a href="https://en.wikipedia.org/wiki/Positional_notation#Base_conversion">on converting radixes</a>.</p>
 
-<p>What about if I wanted to convert 16-bit numbers (or if you have 3-4 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit hexdec
+<p>Do note that this method have a cost: The higher the number to convert to BCD, the more subtractions by 10<sup>0 &rightarrow; (NumberOfDigits-1)</sup> it would take to get all the digits outputted, not really harsh since this is 8-bit,
+so up to 25 iterations for a 2-digit (plus up to 2 more for 10s and 100s by calling the HexDec routine again).</p>
+
+<p>What about if I wanted to convert 16-bit numbers (or if you have 3-4 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit HexDec
 converters. Here is the code in question (up to 65535):
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
@@ -551,6 +554,57 @@ Reason this package not including this is because too much information to be had
 	<li>
 		<p>When using SA-1 ROM, SMW's vanilla status bar RAM address is relocated to address bank <kbd>$40</kbd>. Meaning that instead of entering <kbd>$7E0EF9</kbd> or <kbd>$000EF9</kbd>, you enter <kbd>$400EF9</kbd>
 		for routines that require 24-bit address (such as the repeated symbols display) for the input.</p>
+	</li>
+	<li>
+		<p>SMW does actually have a 32-bit (up to 999,999) HexDec handling routine, this is used for displaying the score and strangely, the bonus stars. Unlike the 2-digit simple HexDec,
+		it is handled from left-to-right, and by subtracting by 10<sup>(NumberOfDigits-1) &rightarrow; 0</sup> repeatedly. Here is what I mean with the example of a number 123456 ($01E240).
+		Note that the score is stored internally as the displayed number, divided by 10 (&ldquo;1234560&rdquo; is 123456, which that is $01E240 in hex, stored in little endian as
+		[<kbd>$40, $E2, $01</kbd>]), here is an example showing that same number:
+<table><tr><td><pre>;Subtract by 100000 ($0186A0) repeatedly to get the 100000s place
+$01E240 (123456, SubtractCount = 0) -&gt; 
+$005BA0 (023456, SubtractCount = <u>1</u>), cannot subtract anymore, so SubtractCount (1) is the correct 100000s place.
+
+;Subtract by 10000 ($002710) to get the 10000s place:
+$005BA0 (023456, SubtractCount = 0, notice that this number is used after the previous repeated subtraction) -&gt;
+$003490 (013456, SubtractCount = 1) -&gt;
+$000D80 (003456, SubtractCount = <u>2</u>), cannot subtract anymore, so SubtractCount (2) is the correct 10000s place.
+
+;Subtract by 1000 ($0003E8) to get the 1000s place:
+$000D80 (003456, SubtractCount = 0) -&gt;
+$000998 (002456, SubtractCount = 1) -&gt;
+$0005B0 (001456, SubtractCount = 2) -&gt;
+$0001C8 (000456, SubtractCount = <u>3</u>), cannot subtract anymore, so SubtractCount (3) is the correct 1000s place.
+
+;Subtract by 100 ($000064) to get the 100s place:
+$0001C8 (000456, SubtractCount = 0) -&gt;
+$000164 (000356, SubtractCount = 1) -&gt;
+$000100 (000256, SubtractCount = 2) -&gt;
+$00009C (000156, SubtractCount = 3) -&gt;
+$000038 (000056, SubtractCount = <u>4</u>), cannot subtract anymore, so SubtractCount (4) is the correct 100s place.
+
+;Subtract by 10 ($00000A) to get the 10s place:
+$000038 (000056, SubtractCount = 0) -&gt;
+$00002E (000046, SubtractCount = 1) -&gt;
+$000024 (000036, SubtractCount = 2) -&gt;
+$00001A (000026, SubtractCount = 3) -&gt;
+$000010 (000016, SubtractCount = 4) -&gt;
+$000006 (000006, SubtractCount = <u>5</u>), cannot subtract anymore, so SubtractCount (5) is the correct 10s place.
+
+;Subtract by 1 ($000001) to get the 1s place:
+;(Wow, you can just write the low byte of this 24-bit difference into the ones place, because after the MOD 10
+;(subtract by 10 repeatedly), this difference is ALWAYS the 1s place since you are essentially dividing by 1.
+$000006 (000006, SubtractCount = 0) -&gt;
+$000005 (000005, SubtractCount = 1) -&gt;
+$000004 (000004, SubtractCount = 2) -&gt;
+$000003 (000003, SubtractCount = 3) -&gt;
+$000002 (000002, SubtractCount = 4) -&gt;
+$000001 (000001, SubtractCount = 5) -&gt;
+$000000 (000000, SubtractCount = <u>6</u>), cannot subtract anymore, so SubtractCount (6) is the correct 1s place.
+</pre></td></tr></table>
+The routine is handled at address $009012-$009044, and the 10<sup>n</sup> table at $008FFA-$009011. This one is better
+than doing digits from right to left using subtraction by 10 only (I mean, a number 999999 would take ages to finally get
+the ones place, and then another ages to get the 10s, and so on. Which is why subtraction by <i>powers</i> of 10 from
+left to right is much faster).</p>
 	</li>
 </ul>
 <script>
