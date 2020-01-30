@@ -29,6 +29,16 @@ EightBitHexDec:
 	;  STA <StatusBarTensPlace>
 	;  TXA					;>Again, STX $xxxxxx don't exist.
 	;  STA <StatusBarHundredsPlace>
+	; Note that this is slow with big numbers (200-255 the slowest),
+	; as since it will subtract by 10 repeatedly and ONLY by 10 to get the ones place,
+	; example using 255:
+	;  255 SubtractionBy10 = 0
+	;  245 SubtractionBy10 = 1
+	;  235 SubtractionBy10 = 2
+	;  ...
+	;  15 SubtractionBy10 = 24
+	;  5 SubtractionBy10 = 25
+	; Consider using [EightBitHexDec3Digits] below here.
 		LDX #$00
 	.Loops
 		CMP #$0A
@@ -36,6 +46,34 @@ EightBitHexDec:
 		SBC #$0A			;>A #= A MOD 10
 		INX				;>X #= floor(A/10)
 		BRA .Loops
+	.Return
+		RTL
+	
+EightBitHexDec3Digits:
+	;This is a bit faster than calling [EightBitHexDec] twice. Done by subtracting by 100
+	;repeatedly first, then 10s, and after that, the ones are done.
+	; X = 100s
+	; Y = 10s
+	; A = 1s
+	;
+	;Example: A=$FF (255)
+	;255 -> 155 -> 55 Subtracted 2 times, so 100s place is 2 (goes into X).
+	;55 -> 45 -> 35 -> 25 -> 15 -> 5 Subtracted 5 times, so 10s place is 5.
+	;5 is already the ones place.
+	LDX #$00
+	LDY #$00
+	.LoopSub100
+		CMP.b #100
+		BCC .LoopSub10
+		SBC.b #100
+		INX
+		BRA .LoopSub100
+	.LoopSub10
+		CMP.b #10
+		BCC .Return
+		SBC.b #10
+		INY
+		BRA .LoopSub10
 	.Return
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
