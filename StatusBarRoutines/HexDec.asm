@@ -52,14 +52,14 @@ EightBitHexDec:
 EightBitHexDec3Digits:
 	;This is a bit faster than calling [EightBitHexDec] twice. Done by subtracting by 100
 	;repeatedly first, then 10s, and after that, the ones are done.
-	; X = 100s
-	; Y = 10s
+	; Y = 100s
+	; X = 10s
 	; A = 1s
 	;
 	;Example: A=$FF (255)
-	;255 -> 155 -> 55 Subtracted 2 times, so 100s place is 2 (goes into X).
-	;55 -> 45 -> 35 -> 25 -> 15 -> 5 Subtracted 5 times, so 10s place is 5.
-	;5 is already the ones place.
+	;255 -> 155 -> 55 Subtracted 2 times, so 100s place is 2 (goes into Y).
+	;55 -> 45 -> 35 -> 25 -> 15 -> 5 Subtracted 5 times, so 10s place is 5 (in X).
+	;5 is already the ones place for A.
 	LDX #$00
 	LDY #$00
 	.LoopSub100
