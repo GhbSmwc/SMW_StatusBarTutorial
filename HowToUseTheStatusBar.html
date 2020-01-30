@@ -318,8 +318,25 @@ resulting A now being the 10s place wrapping every 100 and X increasing every 10
 will be able to glitch out at 1000. For more information how base conversion works, I found a wikipedia article on positional notation
 <a href="https://en.wikipedia.org/wiki/Positional_notation#Base_conversion">on converting radixes</a>.</p>
 
-<p>Do note that this method have a cost: The higher the number to convert to BCD, the more subtractions by 10<sup>0 &rightarrow; (NumberOfDigits-1)</sup> it would take to get all the digits outputted, not really harsh since this is 8-bit,
-so up to 25 iterations for a 2-digit (plus up to 2 more for 10s and 100s by calling the HexDec routine again).</p>
+<p>Do note that this method have a cost: The higher the number to convert to BCD, the more subtractions by 10<sup>0 &rightarrow; (NumberOfDigits-1)</sup> it would take to get all the
+digits outputted, not really harsh since this is 8-bit, so up to 25 iterations for a 2-digit (plus up to 2 more for 10s and 100s by calling the HexDec routine again). However, if you
+DO want speed, do this instead:
+<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
+!StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
+!StatusbarFormat = $01			;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+
+	main:
+	LDA !RAMToMeasure
+	JSL HexDec_EightBitHexDec3Digits		;&gt;Obtain 3 digits in A, X and Y.
+	STA !StatusBarPosition+(2*!StatusbarFormat)	;&gt;Write 1s place
+	TXA						;\Write 10s place
+	STA !StatusBarPosition+(1*!StatusbarFormat)	;/
+	TYA						;\Write 100s place.
+	STA !StatusBarPosition				;/
+	RTL
+</pre></td></tr></table>
+This works left-to-right by repeatedly subtracting 100 until A is 0-99. The number of subtractions is now how many 100s for the 100s digit, after that, with A being 0-99, we do the same but with 10s instead of 100s
+to find how many 10s. After that, A is 0-9 which is already the ones place.</p>
 
 <p>What about if I wanted to convert 16-bit numbers (or if you have 3-4 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit HexDec
 converters. Here is the code in question (up to 65535):

@@ -66,13 +66,13 @@ EightBitHexDec3Digits:
 		CMP.b #100
 		BCC .LoopSub10
 		SBC.b #100
-		INX
+		INY
 		BRA .LoopSub100
 	.LoopSub10
 		CMP.b #10
 		BCC .Return
 		SBC.b #10
-		INY
+		INX
 		BRA .LoopSub10
 	.Return
 		RTL
