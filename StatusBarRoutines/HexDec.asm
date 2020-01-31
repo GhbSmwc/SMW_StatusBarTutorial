@@ -32,12 +32,18 @@ EightBitHexDec:
 	; Note that this is slow with big numbers (200-255 the slowest),
 	; as since it will subtract by 10 repeatedly and ONLY by 10 to get the ones place,
 	; example using 255:
-	;  255 SubtractionBy10 = 0
-	;  245 SubtractionBy10 = 1
-	;  235 SubtractionBy10 = 2
-	;  ...
-	;  15 SubtractionBy10 = 24
-	;  5 SubtractionBy10 = 25
+	;  A=255 SubtractionBy10_InXIndex: 0
+	;  A=245 SubtractionBy10_InXIndex: 1
+	;  A=235 SubtractionBy10_InXIndex: 2
+	;  ...(22 loops later)...
+	;  A=15 SubtractionBy10_InXIndex = 24
+	;  A=5  SubtractionBy10_InXIndex = 25 -> A = 1s place (5), X = 10s place (25, out of 0-9 range)
+	; Routine called again with X -> A:
+	;  A=25 SubtractionBy10_InXIndex = 0
+	;  A=15 SubtractionBy10_InXIndex = 1
+	;  A=5  SubtractionBy10_InXIndex = 2  -> A = 10s place (5), X = 100s place (2)
+	; As a result, a total of 27 repeated loops (25 total loops to get the 1s place
+	; 2 loops to get the 10s and 100s)
 	; Consider using [EightBitHexDec3Digits] below here.
 		LDX #$00
 	.Loops
@@ -56,24 +62,26 @@ EightBitHexDec3Digits:
 	; X = 10s
 	; A = 1s
 	;
-	;Example: A=$FF (255)
-	;255 -> 155 -> 55 Subtracted 2 times, so 100s place is 2 (goes into Y).
-	;55 -> 45 -> 35 -> 25 -> 15 -> 5 Subtracted 5 times, so 10s place is 5 (in X).
-	;5 is already the ones place for A.
-	LDX #$00
-	LDY #$00
+	;Example: A=$FF (255):
+	; 255 -> 155 -> 55 Subtracted 2 times, so 100s place is 2 (goes into Y).
+	; 55 -> 45 -> 35 -> 25 -> 15 -> 5 Subtracted 5 times, so 10s place is 5 (in X).
+	; 5 is already the ones place for A.
+	;As a result, a total of 7 repeated loops (2 for 100s, plus 5 for the 10s), vs 27
+	;of calling [EightBitHexDec] twice.
+	LDX #$00			;\Start the counter at 0.
+	LDY #$00			;/
 	.LoopSub100
-		CMP.b #100
-		BCC .LoopSub10
-		SBC.b #100
-		INY
-		BRA .LoopSub100
+		CMP.b #100		;\Y counts how many 100s until A cannot be subtracted by 100 anymore
+		BCC .LoopSub10		;/
+		SBC.b #100		;>Subtract and...
+		INY			;>Count how many 100s.
+		BRA .LoopSub100		;>Keep counting until less than 100
 	.LoopSub10
-		CMP.b #10
-		BCC .Return
-		SBC.b #10
-		INX
-		BRA .LoopSub10
+		CMP.b #10		;\X counts how many 10s until A cannot be subtracted by 10 anymore
+		BCC .Return		;/A will automatically be the 1s place.
+		SBC.b #10		;>Subtract and...
+		INX			;>Count how many 10s
+		BRA .LoopSub10		;>Keep counting until less than 10.
 	.Return
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
