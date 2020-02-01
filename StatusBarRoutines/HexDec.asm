@@ -85,7 +85,8 @@ EightBitHexDec3Digits:
 	.Return
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;16-bit hex to 4 (or 5)-digit decimal subroutine
+;16-bit hex to 4 (or 5)-digit decimal subroutine (using right-2-left
+;division).
 ;Input:
 ; $00-$01 = the value you want to display
 ;Output:
@@ -111,7 +112,7 @@ EightBitHexDec3Digits:
 		!HexDecDigitTable = $04
 	endif
 		
-	SixteenBitHexDec:
+	SixteenBitHexDecDivision:
 		if !sa1 == 0
 			PHX
 			PHY
@@ -195,7 +196,7 @@ EightBitHexDec3Digits:
 				RTL
 	endif
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;32-bit hex-dec converter
+;32-bit hex-dec (using right-2-left division)
 ;input:
 ;-$00-$03 = the 32-bit number, in little endian, example:
 ; $11223344 ([$44,$33,$22,$11]) should output 287454020.

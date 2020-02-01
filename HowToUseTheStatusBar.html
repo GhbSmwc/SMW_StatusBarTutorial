@@ -318,9 +318,10 @@ resulting A now being the 10s place wrapping every 100 and X increasing every 10
 will be able to glitch out at 1000. For more information how base conversion works, I found a wikipedia article on positional notation
 <a href="https://en.wikipedia.org/wiki/Positional_notation#Base_conversion">on converting radixes</a>.</p>
 
-<p>Do note that this method have a cost: The higher the number to convert to BCD, the more subtractions by 10<sup>0 &rightarrow; (NumberOfDigits-1)</sup> it would take to get all the
+<p id="Left2RightHexDec">Do note that this method have a cost: The higher the number to convert to BCD, the more subtractions by 10<sup>0 &rightarrow; (NumberOfDigits-1)</sup> it would take to get all the
 digits outputted, not really harsh since this is 8-bit, so up to 25 iterations for a 2-digit (plus up to 2 more for 10s and 100s by calling the HexDec routine again). However, if you
-DO want speed, do this instead:
+DO want speed, do this instead. This works from left-to-right by repeatedly subtracting 100 until A is 0-99. The number of subtractions is now how many 100s for the 100s digit, after
+that, with A being 0-99, we do the same but with 10s (how many 10s) instead of 100s to find how many 10s. After that, A is 0-9 which is already the ones place:
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
 !StatusbarFormat = $01			;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
@@ -334,9 +335,7 @@ DO want speed, do this instead:
 	TYA						;\Write 100s place.
 	STA !StatusBarPosition				;/
 	RTL
-</pre></td></tr></table>
-This works left-to-right by repeatedly subtracting 100 until A is 0-99. The number of subtractions is now how many 100s for the 100s digit, after that, with A being 0-99, we do the same but with 10s instead of 100s
-to find how many 10s. After that, A is 0-9 which is already the ones place.</p>
+</pre></td></tr></table></p>
 
 <p>What about if I wanted to convert 16-bit numbers (or if you have 3-4 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit HexDec
 converters. Here is the code in question (up to 65535):
@@ -364,7 +363,7 @@ converters. Here is the code in question (up to 65535):
 	LDA !RAMToMeasure
 	STA $00
 	SEP #$20
-	JSL HexDec_SixteenBitHexDec
+	JSL HexDec_SixteenBitHexDecDivision
 	
 	;Write to status bar
 		if !StatusbarFormat == $01
@@ -574,9 +573,9 @@ Reason this package not including this is because too much information to be had
 	</li>
 	<li>
 		<p>SMW does actually have a 32-bit (up to 999,999) HexDec handling routine, this is used for displaying the score and strangely, the bonus stars. Unlike the 2-digit simple HexDec,
-		it is handled from left-to-right, and by subtracting by 10<sup>(NumberOfDigits-1) &rightarrow; 0</sup> repeatedly. Here is what I mean with the example of a number 123456 ($01E240).
+		it is handled from left-to-right (just <a href="#Left2RightHexDec">like this</a>), and by subtracting by 10<sup>(NumberOfDigits-1) &rightarrow; 0</sup> repeatedly. Here is what I mean with the example of a number 123456 ($01E240).
 		Note that the score is stored internally as the displayed number, divided by 10 (&ldquo;1234560&rdquo; is 123456, which that is $01E240 in hex, stored in little endian as
-		[<kbd>$40, $E2, $01</kbd>]), here is an example showing that same number:
+		[<kbd>$40, $E2, $01</kbd>], not as $12D680/[<kbd>$80, $D6, $12</kbd>].), here is an example showing that same number:
 <table><tr><td><pre>;Subtract by 100000 ($0186A0) repeatedly to get the 100000s place
 $01E240 (123456, SubtractCount = 0) -&gt; 
 $005BA0 (023456, SubtractCount = <u>1</u>), cannot subtract anymore, so SubtractCount (1) is the correct 100000s place.
