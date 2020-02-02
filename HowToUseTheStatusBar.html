@@ -493,13 +493,13 @@ you can erase these leading zeroes like so by adding this code after the JSL rou
 		LDX #$00
 		
 		..Loop
-		LDA !HexDecDigitTable,x		;\if current digit non-zero, don't omit trailing zeros
-		BNE .NonZero			;/
-		LDA #$FC			;\blank tile to replace leading zero
-		STA !HexDecDigitTable,x		;/
-		INX				;>next digit
-		CPX.b #!NumberOfDigitsDisplayed-1	;>last digit to check. So that it can display a single 0.
-		BCC .Loop			;>if not done yet, continue looping.
+		LDA !HexDecDigitTable,x			;\if current digit non-zero, don't omit trailing zeros
+		BNE .NonZero				;/
+		LDA #$FC				;\blank tile to replace leading zero
+		STA !HexDecDigitTable,x			;/
+		INX					;>next digit
+		CPX.b #!NumberOfDigitsDisplayed-1	;>last digit to check. So that it can display a single 0 (remove the "-1" if you don't want a single 0 if the value is 0).
+		BCC .Loop				;>if not done yet, continue looping.
 	
 	;ConvertToOWBDigits
 		.ConvertToOWBDigits
