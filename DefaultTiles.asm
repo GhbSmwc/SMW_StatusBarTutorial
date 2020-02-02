@@ -21,7 +21,7 @@
 ;Default tile editor, in hex-edit patch form.
 ;Despite already exists a tool in the tools section:
 ; https://www.smwcentral.net/?p=section&a=details&id=4580
-;Its HIGHLY user-unfriendly, no file navigation UI and you couldn't
+;Its HIGHLY user-unfriendly, no file navigation GUI and you couldn't
 ;select/copy/paste text, making it extremely tedious.
 ;
 ;Note: Default tiles contains placeholder tiles when you remove a
@@ -32,7 +32,7 @@
 ;Info display positon and rather or not you want them or not. This only includes the
 ;changing tiles and not static tiles like the coin, the "X", bonus star symbols. These
 ;are the default tiles in the table below.
-	!DisplayName		= 1
+	!DisplayName		= 1			;>Note: When playing as Mario, this isn't handled by routine, but as Luigi, it is.
 	!NamePosition		= $0EF9|!addr
 
 	!DisplayLives		= 1
@@ -318,7 +318,7 @@
 		org $008F15
 			STA.W !ScorePosition,x
 	;Modify score position for the hexdec code.
-	;X=$14 initally.
+	;X=$14 initially.
 		org $009014
 			STZ.w !ScorePosition-$14,x
 		org $009034
