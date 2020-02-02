@@ -539,7 +539,10 @@ SMW actually does this with its yoshi coin counter (some or all of them shows a 
 	STA $06
 	JSL RepeatedSymbols_WriteRepeatedSymbols
 	RTL</pre></td></tr></table><br>
-To make it fill leftwards, just use <kbd>RepeatedSymbols_WriteRepeatedSymbolsLeftwards</kbd> instead of <kbd>RepeatedSymbols_WriteRepeatedSymbols</kbd>.</p>
+To make it fill leftwards, just use <kbd>RepeatedSymbols_WriteRepeatedSymbolsLeftwards</kbd> instead of <kbd>RepeatedSymbols_WriteRepeatedSymbols</kbd>. Using that code from above,
+the result is this with RAM $60 containing the value 3:<br>
+<kbd>WriteRepeatedSymbols</kbd>: <img src="Readme_Files/RepeatedSymbol_3_5.png"> (SMW does not have a &ldquo;empty tile&rdquo; that is visible, so instead of using tile $FC, I used
+tile $26, which is the &ldquo;X&rdquo; symbol.), <kbd>WriteRepeatedSymbolsLeftwards</kbd>: <img src="Readme_Files/RepeatedSymbolLeftwards_3_5.png"></p>
 
 <h2 id="GraphicalBar"><a href="#GraphicalBarBack">^</a>Display a graphical bar</h2>
 
