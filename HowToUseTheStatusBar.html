@@ -24,8 +24,15 @@
 <hr>
 <p>So you want to edit the HUD to display custom info to the player. Obviously, this requires at least basic ASM knowledge. Fear not! Once you got the pattern down, you'll understand how it works!</p>
 
-<p>You should know by now after reading Ersanio's tutorial<sup><a href="https://www.smwcentral.net/?p=section&a=details&id=15073">[1]</a><a href="https://www.smwcentral.net/?p=section&a=details&id=14268">[2]</a></sup>
-on something simple as how to write a value to memory. You should also know about binary and hexidecimal, since many data explained here store in memory are bitwise.</p>
+<p>You should know these before doing this:</p>
+<ul>
+
+<li><p>Ersanio's tutorial<sup><a href="https://www.smwcentral.net/?p=section&a=details&id=15073">[1]</a><a href="https://www.smwcentral.net/?p=section&a=details&id=14268">[2]</a></sup>
+on something simple as how to write a value to memory. You should also know about binary and hexidecimal, since many data explained here store in memory are bitwise.</p></li>
+
+<li><p>Understand the mechanics of <a href="https://www.smwcentral.net/?p=section&a=details&id=19043">Asar</a>, such as defines and labels.</p></li>
+
+</ul>
 <hr>
 <h2>Javascript tools</h2>
 <ul>
@@ -223,26 +230,34 @@ you need to edit to work with other status bar patches, set it to <kbd>$01</kbd>
 <p>This method assumes you are using uberasm tool to test your code to write to the status bar. The first ting you want to do is have all the ASM files in &ldquo;<kbd>StatusBarRoutines</kbd>&rdquo;
 inserted into uberasm tool's &ldquo;<kbd>library</kbd>&rdquo; folder.</p>
 
-<p>It's pretty darn easy to write a tile that is different depending on a condition using branches:
-<table><tr><td><pre>	LDA &lt;RAM_Address&gt;
+<p>Before we start using the subroutines, we will demonstrate how to write tiles that change based on a given info <kbd>!RAMToMeasure</kbd>. It's very easy to write a tile that is different depending on
+a condition using branches:
+<table><tr><td><pre>!StatusBarPosition = $0EF9|!addr
+!RAMToMeasure = $60
+	main:
+	LDA !RAMToMeasure
 	BEQ +
 	LDA #$00
 	BRA ++
 	+
 	LDA #$01
 	++
-	STA !StatusBarPosition</pre></td></tr></table><br>
-and if you are tired of branches, then an even simpler approach is to use tables:
-<table><tr><td><pre>	LDA &lt;RAM_Address&gt;
+	STA !StatusBarPosition
+	RTL</pre></td></tr></table><br>
+and if you are tired of using branches, then an even simpler approach is to use tables:
+<table><tr><td><pre>!StatusBarPosition = $0EF9|!addr
+!RAMToMeasure = $60
+	main:
+	LDA !RAMToMeasure
 	TAX
 	LDA Table,x
 	STA !StatusBarPosition
 	RTL
 	
 	Table:
-	db $xx ;&gt;When &lt;RAM_Address&gt; = $00
-	db $xx ;&gt;When &lt;RAM_Address&gt; = $01
-	db $xx ;&gt;When &lt;RAM_Address&gt; = $02</pre></td></tr></table></p>
+	db $xx ;&gt;When !RAMToMeasure = $00
+	db $xx ;&gt;When !RAMToMeasure = $01
+	db $xx ;&gt;When !RAMToMeasure = $02</pre></td></tr></table></p>
 	
 <p>But what about other not-so-simple displays? Well, the following shows you how to do that.</p>
 
@@ -320,7 +335,7 @@ resulting A now being the 10s place wrapping every 100 and X increasing every 10
 will be able to glitch out at 1000. For more information how base conversion works, I found a wikipedia article on positional notation
 <a href="https://en.wikipedia.org/wiki/Positional_notation#Base_conversion">on converting radixes</a>.</p>
 
-<p id="Left2RightHexDec">Do note that this method have a cost: The higher the number to convert to BCD, the more subtractions by 10<sup>0 &rightarrow; (NumberOfDigits-1)</sup> it would take to get all the
+<p id="Left2RightHexDec">Do note that this method have a cost: The higher the number to convert to BCD, the more subtractions by 10<sup>1 &rightarrow; (NumberOfDigits-1)</sup> it would take to get all the
 digits outputted, not really harsh since this is 8-bit, so up to 25 iterations for a 2-digit (plus up to 2 more for 10s and 100s by calling the HexDec routine again). However, if you
 DO want speed, do this instead. This works from left-to-right by repeatedly subtracting 100 until A is 0-99. The number of subtractions is now how many 100s for the 100s digit, after
 that, with A being 0-99, we do the same but with 10s (how many 10s) instead of 100s to find how many 10s. After that, A is 0-9 which is already the ones place:
@@ -347,7 +362,7 @@ converters. Here is the code in question (up to 65535):
 !NumberOfDigitsDisplayed = 5		;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 
 	;Don't change this.
-		if defined(!sa1) == 0
+		if defined("sa1") == 0
 			if read1($00FFD5) == $23
 				!sa1 = 1
 				sa1rom
@@ -454,17 +469,17 @@ you can erase these leading zeroes like so by adding this code after the JSL rou
 	LDX #$00
 	
 	.Loop
-	LDA !DigitTable,x			;\if current digit non-zero, don't omit trailing zeros
+	LDA !HexDecDigitTable,x			;\if current digit non-zero, don't omit trailing zeros
 	BNE .NonZero				;/
 	LDA #$FC				;\blank tile to replace leading zero
-	STA !DigitTable,x			;/
+	STA !HexDecDigitTable,x			;/
 	INX					;>next digit
 	CPX.b #!NumberOfDigitsDisplayed-1	;>last digit to check. So that it can display a single 0.
 	BCC .Loop				;>if not done yet, continue looping.
 	
 	.NonZero
 	;Status bar write code here.</pre></td></tr></table>
-	Replace &ldquo;<kbd>!DigitTable</kbd>&rdquo; with &ldquo;<kbd>!Scratchram_32bitHexDecOutput</kbd>&rdquo; if you are using the 32-bit HexDec.</p>
+	Replace &ldquo;<kbd>!HexDecDigitTable</kbd>&rdquo; with &ldquo;<kbd>!Scratchram_32bitHexDecOutput</kbd>&rdquo; if you are using the 32-bit HexDec.</p>
 	
 	<p>If handling the overworld graphics,
 	do this instead:
@@ -475,10 +490,10 @@ you can erase these leading zeroes like so by adding this code after the JSL rou
 		LDX #$00
 		
 		..Loop
-		LDA !DigitTable,x		;\if current digit non-zero, don't omit trailing zeros
+		LDA !HexDecDigitTable,x		;\if current digit non-zero, don't omit trailing zeros
 		BNE .NonZero			;/
 		LDA #$FC			;\blank tile to replace leading zero
-		STA !DigitTable,x		;/
+		STA !HexDecDigitTable,x		;/
 		INX				;>next digit
 		CPX.b #!NumberOfDigitsDisplayed-1	;>last digit to check. So that it can display a single 0.
 		BCC .Loop			;>if not done yet, continue looping.
@@ -488,17 +503,17 @@ you can erase these leading zeroes like so by adding this code after the JSL rou
 		LDX #$00
 		
 		..Loop
-		LDA !DigitTable,x
+		LDA !HexDecDigitTable,x
 		CMP #$FC
 		BEQ ...LeadingZeroes
 		CLC
 		ADC #$22
-		STA !DigitTable,x
+		STA !HexDecDigitTable,x
 		BRA ...Next
 		
 		...LeadingZeroes
 		LDA #$1F
-		STA !DigitTable,x
+		STA !HexDecDigitTable,x
 		
 		...Next
 		INX
