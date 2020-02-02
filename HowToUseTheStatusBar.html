@@ -51,6 +51,9 @@ on something simple as how to write a value to memory. You should also know abou
 <li><a href="#RoutineControl" id="RoutineControlBack">Adding routine-controlled display to the HUD.</a></li>
 <ul>
 	<li><a href="#DisplayNumbers" id="DisplayNumbersBack">Displaying decimal numbers</a></li>
+	<ul>
+		<li><a href="#RemoveLeadingZeroes" id="RemoveLeadingZeroesBack">Remove leading zeroes</a></li>
+	</ul>
 	<li><a href="#RepatedSymbol" id="RepatedSymbolBack">Displaying repeated symbol n times.</a></li>
 	<li><a href="#GraphicalBar" id="GraphicalBarBack">Display a graphical bar</a></li>
 </ul>
@@ -462,7 +465,7 @@ converters. Here is the code in question (up to 65535):
 	
 Don't ask me to make an even larger number display, because not many games would ever display 10 digits at once, plus, it takes up space on the HUD.</p>
 
-<h4>Removing leading zeroes</h4>
+<h4 id="RemoveLeadingZeroes"><a href="#RemoveLeadingZeroesBack">^</a>Removing leading zeroes</h4>
 <p>Perhaps, how these routines work is that if there are fewer digits than the routines's digit output, will output a display with leading 0s. However,
 you can erase these leading zeroes like so by adding this code after the JSL routine and before writing them to the status bar:
 <table><tr><td><pre>	RemoveLeadingZeroes:
@@ -503,21 +506,21 @@ you can erase these leading zeroes like so by adding this code after the JSL rou
 		LDX #$00
 		
 		..Loop
-		LDA !HexDecDigitTable,x
-		CMP #$FC
-		BEQ ...LeadingZeroes
-		CLC
-		ADC #$22
-		STA !HexDecDigitTable,x
+		LDA !HexDecDigitTable,x		;\If #$FC (written to indicate a leading zero),
+		CMP #$FC			;|replace it with...
+		BEQ ...LeadingZeroes		;/
+		CLC				;\Convert digits to OWB digits.
+		ADC #$22			;|
+		STA !HexDecDigitTable,x		;/
 		BRA ...Next
 		
 		...LeadingZeroes
-		LDA #$1F
-		STA !HexDecDigitTable,x
+		LDA #$1F			;\...Tile #$1F, the tile used for the level names' space.
+		STA !HexDecDigitTable,x		;/
 		
 		...Next
-		INX
-		CPX.b #!NumberOfDigitsDisplayed-1
+		INX					;\Next digit until the 10s place is finished.
+		CPX.b #!NumberOfDigitsDisplayed-1	;/(remove the "-1" if you don't want a single 0 if the value is 0).
 		BCC .Loop
 	;Write to OWB</pre></td></tr></table></p>
 	
