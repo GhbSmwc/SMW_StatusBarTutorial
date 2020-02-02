@@ -44,7 +44,8 @@
 	deal with 8 bits at a time instead of 16, so the remaining upper 2 bits are referred as the page number. Therefore tile data is actually 16-bit together (<kbd>%YXPCCCTTTTTTTTTT</kbd>),
 	but we mainly use tile numbers <kbd>$00-$FF</kbd> on page 0.</p>
 	
-	<p>Note: Bsnes+ refers these tile numbers as &ldquo;characters&rdquo;, according if you were to look at the S-PPU &rightarrow; Tilemap Viewer and select the tiles. Same goes with the SNES dev Manuel</p>
+	<p>Note: Bsnes+ refers these tile numbers as &ldquo;characters&rdquo;, according if you were to look at the S-PPU &rightarrow; Tilemap Viewer and select the tiles. Same goes with the
+	SNES dev Manuel and <kbd>regs.txt</kbd>.</p>
 	
 	<p>I am not really sure if it is possible to have layer 3 be offset and its address becomes not a multiple of <kbd>$10</kbd> (say, a tile data instead of being <kbd>$0000-$000F</kbd>, it is
 	<kbd>$0001-$0010</kbd>), so I designed a javascript tool in the case of this misalignment
