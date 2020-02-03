@@ -297,7 +297,7 @@ for the tens and <kbd><font color="blue">$02</font>+$22 = $24</kbd> for the ones
 
 <p>Test the game (using a debugger, bsnes+) by going to the level that you inserted this created ASM file (or any level if using gamemode 14), you should see the
 digits displayed on the HUD. Again, palettes, X/Y flips and other weird shenanigans can happen if you use SMW's vanilla status bar without
-editing the default values. Now depending on what RAM to use set by <kbd>!RAMToMeasure</kbd>, it could display <kbd>00</kbd> or [<kbd>&lt;digits 0-9 or glitched tile here&gt;&lt;digits 0-9&gt;</kbd>],
+editing the default values. Now depending on what RAM to use set by <kbd>!RAMToMeasure</kbd>, it could display <kbd>00</kbd> or <kbd>[&lt;digits 0-9 or glitched tile here&gt;&lt;digits 0-9&gt;]</kbd>,
 then on the debugger window, go to memory editor and search for the RAM you set for <kbd>!RAMToMeasure</kbd> (example: 60), edit the value in that byte to be any values $00-$63. It should
 display their decimal version of the hex number:
 <table>
@@ -363,7 +363,17 @@ that, with A being 0-99, we do the same but with 10s (how many 10s) instead of 1
 </pre></td></tr></table></p>
 
 <p>What about if I wanted to convert 16-bit numbers (or if you have 3-4 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit HexDec
-converters. Here is the code in question (up to 65535):
+converters. Here is the code in question (up to 65535). Example, RAM $60 contains the value <kbd>$1234</kbd> (in memory, its <kbd>$34, $12</kbd>), I call the routine <kbd>SixteenBitHexDecDivision</kbd>
+after that, it comes out as 4660 with each digit stored in a byte:
+<table>
+<tr><th>Define relative address</th><th>RAM address (normal/Sa-1)</th><th>Output value</th></tr>
+<tr><td><kbd>!HexDecDigitTable+0</kbd></td><td><kbd>$02/$04</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; for 10000s place)</td></tr>
+<tr><td><kbd>!HexDecDigitTable+1</kbd></td><td><kbd>$03/$05</kbd></td><td><kbd>$04</kbd> (represents &ldquo;4&rdquo; for 1000s place)</td></tr>
+<tr><td><kbd>!HexDecDigitTable+2</kbd></td><td><kbd>$04/$06</kbd></td><td><kbd>$06</kbd> (represents &ldquo;6&rdquo; for 100s place)</td></tr>
+<tr><td><kbd>!HexDecDigitTable+3</kbd></td><td><kbd>$05/$07</kbd></td><td><kbd>$06</kbd> (represents &ldquo;6&rdquo; for 10s place)</td></tr>
+<tr><td><kbd>!HexDecDigitTable+4</kbd></td><td><kbd>$06/$08</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; 1s place)</td></tr>
+</table><br>
+Here is the code in question for you to test:</p>
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
 !StatusbarFormat = $01			;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
@@ -410,10 +420,29 @@ converters. Here is the code in question (up to 65535):
 		endif
 	RTL</pre></td></tr></table><br>
 	
-	Greater than 65535? (unlikely for other stuff besides a huge currency counter or custom score). This one is a 32-bit HexDec, up to
-	4,294,967,295 ($FFFFFFFF) can be properly displayed. Remember, this is little endian, so a number
-	<abbr title="305419896 in decimal">$12345678</abbr> must be stored as
-	<kbd>[$78, $56, $34, $12] into $00-$03</kbd> and should output as <kbd>[$03, $00, $05, $04, $01, $09, $08, $09, $06]</kbd>.
+	<p>Greater than 65535? (unlikely for other stuff besides a huge currency counter or custom score). This one is a 32-bit HexDec, up to
+	4,294,967,295 ($FFFFFFFF) can be properly displayed. Remember, this is little endian, for example: a number
+	<abbr title="287454020 in decimal">$11223344</abbr> must be inputted as
+	<kbd>[$44, $33, $22, $11]</kbd> into <kbd>$00-$03</kbd> and should output as <kbd>[$02, $08, $07, $04, $05, $04, $00, $02, $00]</kbd> in
+	<kbd>!Scratchram_32bitHexDecOutput</kbd>.<br>
+	
+	Here is an example using the previously mentioned number, with <kbd>!MaxNumberOfDigits</kbd> set to <kbd>9</kbd>, using default <kbd>!Scratchram_32bitHexDecOutput</kbd>.
+	Note that the digits stored in each bytes are ordered in decreasing significant digits (<abbr title="!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)">last byte</abbr> is always the 1s place)
+	<table>
+	<tr><th>Define relative address</th><th>Default RAM address (normal/Sa-1)</th><th>Output value</th></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+0</kbd></td><td><kbd>$7F844E/$40019C</kbd></td><td><kbd>$02</kbd> (represents &ldquo;2&rdquo; for 100000000s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+1</kbd></td><td><kbd>$7F844F/$40019D</kbd></td><td><kbd>$08</kbd> (represents &ldquo;8&rdquo; for 10000000s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+2</kbd></td><td><kbd>$7F8450/$40019E</kbd></td><td><kbd>$07</kbd> (represents &ldquo;7&rdquo; for 1000000s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+3</kbd></td><td><kbd>$7F8451/$40019F</kbd></td><td><kbd>$04</kbd> (represents &ldquo;4&rdquo; for 100000s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+4</kbd></td><td><kbd>$7F8452/$4001A0</kbd></td><td><kbd>$05</kbd> (represents &ldquo;5&rdquo; for 10000s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+5</kbd></td><td><kbd>$7F8453/$4001A1</kbd></td><td><kbd>$04</kbd> (represents &ldquo;4&rdquo; for 1000s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+6</kbd></td><td><kbd>$7F8454/$4001A2</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; for 100s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+7</kbd></td><td><kbd>$7F8455/$4001A3</kbd></td><td><kbd>$02</kbd> (represents &ldquo;2&rdquo; for 10s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+8</kbd></td><td><kbd>$7F8456/$4001A4</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; for 1s)</td></tr>
+	
+	</table><br>
+	
+	Code in question:
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
 !StatusBarPosition = $0F09|!addr	;>Where to write on the status bar
 !StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
@@ -436,17 +465,22 @@ converters. Here is the code in question (up to 65535):
 		;^Number of digits to be stored. Up to 10 because maximum
 		; 32-bit unsigned integer is 4,294,967,295.
 		
-		!Scratchram_32bitHexDecOutput = $7F844E
+		if !sa1 == 0
+			!Scratchram_32bitHexDecOutput = $7F844E
+		else
+			!Scratchram_32bitHexDecOutput = $40019C
+		endif
 		;^[bytes_used = !MaxNumberOfDigits] The output
 		; formatted each byte is each digit 0-9.
+		
 	main:
 	REP #$20
-	LDA $60			;\Low word (example: $5678 -> [$78, $56] in $00, $01)
+	LDA $60			;\Low word (example: $3344 -> [$44, $33] in $00, $01)
 	STA $00			;/
-	LDA $62			;\High word (example: $1234 -> [$34, $12] in $02, $03)
+	LDA $62			;\High word (example: $1122 -> [$22, $11] in $02, $03)
 	STA $02			;/
 	SEP #$20
-	JSL HexDec_Convert32bitIntegerToDecDigits	;>Should Output example as: [$03, $00, $05, $04, $01, $09, $08, $09, $06] on !Scratchram_32bitHexDecOutput.
+	JSL HexDec_Convert32bitIntegerToDecDigits	;>Should Output example as: [$02, $08, $07, $04, $05, $04, $00, $02, $00] on !Scratchram_32bitHexDecOutput.
 	
 	;Write to status bar:
 		if !StatusbarFormat == $01
@@ -473,66 +507,57 @@ converters. Here is the code in question (up to 65535):
 	
 Don't ask me to make an even larger number display, because not many games would ever display 10 digits at once, plus, it takes up space on the HUD.</p>
 
+<p>Also note that <kbd>!NumberOfDigitsDisplayed</kbd> and <kbd>!MaxNumberOfDigits</kbd> are different. <kbd>!NumberOfDigitsDisplayed</kbd> refers to only the low (rightmost digits) n digits being
+displayed, while <kbd>!MaxNumberOfDigits</kbd> is the fixed number of digits (uses leading zeroes if fewer digits) stored in the digit table (you can set this to a lower number to save space).
+Having both in case if you want to only display up to n digits less than the routine can output. For example, a counter to display 6 digits, 0-999999. You wouldn't want display
+unused digits always showing 0 on the millions (1000000s) and beyond (so don't display &ldquo;0000999999&rdquo;, those first 4 digits are always 0 and therefore redundant).</p>
+
 <h4 id="RemoveLeadingZeroes"><a href="#RemoveLeadingZeroesBack">^</a>Removing leading zeroes</h4>
-<p>Perhaps, how these routines work is that if there are fewer digits than the routines's digit output, will output a display with leading 0s. However,
-you can erase these leading zeroes like so by adding this code after the JSL routine and before writing them to the status bar:
-<table><tr><td><pre>	RemoveLeadingZeroes:
-	LDX #$00
+	<p>I've also provided routines that removes leading zeroes by simply replacing the first n digits with tile $FC in the digits table. After calling the the JSL routines to convert them into decimal
+	digits, you then call <kbd>RemoveLeadingZeroes16Bit</kbd> or <kbd>RemoveLeadingZeroes32Bit</kbd> before writing to the status bar. Make sure you match the 16 and 32 bits. For the 8-bit versions,
+	a routine isn't necessary:
+	<ul>
+		<li>For 2-digit numbers, just replace the 10s place digit with tile #$FC</li>
+		<li>For 3-digit numbers, use this code template:
+<table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
+!StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
+!StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+
+	main:
+	LDA !RAMToMeasure
+	JSL HexDec_EightBitHexDec3Digits		;>Obtain 3 digits in A, X and Y.
+	STA !StatusBarPosition+(2*!StatusbarFormat)	;>Write 1s place
 	
-	.Loop
-	LDA !HexDecDigitTable,x			;\if current digit non-zero, don't omit trailing zeros
-	BNE .NonZero				;/
-	LDA #$FC				;\blank tile to replace leading zero
-	STA !HexDecDigitTable,x			;/
-	INX					;>next digit
-	CPX.b #!NumberOfDigitsDisplayed-1	;>last digit to check. So that it can display a single 0.
-	BCC .Loop				;>if not done yet, continue looping.
+	.HandleHundreds
+	CPY #$00					;\Is the 100s place nonzero? Yes, then leave that and the 10s showing up
+	BNE ..HundredsNonZero				;/No, then erase the 100s digit and see if 10s is also part of the leading 0s.
 	
-	.NonZero
-	;Status bar write code here.</pre></td></tr></table>
-	Replace &ldquo;<kbd>!HexDecDigitTable</kbd>&rdquo; with &ldquo;<kbd>!Scratchram_32bitHexDecOutput</kbd>&rdquo; if you are using the 32-bit HexDec.</p>
+	..NoHundreds
+	LDY #$FC					;\Erase the 100s digit
+	TYA						;|
+	STA !StatusBarPosition				;/
+	BRA .HandleTens					;>Check if the next digit is also part of the leading zero.
 	
-	<p>If handling the overworld graphics,
-	do this instead:
-	<table><tr><td><pre>
-	;After calling the HexDec routine...
-	;Routine that removes leading zeroes
-		.RemoveLeadingZeroes
-		LDX #$00
-		
-		..Loop
-		LDA !HexDecDigitTable,x			;\if current digit non-zero, don't omit trailing zeros
-		BNE .NonZero				;/
-		LDA #$FC				;\blank tile to replace leading zero
-		STA !HexDecDigitTable,x			;/
-		INX					;>next digit
-		CPX.b #!NumberOfDigitsDisplayed-1	;>last digit to check. So that it can display a single 0.
-		BCC .Loop				;>if not done yet, continue looping.
+	..HundredsNonZero
+	TYA
+	STA !StatusBarPosition				;>Write 100s place
+	BRA .HandleTens_WriteTens			;>If at least 100, 10s shouldn't be omitted.
 	
-	;ConvertToOWBDigits
-		.ConvertToOWBDigits
-		LDX #$00
-		
-		..Loop
-		LDA !HexDecDigitTable,x		;\If #$FC (written to indicate a leading zero),
-		CMP #$FC			;|replace it with...
-		BEQ ...LeadingZeroes		;/
-		CLC				;\Convert digits to OWB digits.
-		ADC #$22			;|
-		STA !HexDecDigitTable,x		;/
-		BRA ...Next
-		
-		...LeadingZeroes
-		LDA #$1F			;\...Tile #$1F, the tile used for the level names' space.
-		STA !HexDecDigitTable,x		;/
-		
-		...Next
-		INX					;\Next digit until the 10s place is finished.
-		CPX.b #!NumberOfDigitsDisplayed-1	;/
-		BCC .Loop
-	;Write to OWB</pre></td></tr></table></p>
+	.HandleTens
+	CPX #$00					;\Is the 10s place nonzero? Yes, then leave the 10s place showing up
+	BNE ..WriteTens					;/No, then erase the 10s.
 	
-</p>
+	..NoTens
+	LDX #$FC					;>If 0, replace 10s digit with blank.
+	
+	..WriteTens
+	TXA						;\Write 10s place
+	STA !StatusBarPosition+(1*!StatusbarFormat)	;/
+	
+	.Done
+	RTL</pre></td></tr></table></li>
+	</ul>
+	</p>
 <h2 id="RepatedSymbol"><a href="#RepatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
 <p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example
 4/5 filled shows 5 symbols with 4 of them filled:<br>
@@ -606,7 +631,7 @@ Reason this package not including this is because too much information to be had
 		<p>SMW does actually have a 32-bit (up to 999,999) HexDec handling routine, this is used for displaying the score and strangely, the bonus stars. Unlike the 2-digit simple HexDec,
 		it is handled from left-to-right (just <a href="#Left2RightHexDec">like this</a>), and by subtracting by 10<sup>(NumberOfDigits-1) &rightarrow; 0</sup> repeatedly. Here is what I mean with the example of a number 123456 ($01E240).
 		Note that the score is stored internally as the displayed number, divided by 10 (&ldquo;1234560&rdquo; is 123456, which that is $01E240 in hex, stored in little endian as
-		[<kbd>$40, $E2, $01</kbd>], not as $12D680/[<kbd>$80, $D6, $12</kbd>].), here is an example showing that same number:
+		<kbd>[$40, $E2, $01]</kbd>, not as $12D680/<kbd>[$80, $D6, $12]</kbd>.), here is an example showing that same number:
 <table><tr><td><pre>;Subtract by 100000 ($0186A0) repeatedly to get the 100000s place
 $01E240 (123456, SubtractCount = 0) -&gt; 
 $005BA0 (023456, SubtractCount = <u>1</u>), cannot subtract anymore, so SubtractCount (1) is the correct 100000s place.
