@@ -273,7 +273,8 @@ and if you are tired of using branches, then an even simpler approach is to use 
 <a href="https://en.wikipedia.org/wiki/Binary-coded_decimal">binary-coded decimal (BCD, unpacked)</a> to write each digit tiles onto the status bar. Thankfully,
 the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have to convert digit numbers to digit graphics.</p>
 
-<p>For the overworld border, which is stored in <kbd>GFX2A</kbd>, after calling the HexDec routine, you must add each digit by #$22 (<a href="Readme_Files/OWB_Digits.png" target="_blank">digit graphics are stored as tile numbers $22-$2B</a>),
+<p>For the overworld border (<abbr title="So far, there isn't any other patches that lets you edit the overworld border similarly to the status bar.">assuming you're using the Overworld Border+ patch</abbr>),
+which is stored in <kbd>GFX2A</kbd>, after calling the HexDec routine, you must add each digit by #$22 (<a href="Readme_Files/OWB_Digits.png" target="_blank">digit graphics are stored as tile numbers $22-$2B</a>),
 and make sure you are using page 1 and not 0 on the tile properties (example, to display the number &ldquo;<font color="red">1</font><font color="blue">2</font>&rdquo;, the values must be <kbd><font color="red">$01</font>+$22 = $23</kbd>
 for the tens and <kbd><font color="blue">$02</font>+$22 = $24</kbd> for the ones).</p>
 
@@ -309,6 +310,10 @@ display their decimal version of the hex number:
 <tr><td>$62</td><td>98</td></tr>
 <tr><td>$63</td><td>99</td></tr>
 <tr><td bgcolor="red">$64</td><td bgcolor="red">A0</td></tr>
+<tr><td bgcolor="red">$65</td><td bgcolor="red">A1</td></tr>
+<tr><td bgcolor="red">$66</td><td bgcolor="red">A2</td></tr>
+<tr><td colspan="2" bgcolor="red">(10s place digit cycles through the alphabet characters every 10th value until...)</td></tr>
+<tr><td bgcolor="red">$FF</td><td bgcolor="red">P5</td></tr>
 </table>
 What happens if you enter numbers greater than $63? Well, when the routine is used like that, it is designed to display up to 2 digits. If the number is greater than $64, the 10s place digit start showing graphics
 other than digits. This is because of how the routine works, is that the 10s place digit wasn't wrapped (wrapped, as in digits reset to 0 when going past 9: 8, 9, 0, 1 , 2...), so it can display
@@ -410,6 +415,7 @@ converters. Here is the code in question (up to 65535):
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
 !StatusBarPosition = $0F09|!addr	;>Where to write on the status bar
 !StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+
 ;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !MaxNumberOfDigits
 ;(the number digits stored in each byte in !Scratchram_32bitHexDecOutput), else garbage will appear.
 	!NumberOfDigitsDisplayed = 9		;>How many digits, enter 1-10 (pointless if you enter less than 5).
@@ -498,7 +504,7 @@ you can erase these leading zeroes like so by adding this code after the JSL rou
 		LDA #$FC				;\blank tile to replace leading zero
 		STA !HexDecDigitTable,x			;/
 		INX					;>next digit
-		CPX.b #!NumberOfDigitsDisplayed-1	;>last digit to check. So that it can display a single 0 (remove the "-1" if you don't want a single 0 if the value is 0).
+		CPX.b #!NumberOfDigitsDisplayed-1	;>last digit to check. So that it can display a single 0.
 		BCC .Loop				;>if not done yet, continue looping.
 	
 	;ConvertToOWBDigits
@@ -520,7 +526,7 @@ you can erase these leading zeroes like so by adding this code after the JSL rou
 		
 		...Next
 		INX					;\Next digit until the 10s place is finished.
-		CPX.b #!NumberOfDigitsDisplayed-1	;/(remove the "-1" if you don't want a single 0 if the value is 0).
+		CPX.b #!NumberOfDigitsDisplayed-1	;/
 		BCC .Loop
 	;Write to OWB</pre></td></tr></table></p>
 	
