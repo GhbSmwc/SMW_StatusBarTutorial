@@ -411,7 +411,8 @@ converters. Here is the code in question (up to 65535):
 	RTL</pre></td></tr></table><br>
 	
 	Greater than 65535? (unlikely for other stuff besides a huge currency counter or custom score). This one is a 32-bit HexDec, up to
-	4,294,967,295 can be properly displayed.
+	4,294,967,295 ($FFFFFFFF) can be properly displayed. Remember, this is little endian, so a number $12345678 must be stored as
+	<kbd>[$78, $56, $34, $12] into $00-$03</kbd>
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
 !StatusBarPosition = $0F09|!addr	;>Where to write on the status bar
 !StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
@@ -439,12 +440,12 @@ converters. Here is the code in question (up to 65535):
 		; formatted each byte is each digit 0-9.
 	main:
 	REP #$20
-	LDA $60
-	STA $00
-	LDA $62
-	STA $02
+	LDA $60			;\Low word (example: $5678 -> [$78, $56] in $00, $01)
+	STA $00			;/
+	LDA $62			;\High word (example: $1234 -> [$34, $12] in $02, $03)
+	STA $02			;/
 	SEP #$20
-	JSL HexDec_Convert32bitIntegerToDecDigits
+	JSL HexDec_Convert32bitIntegerToDecDigits	;>Should Output example: $0305419896 as: [$03, $00, $05, $04, $01, $09, $08, $09, $06] on !Scratchram_32bitHexDecOutput.
 	
 	;Write to status bar:
 		if !StatusbarFormat == $01
