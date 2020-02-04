@@ -54,7 +54,10 @@ on something simple as how to write a value to memory. You should also know abou
 	<ul>
 		<li><a href="#RemoveLeadingZeroes" id="RemoveLeadingZeroesBack">Remove leading zeroes</a></li>
 	</ul>
-	<li><a href="#RepatedSymbol" id="RepatedSymbolBack">Displaying repeated symbol n times.</a></li>
+	<ul>
+		<li><a href="#AlignedDigits" id="AlignedDigitsBack">Remove Leading zeros, with left/right-aligned digits</a></li>
+	</ul>
+	<li><a href="#RepeatedSymbol" id="RepeatedSymbolBack">Displaying repeated symbol n times.</a></li>
 	<li><a href="#GraphicalBar" id="GraphicalBarBack">Display a graphical bar</a></li>
 </ul>
 <li><a href="#OtherNotes" id="OtherNotesBack">Other Notes</a></li>
@@ -364,7 +367,8 @@ that, with A being 0-99, we do the same but with 10s (how many 10s) instead of 1
 
 <p>What about if I wanted to convert 16-bit numbers (or if you have 3-4 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit HexDec
 converters. Here is the code in question (up to 65535). Example, RAM $60 contains the value <kbd>$1234</kbd> (in memory, its <kbd>$34, $12</kbd>), I call the routine <kbd>SixteenBitHexDecDivision</kbd>
-after that, it comes out as 4660 with each digit stored in a byte:
+after that, the digits of 4660 are stored. Note that this is ordered in decreasing significant decimal digits
+(<abbr title="!HexDecDigitTable+4">last</abbr> byte = 1s, second-last = 10s...):
 <table>
 <tr><th>Define relative address</th><th>RAM address (normal/Sa-1)</th><th>Output value</th></tr>
 <tr><td><kbd>!HexDecDigitTable+0</kbd></td><td><kbd>$02/$04</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; for 10000s place)</td></tr>
@@ -427,7 +431,8 @@ Here is the code in question for you to test:</p>
 	<kbd>!Scratchram_32bitHexDecOutput</kbd>.<br>
 	
 	Here is an example using the previously mentioned number, with <kbd>!MaxNumberOfDigits</kbd> set to <kbd>9</kbd>, using default <kbd>!Scratchram_32bitHexDecOutput</kbd>.
-	Note that the digits stored in each bytes are ordered in decreasing significant digits (<abbr title="!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)">last byte</abbr> is always the 1s place)
+	Again, the digits stored in each bytes are ordered in decreasing significant decimal digits (<abbr title="!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)">last byte</abbr> is always
+	the 1s place, regardless of <kbd>!MaxNumberOfDigits</kbd>'s value)
 	<table>
 	<tr><th>Define relative address</th><th>Default RAM address (normal/Sa-1)</th><th>Output value</th></tr>
 	<tr><td><kbd>!Scratchram_32bitHexDecOutput+0</kbd></td><td><kbd>$7F844E/$40019C</kbd></td><td><kbd>$02</kbd> (represents &ldquo;2&rdquo; for 100000000s)</td></tr>
@@ -558,7 +563,12 @@ unused digits always showing 0 on the millions (1000000s) and beyond (so don't d
 	RTL</pre></td></tr></table></li>
 	</ul>
 	</p>
-<h2 id="RepatedSymbol"><a href="#RepatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
+<h3 id="AlignedDigits"><a href="#AlignedDigitsBack">^</a>Remove Leading zeros, with left/right-aligned digits</h3>
+<p>Perhaps, the above method have a downside, leading zeros are actually replaced with leading spaces, giving a <i>right-aligned</i> look. If you are designing a HUD
+with an icon (or a &ldquo;label&rdquo;) to the left of the number when the number have a small number of digits, you'll have a space in between the icon and the digits, which looks ugly, especially if the number
+have a huge number of digits it can display up to. For example, a 5-digit number:<br>
+<img src="Readme_Files/LeadingSpaces.png"></p>
+<h2 id="RepeatedSymbol"><a href="#RepeatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
 <p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example
 4/5 filled shows 5 symbols with 4 of them filled:<br>
 <font size="10">&#9642;&#9642;&#9642;&#9642;&#9643;</font><br>

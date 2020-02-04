@@ -290,7 +290,11 @@
 			RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Leading zeroes remover.
-;Writes $FC on all leading zeroes (except the 1s place)
+;Writes $FC on all leading zeroes (except the 1s place),
+;Therefore, numbers will have leading spaces instead.
+;
+;Example: 00123 ([$00, $00, $01, $02, $03]) becomes
+; __123 ([$FC, $FC, $01, $02, $03])
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;16-bit version, use with [SixteenBitHexDecDivision]
 		RemoveLeadingZeroes16Bit:
@@ -321,4 +325,220 @@
 		BCC .Loop				;>if not done yet, continue looping.
 		
 		.NonZero
+		RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Leading zeroes remover, to convert numbers to left/right-aligned display.
+;Before using these routines, make sure you manually write all the tiles to tile $FC on where you are going to
+;place your display space, as these routines alone DO NOT clear any tiles, else you'll left with duplicate or
+;"ghost" tiles that are meant to disappear when the digits shifts.
+;
+;An example with left-aligned is "10", when changed into a 9, it ends up displaying "90" because the 1s wasn't
+;cleared.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;RAM locations
+	if !sa1 == 0
+	 !Scratchram_CharacterTileTable = $7F844A
+	else
+	 !Scratchram_CharacterTileTable = $400198
+	endif
+	 ;^[X bytes] A table containing strings of "characters"
+	 ; (more specifically digits). The number of bytes used
+	 ; is how many characters you would write.
+	 ; For example:
+	 ; -If you want to display a 5-digit 16-bit number 65535,
+	 ;  that will be 5 bytes.
+	 ; -If you want to display [10000/10000], that will be
+	 ;  11 bytes (there are 5 digits on each 10000, plus 1
+	 ;  because "/"; 5 + 5 + 1 = 11)
+
+	!StatusbarFormat = $02
+	 ;^Number of grouped bytes per 8x8 tile:
+	 ; $01 = Minimalist/SMB3 [TTTTTTTT, TTTTTTTT]...[YXPCCCTT, YXPCCCTT]
+	 ; $02 = Super status bar/Overworld border plus [TTTTTTTT YXPCCCTT, TTTTTTTT YXPCCCTT]...
+	 
+	!StatusBar_UsingCustomProperties           = 0
+	 ;^Set this to 0 if you are using the vanilla SMW status bar or any status bar patches
+	 ; that doesn't enable editing the tile properties, otherwise set this to 1 (you may
+	 ; have to edit "!Default_GraphicalBarProperties" in order for it to work though.).
+	 ; This define is needed to prevent writing what it assumes tile properties into invalid
+	 ; RAM addresses.
+
+	!BlankTile = $FC
+	 ;^Tile number for where there is no characters to be written for each 8x8 space.
+
+	!HexDecDigitTable = $02
+	if !sa1 != 0
+		!HexDecDigitTable = $04
+	endif
+	
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;Suppress Leading zeros via left-aligned positioning
+	;
+	;This routines takes a 16-bit unsigned integer (works up to 5 digits),
+	;suppress leading zeros and moves the digits so that the first non-zero
+	;digit number is located where X is indexed to. Example: the number 00123
+	;with X = $00:
+	;
+	; [0] [0] [1] [2] [3]
+	;
+	; Each bracketed item is a byte storing a digit. The X above means the X
+	; index position.
+	; After this routine is done, they are placed in an address defined
+	; as "!Scratchram_CharacterTileTable" like this:
+	;
+	;              X
+	; [1] [2] [3] [*] [*]...
+	;
+	; [*] Means garbage and/or unused data. X index is now set to $03, shown
+	; above.
+	;
+	;Usage:
+	; Input:
+	;  -!HexDecDigitTable to !HexDecDigitTable+4 = a 5-digit 0-9 per byte (used for
+	;   1-digit per 8x8 tile, using my 4/5 hexdec routine; ordered from high to low digits)
+	;  -X = the location within the table to place the string in. X=$00 means the starting byte.
+	; Output:
+	;  -!Scratchram_CharacterTileTable = A table containing a string of numbers with
+	;   unnecessary spaces and zeroes stripped out.
+	;  -X = the location to place string AFTER the numbers. Also use for
+	;   indicating the last digit (or any tile) number for how many tiles to
+	;   be written to the status bar, overworld border, etc.
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	SupressLeadingZeros:
+		LDY #$00				;>Start looking at the leftmost (highest) digit
+		LDA #$00				;\When the value is 0, display it as single digit as zero
+		STA !Scratchram_CharacterTileTable,x	;/(gets overwritten should nonzero input exist)
+
+		.Loop
+		LDA.w !HexDecDigitTable|!dp,Y		;\If there is a leading zero, move to the next digit to check without moving the position to
+		BEQ ..NextDigit				;/place the tile in the table
+		
+		..FoundDigit
+		LDA.w !HexDecDigitTable|!dp,Y		;\Place digit
+		STA !Scratchram_CharacterTileTable,x	;/
+		INX					;>Next string position in table
+		INY					;\Next digit
+		CPY #$05				;|
+		BCC ..FoundDigit			;/
+		RTL
+		
+		..NextDigit
+		INY			;>1 digit to the right
+		CPY #$05		;\Loop until no digits left (minimum is 1 digit)
+		BCC .Loop		;/
+		INX			;>Next item in table
+		RTL
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;Convert left-aligned to right-aligned.
+	;
+	;Use this routine after calling SupressLeadingZeros and before calling
+	;WriteStringDigitsToHUD. Note: Be aware that the math of handling the address
+	;does NOT account to changing the bank byte (address $XX****), so be aware of
+	;having status bar tables that crosses bank borders ($7EFFFF, then $7F0000,
+	;as an made-up example, but its unlikely though).
+	;
+	;Input:
+	; -$00-$02 = 24-bit address location to write to status bar tile number.
+	; -If tile properties are edit-able:
+	; --$03-$05 = Same as $00-$02 but tile properties.
+	; --$06 = the tile properties.
+	; -X = The number of characters to write, ("123" would have X = 3)
+	;Output:
+	; -$00-$02 and $03-$05 are subtracted by [(NumberOfCharacters-1)*!StatusbarFormat]
+	;  so that the last character is always at a fixed location and as the number
+	;  of characters increase, the string would extend leftwards. Therefore,
+	;  $00-$02 and $03-$05 before calling this routine contains the ending address
+	;  which the last character will be written.
+	;
+	;Note:
+	; -ConvertToRightAligned is designed for [TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]
+	; -ConvertToRightAlignedFormat2 is designed for [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+	; -This routine is meant to be used when displaying 2 numbers (For example: 123/456). Since
+	;  when displaying a single number, using HexDec and removing leading zeroes (turns them
+	;into leading spaces) is automatically right-aligned, using this routine is pointless.
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	ConvertToRightAligned:
+		TXA
+		DEC
+		TAY					;>Transfer status bar leftmost position to Y
+		BRA +
+	ConvertToRightAlignedFormat2:
+		TXA
+		DEC
+		ASL
+		TAY					;>Transfer status bar leftmost position to Y
+		+
+		REP #$21				;\-(NumberOfTiles-1)...
+		AND #$00FF				;|
+		EOR #$FFFF				;|
+		INC A					;/
+		ADC $00					;>...+LastTilePos (we are doing LastTilePos - (NumberOfTiles-1))
+		STA $00					;>Store difference in $00-$01
+		SEP #$20				;\Handle bank byte
+	;	LDA $02					;|
+	;	SBC #$00				;|
+	;	STA $02					;/
+		
+		if !StatusBar_UsingCustomProperties != 0
+			TYA
+			DEC
+			ASL
+			REP #$21				;\-(NumberOfTiles-1)
+			AND #$00FF				;|
+			EOR #$FFFF				;|
+			INC A					;/
+			ADC $03					;>+LastTilePos (we are doing LastTilePos - (NumberOfTiles-1))
+			STA $03					;>Store difference in $00-$01
+			SEP #$20				;\Handle bank byte
+	;		LDA $05					;|
+	;		SBC #$00				;|
+	;		STA $05					;/
+		endif
+		RTL
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;Write aligned digits to Status bar/OWB+
+	;
+	;Input:
+	; -$00-$02 = 24-bit address location to write to status bar tile number.
+	; -If tile properties are edit-able:
+	; --$03-$05 = Same as $00-$02 but tile properties.
+	; --$06 = the tile properties, all of them will be the same.
+	; -X = The number of characters to write, ("123" would have X = 3)
+	;
+	;Note:
+	; -WriteStringDigitsToHUD is designed for [TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]
+	; -WriteStringDigitsToHUDFormat2 is designed for [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	WriteStringDigitsToHUD:
+		DEX
+		TXY
+		
+		.Loop
+		LDA !Scratchram_CharacterTileTable,x
+		STA [$00],y
+		if !StatusBar_UsingCustomProperties != 0
+			LDA $06
+			STA [$03],y
+		endif
+		DEX
+		DEY
+		BPL .Loop
+		RTL
+	WriteStringDigitsToHUDFormat2:
+		DEX
+		TXA				;\SSB and OWB+ uses a byte pair format.
+		ASL				;|
+		TAY				;/
+		
+		.Loop
+		LDA !Scratchram_CharacterTileTable,x
+		STA [$00],y
+		if !StatusBar_UsingCustomProperties != 0
+			LDA $06
+			STA [$03],y
+		endif
+		DEX
+		DEY #2
+		BPL .Loop
 		RTL
