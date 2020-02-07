@@ -233,8 +233,8 @@ you need to edit to work with other status bar patches, set it to <kbd>$01</kbd>
 </p>
 <hr>
 <h2 id="RoutineControl"><a href="#RoutineControlBack">^</a>Adding routine-controlled display to the HUD.</h2>
-<p>This method assumes you are using uberasm tool to test your code to write to the status bar. The first ting you want to do is have all the ASM files in &ldquo;<kbd>StatusBarRoutines</kbd>&rdquo;
-inserted into uberasm tool's &ldquo;<kbd>library</kbd>&rdquo; folder.</p>
+<p>This method assumes you are using uberasm tool to test your code to write to the status bar. The first thing you want to do is have all the ASM files in &ldquo;<kbd>StatusBarRoutines</kbd>&rdquo;
+inserted into uberasm tool's &ldquo;<kbd>library</kbd>&rdquo; folder, and have the entire folder &ldquo;<kbd>StatusBarRoutinesDefines</kbd>&rdquo; be in the same directory as the uberasm tool exe program is at.</p>
 
 <p>Before we start using the subroutines, we will demonstrate how to write tiles that change based on a given info <kbd>!RAMToMeasure</kbd>. It's very easy to write a tile that is different depending on
 a condition using branches:
@@ -285,7 +285,8 @@ for the tens and <kbd><font color="blue">$02</font>+$22 = $24</kbd> for the ones
 <p>Create a text file, name it <kbd>StatusBarTest.asm</kbd>. Edit that text file to include this code:
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
-!StatusbarFormat = $01			;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	main:
 	LDA !RAMToMeasure
@@ -325,7 +326,8 @@ other than digits. This is because of how the routine works, is that the 10s pla
 <p>You can fix this problem and make it allow the full range of the 8-bit value by after writing the ones digit, TXA, then call the routine again, and after that, A is the 10s, and X is the 100s place:
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
-!StatusbarFormat = $01			;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	main:
 	LDA !RAMToMeasure
@@ -352,7 +354,8 @@ DO want speed, do this instead. This works from left-to-right by repeatedly subt
 that, with A being 0-99, we do the same but with 10s (how many 10s) instead of 100s to find how many 10s. After that, A is 0-9 which is already the ones place:
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
-!StatusbarFormat = $01			;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	main:
 	LDA !RAMToMeasure
@@ -380,8 +383,9 @@ after that, the digits of 4660 are stored. Note that this is ordered in decreasi
 Here is the code in question for you to test:</p>
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
-!StatusbarFormat = $01			;&gt;$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
 !NumberOfDigitsDisplayed = 5		;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	;Don't change this.
 		if defined("sa1") == 0
@@ -450,7 +454,8 @@ Here is the code in question for you to test:</p>
 	Code in question:
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
 !StatusBarPosition = $0F09|!addr	;>Where to write on the status bar
-!StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 ;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !MaxNumberOfDigits
 ;(the number digits stored in each byte in !Scratchram_32bitHexDecOutput), else garbage will appear.
@@ -465,19 +470,6 @@ Here is the code in question for you to test:</p>
 				!sa1 = 0
 			endif
 		endif
-	;Copied defines from the routines in case of errors.
-		!MaxNumberOfDigits = 9
-		;^Number of digits to be stored. Up to 10 because maximum
-		; 32-bit unsigned integer is 4,294,967,295.
-		
-		if !sa1 == 0
-			!Scratchram_32bitHexDecOutput = $7F844E
-		else
-			!Scratchram_32bitHexDecOutput = $40019C
-		endif
-		;^[bytes_used = !MaxNumberOfDigits] The output
-		; formatted each byte is each digit 0-9.
-		
 	main:
 	REP #$20
 	LDA $60			;\Low word (example: $3344 -> [$44, $33] in $00, $01)
@@ -513,7 +505,9 @@ Here is the code in question for you to test:</p>
 Don't ask me to make an even larger number display, because not many games would ever display 10 digits at once, plus, it takes up space on the HUD.</p>
 
 <p>Also note that <kbd>!NumberOfDigitsDisplayed</kbd> and <kbd>!MaxNumberOfDigits</kbd> are different. <kbd>!NumberOfDigitsDisplayed</kbd> refers to only the low (rightmost digits) n digits being
-displayed, while <kbd>!MaxNumberOfDigits</kbd> is the fixed number of digits (uses leading zeroes if fewer digits) stored in the digit table (you can set this to a lower number to save space).
+displayed, while <kbd>!MaxNumberOfDigits</kbd> is the fixed number of digits (uses leading zeroes if fewer digits) stored in the digit table (you can set this to a
+<abbr title="If you have multiple number displays and they are using the 32-bit HexDec each with different maximums (example: 99,999 and 999,999), then set !MaxNumberOfDigits to whatever number using this routine uses the most digits
+(in this case, 6, not 5).">lower number to save space</abbr>).
 Having both in case if you want to only display up to n digits less than the routine can output. For example, a counter to display 6 digits, 0-999999. You wouldn't want display
 unused digits always showing 0 on the millions (1000000s) and beyond (so don't display &ldquo;0000999999&rdquo;, those first 4 digits are always 0 and therefore redundant).</p>
 
@@ -526,7 +520,8 @@ unused digits always showing 0 on the millions (1000000s) and beyond (so don't d
 		<li>For 3-digit numbers, use this code template:
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
-!StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	main:
 	LDA !RAMToMeasure
@@ -567,7 +562,13 @@ unused digits always showing 0 on the millions (1000000s) and beyond (so don't d
 <p>Perhaps, the above method have a downside, leading zeros are actually replaced with leading spaces, giving a <i>right-aligned</i> look. If you are designing a HUD
 with an icon (or a &ldquo;label&rdquo;) to the left of the number when the number have a small number of digits, you'll have a space in between the icon and the digits, which looks ugly, especially if the number
 have a huge number of digits it can display up to. For example, a 5-digit number:<br>
-<img src="Readme_Files/LeadingSpaces.png"></p>
+<img src="Readme_Files/LeadingSpaces.png"><br><br>
+
+The first routine, <kbd>SupressLeadingZeros</kbd> works like this: Search all the digits in <kbd>!HexDecDigitTable</kbd>, and copy all the digits on and after the first (leftmost) digit and paste them into
+<kbd>!Scratchram_CharacterTileTable</kbd>. You've now have a left-aligned &ldquo;string&rdquo; table stored. After this routine, The X register now contains a number incremented for every character being written (in the provided
+example, it wrote 2 characters, the &ldquo;1&rdquo; and the &ldquo;5&rdquo;, so X=$02).
+<img src="Readme_Files/NoLeadingZeroesLeftAligned.png">
+</p>
 <h2 id="RepeatedSymbol"><a href="#RepeatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
 <p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example
 4/5 filled shows 5 symbols with 4 of them filled:<br>
@@ -577,7 +578,8 @@ SMW actually does this with its yoshi coin counter (some or all of them shows a 
 <table><tr><td><pre>!MaxNumberOfSymbols = 5			;>RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
 !RAMToMeasure = $60			;>RAM address you what to show
-!StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 ;Tile numbers
 	!EmptyTile = $26
