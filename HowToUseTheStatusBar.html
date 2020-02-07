@@ -565,8 +565,8 @@ have a huge number of digits it can display up to. For example, a 5-digit number
 <img src="Readme_Files/LeadingSpaces.png"><br><br>
 
 The first routine, <kbd>SupressLeadingZeros</kbd> works like this: Search all the digits in <kbd>!HexDecDigitTable</kbd>, and copy all the digits on and after the first (leftmost) digit and paste them into
-<kbd>!Scratchram_CharacterTileTable</kbd>. You've now have a left-aligned &ldquo;string&rdquo; table stored. After this routine, The X register now contains a number incremented for every character being written (in the provided
-example, it wrote 2 characters, the &ldquo;1&rdquo; and the &ldquo;5&rdquo;, so X=$02).
+<kbd>!Scratchram_CharacterTileTable</kbd>. You've now have a left-aligned &ldquo;string&rdquo; table stored. After this routine, The X register now contains a number incremented for every character being written.
+See picture below:<br>
 <img src="Readme_Files/NoLeadingZeroesLeftAligned.png">
 </p>
 <h2 id="RepeatedSymbol"><a href="#RepeatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
