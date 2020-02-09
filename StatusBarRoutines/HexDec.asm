@@ -91,7 +91,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;Input:
 	; $00-$01 = the value you want to display
 	;Output:
-	; !HexDecDigitTable to !HexDecDigitTable+4 = a digit 0-9 per byte table
+	; !Scratchram_16bitHexDecOutput to !Scratchram_16bitHexDecOutput+4 = a digit 0-9 per byte table
 	; (used for 1-digit per 8x8 tile):
 	; +$00 = ten thousands
 	; +$01 = thousands
@@ -99,7 +99,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	; +$03 = tens
 	; +$04 = ones
 	;
-	;!HexDecDigitTable is address $02 for normal ROM and $04 for SA-1.
+	;!Scratchram_16bitHexDecOutput is address $02 for normal ROM and $04 for SA-1.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 			
 		SixteenBitHexDecDivision:
@@ -148,7 +148,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				SEP #$20			;>8-bit XY
 				JSL MathDiv			;>divide
 				LDA $02				;>Remainder (mod 10 to stay within 0-9 per digit)
-				STA.b !HexDecDigitTable,x	;>Store tile
+				STA.b !Scratchram_16bitHexDecOutput,x	;>Store tile
 
 				DEX
 				BPL .Loop
@@ -269,10 +269,10 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDX #$00				;>Start at the leftmost digit
 		
 		.Loop
-		LDA !HexDecDigitTable,x			;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
+		LDA !Scratchram_16bitHexDecOutput,x			;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
 		BNE .NonZero				;/
 		LDA #$FC				;\blank tile to replace leading zero
-		STA !HexDecDigitTable,x			;/
+		STA !Scratchram_16bitHexDecOutput,x			;/
 		INX					;>next digit
 		CPX.b #$04				;>last digit to check. So that it can display a single 0.
 		BCC .Loop				;>if not done yet, continue looping.
@@ -327,7 +327,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;
 	;Usage:
 	; Input:
-	;  -!HexDecDigitTable to !HexDecDigitTable+4 = a 5-digit 0-9 per byte (used for
+	;  -!Scratchram_16bitHexDecOutput to !Scratchram_16bitHexDecOutput+4 = a 5-digit 0-9 per byte (used for
 	;   1-digit per 8x8 tile, using my 4/5 hexdec routine; ordered from high to low digits)
 	;  -X = the location within the table to place the string in. X=$00 means the starting byte.
 	; Output:
@@ -343,11 +343,11 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		STA !Scratchram_CharacterTileTable,x	;/(gets overwritten should nonzero input exist)
 
 		.Loop
-		LDA.w !HexDecDigitTable|!dp,Y		;\If there is a leading zero, move to the next digit to check without moving the position to
+		LDA.w !Scratchram_16bitHexDecOutput|!dp,Y		;\If there is a leading zero, move to the next digit to check without moving the position to
 		BEQ ..NextDigit				;/place the tile in the table
 		
 		..FoundDigit
-		LDA.w !HexDecDigitTable|!dp,Y		;\Place digit
+		LDA.w !Scratchram_16bitHexDecOutput|!dp,Y		;\Place digit
 		STA !Scratchram_CharacterTileTable,x	;/
 		INX					;>Next string position in table
 		INY					;\Next digit

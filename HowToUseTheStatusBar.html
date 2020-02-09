@@ -236,6 +236,9 @@ you need to edit to work with other status bar patches, set it to <kbd>$01</kbd>
 <p>This method assumes you are using uberasm tool to test your code to write to the status bar. The first thing you want to do is have all the ASM files in &ldquo;<kbd>StatusBarRoutines</kbd>&rdquo;
 inserted into uberasm tool's &ldquo;<kbd>library</kbd>&rdquo; folder, and have the entire folder &ldquo;<kbd>StatusBarRoutinesDefines</kbd>&rdquo; be in the same directory as the uberasm tool exe program is at.</p>
 
+<p>You also need to insert the graphic file from this provided <kbd>ExGFX</kbd> folder (<kbd>ExGFX80.bin</kbd>) if you are wanting to test out the code of displaying the &ldquo;/&rdquo; symbol when displaying
+2 numbers. It should be inserted as &ldquo;LG1&rdquo; on the layer 3 GFX.</p>
+
 <p>Before we start using the subroutines, we will demonstrate how to write tiles that change based on a given info <kbd>!RAMToMeasure</kbd>. It's very easy to write a tile that is different depending on
 a condition using branches:
 <table><tr><td><pre>!StatusBarPosition = $0EF9|!addr
@@ -371,14 +374,14 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 <p>What about if I wanted to convert 16-bit numbers (or if you have 3-4 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit HexDec
 converters. Here is the code in question (up to 65535). Example, RAM $60 contains the value <kbd>$1234</kbd> (in memory, its <kbd>$34, $12</kbd>), I call the routine <kbd>SixteenBitHexDecDivision</kbd>
 after that, the digits of 4660 are stored. Note that this is ordered in decreasing significant decimal digits
-(<abbr title="!HexDecDigitTable+4">last</abbr> byte = 1s, second-last = 10s...):
+(<abbr title="!Scratchram_16bitHexDecOutput+4">last</abbr> byte = 1s, second-last = 10s...):
 <table>
 <tr><th>Define relative address</th><th>RAM address (normal/Sa-1)</th><th>Output value</th></tr>
-<tr><td><kbd>!HexDecDigitTable+0</kbd></td><td><kbd>$02/$04</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; for 10000s place)</td></tr>
-<tr><td><kbd>!HexDecDigitTable+1</kbd></td><td><kbd>$03/$05</kbd></td><td><kbd>$04</kbd> (represents &ldquo;4&rdquo; for 1000s place)</td></tr>
-<tr><td><kbd>!HexDecDigitTable+2</kbd></td><td><kbd>$04/$06</kbd></td><td><kbd>$06</kbd> (represents &ldquo;6&rdquo; for 100s place)</td></tr>
-<tr><td><kbd>!HexDecDigitTable+3</kbd></td><td><kbd>$05/$07</kbd></td><td><kbd>$06</kbd> (represents &ldquo;6&rdquo; for 10s place)</td></tr>
-<tr><td><kbd>!HexDecDigitTable+4</kbd></td><td><kbd>$06/$08</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; 1s place)</td></tr>
+<tr><td><kbd>!Scratchram_16bitHexDecOutput+0</kbd></td><td><kbd>$02/$04</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; for 10000s place)</td></tr>
+<tr><td><kbd>!Scratchram_16bitHexDecOutput+1</kbd></td><td><kbd>$03/$05</kbd></td><td><kbd>$04</kbd> (represents &ldquo;4&rdquo; for 1000s place)</td></tr>
+<tr><td><kbd>!Scratchram_16bitHexDecOutput+2</kbd></td><td><kbd>$04/$06</kbd></td><td><kbd>$06</kbd> (represents &ldquo;6&rdquo; for 100s place)</td></tr>
+<tr><td><kbd>!Scratchram_16bitHexDecOutput+3</kbd></td><td><kbd>$05/$07</kbd></td><td><kbd>$06</kbd> (represents &ldquo;6&rdquo; for 10s place)</td></tr>
+<tr><td><kbd>!Scratchram_16bitHexDecOutput+4</kbd></td><td><kbd>$06/$08</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; 1s place)</td></tr>
 </table><br>
 Here is the code in question for you to test:</p>
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
@@ -387,20 +390,6 @@ Here is the code in question for you to test:</p>
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
-	;Don't change this.
-		if defined("sa1") == 0
-			if read1($00FFD5) == $23
-				!sa1 = 1
-				sa1rom
-			else
-				!sa1 = 0
-			endif
-		endif
-
-		!HexDecDigitTable = $02
-		if !sa1 != 0
-			!HexDecDigitTable = $04
-		endif
 	main:
 	REP #$20
 	LDA !RAMToMeasure
@@ -412,7 +401,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		if !StatusbarFormat == $01
 			LDX.b #(!NumberOfDigitsDisplayed-1)
 			-
-			LDA.b !HexDecDigitTable+$04-(!NumberOfDigitsDisplayed-1),x
+			LDA.b !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1),x
 			STA !StatusBarPosition,x
 			DEX
 			BPL -
@@ -420,7 +409,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			LDX.b #((!NumberOfDigitsDisplayed-1)*2)
 			LDY.b #(!NumberOfDigitsDisplayed-1)
 			-
-			LDA.w (!HexDecDigitTable)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
+			LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
 			STA !StatusBarPosition,x
 			DEY
 			DEX #2
@@ -559,16 +548,174 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	</ul>
 	</p>
 <h3 id="AlignedDigits"><a href="#AlignedDigitsBack">^</a>Remove Leading zeros, with left/right-aligned digits</h3>
-<p>Perhaps, the above method have a downside, leading zeros are actually replaced with leading spaces, giving a <i>right-aligned</i> look. If you are designing a HUD
+<p>Perhaps, in actuality, leading zeros are replaced with leading spaces, giving a <i>right-aligned</i> look. If you are designing a HUD
 with an icon (or a &ldquo;label&rdquo;) to the left of the number when the number have a small number of digits, you'll have a space in between the icon and the digits, which looks ugly, especially if the number
-have a huge number of digits it can display up to. For example, a 5-digit number:<br>
+have a huge number of digits it can display up to. Or, if you wanted the number display to look more compact. For example, a 5-digit, 16-bit number:<br>
 <img src="Readme_Files/LeadingSpaces.png"><br><br>
-
-The first routine, <kbd>SupressLeadingZeros</kbd> works like this: Search all the digits in <kbd>!HexDecDigitTable</kbd>, and copy all the digits on and after the first (leftmost) digit and paste them into
-<kbd>!Scratchram_CharacterTileTable</kbd>. You've now have a left-aligned &ldquo;string&rdquo; table stored. After this routine, The X register now contains a number incremented for every character being written.
+The first routine, <kbd>SupressLeadingZeros</kbd> works like this: Search all the digits in <kbd>!Scratchram_16bitHexDecOutput</kbd>, and copy all the non-leading zero digits on and after the first (leftmost) digit and paste them into
+<kbd>!Scratchram_CharacterTileTable</kbd>. You've now have a &ldquo;compressed string&rdquo; table stored. After this routine, The X register now contains a number incremented for every character being written.
 See picture below:<br>
 <img src="Readme_Files/NoLeadingZeroesLeftAligned.png">
 </p>
+<p>To use the routine, here is the code template:
+<table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
+!StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
+!StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+!NumberOfDigitsDisplayed = 5		;>How many digits, enter 1-5 (pointless if you enter less than 3).
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.NumberDisplayTest
+	;Clear the tiles. To prevent leftover "ghost" tiles that should've
+	;disappear when the number of digits decreases (so when "10" becomes "9",
+	;won't display "90").
+		LDX.b #(!NumberOfDigitsDisplayed-1)*!StatusbarFormat
+		-
+		LDA #$FC
+		STA !StatusBarPosition,x
+		DEX #!StatusbarFormat
+		BPL -
+	;Number to string.
+		;Process HexDec
+			REP #$20					;\Convert a given number to decimal digits.
+			LDA !RAMToMeasure				;|
+			STA $00						;|
+			SEP #$20					;|
+			JSL HexDec_SixteenBitHexDecDivision		;/
+		;Remove leading zeroes and have it as a character table
+			LDX #$00					;>Start at character position 0.
+			JSL HexDec_SupressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
+		;Prevent writing too much characters.
+			CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
+			BCS ..TooMuchDigits				;/not being cleared from the previous code.
+	;Write to status bar
+		if !StatusbarFormat == $01
+			DEX					;>Start on the last character, not on the first unwritten character.
+			-
+			LDA !Scratchram_CharacterTileTable,x	;\Write characters
+			STA !StatusBarPosition,x		;/
+			DEX					;\Repeat until all characters written.
+			BPL -					;/
+		else
+			DEX					;>Start on the last character, not on the first unwritten character.
+			TXY					;>Transfer to Y (we have 2 indexing for the table and the tiles on status bar)
+			TXA					;\Double X because we must index 2 bytes over due to [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+			ASL					;|
+			TAX					;/
+			-
+			PHX					;\STA $xxxxxx,y does not exist, so I have to move it to X since
+			TYX					;|STA $xxxxxx,x do exist.
+			LDA !Scratchram_CharacterTileTable,x	;|
+			PLX					;/
+			STA !StatusBarPosition,x		;>Write the character to status bar
+			DEY					;\Repeat until all characters written.
+			DEX #2					;|
+			BPL -					;/
+		endif
+	..TooMuchDigits
+	RTL</pre></td></tr></table><br>
+But what if I wanted to display 2 numbers &ldquo;X/Y&rdquo; (for example: &ldquo;260/300&rdquo;)? Well, you just have the codes be (loosely) called twice under &ldquo;<kbd>Number to string</kbd>&rdquo; but like this instead:
+<ol>
+	<li>
+		<p>The number of tiles to clear uses <kbd>LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat</kbd>, 2 numbers, plus 1 (because of the &ldquo;/&rdquo; symbol), minus 1 (because indexing ranges from 0 to
+		<kbd>NumberOfItems-1</kbd>), its then multiplied by 1 or 2 to adjust the status bar data formatting.</p>
+	</li>
+	<li>
+		<p>You have codes <kbd>Process HexDec</kbd> and <kbd>Remove leading zeroes and have it as a character table</kbd> be the same for the first number (using previous example, the 260). We will not use the failsafe
+		of too many digits until after we write the second number.</p>
+	</li>
+	<li>
+		<p>After writing the first number, you then write a character that will be in between the 2 numbers (in this case, the &ldquo;/&rdquo; symbol), after this, you <kbd>INX</kbd> so you will place the second
+		number after it.</p>
+	</li>
+	<li>
+		<p>You do the same thing as the first number, but use <kbd>PHX</kbd>, then the code that uses HexDec, without <kbd>LDX #$00</kbd>, then <kbd>PLX</kbd>, because X needs to continue counting the characters, and that HexDec routine modifies
+		this to handle each of the 5 digits. After this, then you DO need that failsafe, using <kbd>CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)</kbd>, 2 numbers, plus 1 for the &ldquo;/&rdquo; symbol, plus 1 AGAIN because BCS branches if
+		<kbd>X &ge; ComparedValue</kbd></p>
+	</li>
+</ol>
+Here is an example using 2 16-bit numbers:
+<table><tr><td><pre>
+!RAMToMeasure = $60			;>RAM address you what to show
+!RAMToMeasure2 = $62			;>Same as above
+!StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
+!StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+!NumberOfDigitsDisplayed = 5		;>How many digits, enter 1-5 (pointless if you enter less than 3).
+!SlashCharacterTileNumb = $29		;>Tile number for the "/" symbol.
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.NumberDisplayTest
+	;Clear the tiles. To prevent leftover "ghost" tiles that should've
+	;disappear when the number of digits decreases (so when "10" becomes "9",
+	;won't display "90").
+		LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat	;>2 NumberOfDigitsDisplayed due to 2 numbers displayed, plus 1 because of the "/" symbol.
+		-
+		LDA #$FC
+		STA !StatusBarPosition,x
+		DEX #!StatusbarFormat
+		BPL -
+	;First number
+		;Process HexDec
+			REP #$20					;\Convert a given number to decimal digits.
+			LDA !RAMToMeasure				;|
+			STA $00						;|
+			SEP #$20					;|
+			JSL HexDec_SixteenBitHexDecDivision		;/
+		;Remove leading zeroes and have it as a character table
+			LDX #$00					;>Start at character position 0.
+			JSL HexDec_SupressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
+	;"/" symbol
+			LDA #!SlashCharacterTileNumb			;\Slash symbol.
+			STA !Scratchram_CharacterTileTable,x		;/
+			INX						;>Next character position.
+	;Second number
+		;Process HexDec
+			PHX						;>Push X because it gets modified by the HexDec routine.
+			REP #$20					;\Convert a given number to decimal digits.
+			LDA !RAMToMeasure2				;|
+			STA $00						;|
+			SEP #$20					;|
+			JSL HexDec_SixteenBitHexDecDivision		;/
+			PLX						;>Restore.
+		;Remove leading zeroes and have it as a character table
+			JSL HexDec_SupressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
+		;Prevent writing too much characters.
+			CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
+			BCS ..TooMuchDigits				;/not being cleared from the previous code.
+	;Write to status bar
+		if !StatusbarFormat == $01
+			DEX					;>Start on the last character, not on the first unwritten character.
+			-
+			LDA !Scratchram_CharacterTileTable,x	;\Write characters
+			STA !StatusBarPosition,x		;/
+			DEX					;\Repeat until all characters written.
+			BPL -					;/
+		else
+			DEX					;>Start on the last character, not on the first unwritten character.
+			TXY					;>Transfer to Y (we have 2 indexing for the table and the tiles on status bar)
+			TXA					;\Double X because we must index 2 bytes over due to [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+			ASL					;|
+			TAX					;/
+			-
+			PHX					;\STA $xxxxxx,y does not exist, so I have to move it to X since
+			TYX					;|STA $xxxxxx,x do exist.
+			LDA !Scratchram_CharacterTileTable,x	;|
+			PLX					;/
+			STA !StatusBarPosition,x		;>Write the character to status bar
+			DEY					;\Repeat until all characters written.
+			DEX #2					;|
+			BPL -					;/
+		endif
+	..TooMuchDigits
+	RTL</pre></td></tr></table><br>
+Again, use the debugger if you wanted to test the values using the memory editor and editing the RAM address defined by <kbd>!RAMToMeasure</kbd>, and this time, also <kbd>!RAMToMeasure2</kbd>.</p>
+
+<p>But what about right-aligned number display? <abbr title="It's already explained using any hexdec routines, then anything under &ldquo;Removing leading zeroes&rdquo; through the leading spaces method">Don't
+ask if you wanted to display a single number</abbr></p>
+
 <h2 id="RepeatedSymbol"><a href="#RepeatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
 <p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example
 4/5 filled shows 5 symbols with 4 of them filled:<br>

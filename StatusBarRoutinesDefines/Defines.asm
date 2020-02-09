@@ -22,9 +22,9 @@
 	;uses the SNES registers for non SA-1, or
 	;uses a division routine which the outputs are
 	;at $00-$03.
-		!HexDecDigitTable = $02
+		!Scratchram_16bitHexDecOutput = $02
 		if !sa1 != 0
-			!HexDecDigitTable = $04
+			!Scratchram_16bitHexDecOutput = $04
 		endif
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Defines
