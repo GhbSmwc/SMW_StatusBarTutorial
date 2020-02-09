@@ -368,13 +368,14 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;WriteStringDigitsToHUD. Note: Be aware that the math of handling the address
 	;does NOT account to changing the bank byte (address $XX****), so be aware of
 	;having status bar tables that crosses bank borders ($7EFFFF, then $7F0000,
-	;as an made-up example, but its unlikely though).
+	;as an made-up example, but its unlikely though). This routine basically takes
+	;a given RAM address stored in $00-$02, subtract by how many tiles (minus 1), then
+	;$00-$02 is now the left tile position.
 	;
 	;Input:
 	; -$00-$02 = 24-bit address location to write to status bar tile number.
 	; -If tile properties are edit-able:
 	; --$03-$05 = Same as $00-$02 but tile properties.
-	; --$06 = the tile properties.
 	; -X = The number of characters to write, ("123" would have X = 3)
 	;Output:
 	; -$00-$02 and $03-$05 are subtracted by [(NumberOfCharacters-1)*!StatusbarFormat]
@@ -435,7 +436,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	; -$00-$02 = 24-bit address location to write to status bar tile number.
 	; -If tile properties are edit-able:
 	; --$03-$05 = Same as $00-$02 but tile properties.
-	; --$06 = the tile properties, all of them will be the same.
+	; --$06 = the tile properties, for all tiles.
 	; -X = The number of characters to write, ("123" would have X = 3)
 	;
 	;Note:
