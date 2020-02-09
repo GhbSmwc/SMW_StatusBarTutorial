@@ -560,7 +560,6 @@ See picture below:<br>
 <p>To use the routine, here is the code template:
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
-!StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
 !NumberOfDigitsDisplayed = 5		;>How many digits, enter 1-5 (pointless if you enter less than 3).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -591,27 +590,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
 	;Write to status bar
 		if !StatusbarFormat == $01
-			DEX					;>Start on the last character, not on the first unwritten character.
-			-
-			LDA !Scratchram_CharacterTileTable,x	;\Write characters
-			STA !StatusBarPosition,x		;/
-			DEX					;\Repeat until all characters written.
-			BPL -					;/
+			JSL HexDec_WriteStringDigitsToHUD
 		else
-			DEX					;>Start on the last character, not on the first unwritten character.
-			TXY					;>Transfer to Y (we have 2 indexing for the table and the tiles on status bar)
-			TXA					;\Double X because we must index 2 bytes over due to [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
-			ASL					;|
-			TAX					;/
-			-
-			PHX					;\STA $xxxxxx,y does not exist, so I have to move it to X since
-			TYX					;|STA $xxxxxx,x do exist.
-			LDA !Scratchram_CharacterTileTable,x	;|
-			PLX					;/
-			STA !StatusBarPosition,x		;>Write the character to status bar
-			DEY					;\Repeat until all characters written.
-			DEX #2					;|
-			BPL -					;/
+			JSL HexDec_WriteStringDigitsToHUDFormat2
 		endif
 	..TooMuchDigits
 	RTL</pre></td></tr></table><br>
@@ -640,7 +621,6 @@ Here is an example using 2 16-bit numbers:
 !RAMToMeasure = $60			;>RAM address you what to show
 !RAMToMeasure2 = $62			;>Same as above
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
-!StatusbarFormat = $01			;>$01 = [TTTTTTTT, TTTTTTTT,...], $02 = [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
 !NumberOfDigitsDisplayed = 5		;>How many digits, enter 1-5 (pointless if you enter less than 3).
 !SlashCharacterTileNumb = $29		;>Tile number for the "/" symbol.
 
@@ -686,35 +666,88 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
 	;Write to status bar
+		LDA.b #!StatusBarPosition : STA $00		;\Set address to write at a given status bar position.
+		LDA.b #!StatusBarPosition>>8 : STA $01		;|
+		LDA.b #!StatusBarPosition>>16 : STA $02		;/
 		if !StatusbarFormat == $01
-			DEX					;>Start on the last character, not on the first unwritten character.
-			-
-			LDA !Scratchram_CharacterTileTable,x	;\Write characters
-			STA !StatusBarPosition,x		;/
-			DEX					;\Repeat until all characters written.
-			BPL -					;/
+			JSL HexDec_WriteStringDigitsToHUD
 		else
-			DEX					;>Start on the last character, not on the first unwritten character.
-			TXY					;>Transfer to Y (we have 2 indexing for the table and the tiles on status bar)
-			TXA					;\Double X because we must index 2 bytes over due to [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
-			ASL					;|
-			TAX					;/
-			-
-			PHX					;\STA $xxxxxx,y does not exist, so I have to move it to X since
-			TYX					;|STA $xxxxxx,x do exist.
-			LDA !Scratchram_CharacterTileTable,x	;|
-			PLX					;/
-			STA !StatusBarPosition,x		;>Write the character to status bar
-			DEY					;\Repeat until all characters written.
-			DEX #2					;|
-			BPL -					;/
+			JSL HexDec_WriteStringDigitsToHUDFormat2
 		endif
 	..TooMuchDigits
 	RTL</pre></td></tr></table><br>
 Again, use the debugger if you wanted to test the values using the memory editor and editing the RAM address defined by <kbd>!RAMToMeasure</kbd>, and this time, also <kbd>!RAMToMeasure2</kbd>.</p>
 
 <p>But what about right-aligned number display? <abbr title="It's already explained using any hexdec routines, then anything under &ldquo;Removing leading zeroes&rdquo; through the leading spaces method">Don't
-ask if you wanted to display a single number</abbr></p>
+ask if you wanted to display a single number</abbr>, here is how you do it: After checking if there are too many characters, you then store the RAM address of the <i>rightmost tile position</i> into $00-$02 (little endian),
+call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedFormat2</kbd> if using the [TTTTTTTT, YXPCCCTT] format), which will modify the position of where to write the digits based on how long the string are
+(loop-writes are based on the starting byte of an array, not the last) by taking the position, subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the routine to write to the HUD:
+
+
+<table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
+!RAMToMeasure2 = $62			;>Same as above
+!StatusBarPosition = $7Fa03E		;>Where to write on the status bar. NOTE: This is now the position of the rightmost/last tile (tiles will be written here and before it).
+!NumberOfDigitsDisplayed = 5		;>How many digits, enter 1-5 (pointless if you enter less than 3).
+!SlashCharacterTileNumb = $29		;>Tile number for the "/" symbol.
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.NumberDisplayTest
+	;Clear the tiles. To prevent leftover "ghost" tiles that should've
+	;disappear when the number of digits decreases (so when "10" becomes "9",
+	;won't display "90").
+		LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat	;>2 NumberOfDigitsDisplayed due to 2 numbers displayed, plus 1 because of the "/" symbol.
+		-
+		LDA #$FC
+		STA !StatusBarPosition-((((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat),x
+		DEX #!StatusbarFormat
+		BPL -
+	;First number
+		;Process HexDec
+			REP #$20					;\Convert a given number to decimal digits.
+			LDA !RAMToMeasure				;|
+			STA $00						;|
+			SEP #$20					;|
+			JSL HexDec_SixteenBitHexDecDivision		;/
+		;Remove leading zeroes and have it as a character table
+			LDX #$00					;>Start at character position 0.
+			JSL HexDec_SupressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
+	;"/" symbol
+			LDA #!SlashCharacterTileNumb			;\Slash symbol.
+			STA !Scratchram_CharacterTileTable,x		;/
+			INX						;>Next character position.
+	;Second number
+		;Process HexDec
+			PHX						;>Push X because it gets modified by the HexDec routine.
+			REP #$20					;\Convert a given number to decimal digits.
+			LDA !RAMToMeasure2				;|
+			STA $00						;|
+			SEP #$20					;|
+			JSL HexDec_SixteenBitHexDecDivision		;/
+			PLX						;>Restore.
+		;Remove leading zeroes and have it as a character table
+			JSL HexDec_SupressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
+	;Prevent writing too much characters.
+		CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
+		BCS ..TooMuchDigits				;/not being cleared from the previous code.
+	;Calculate where to write for right-aligned 2-number display
+		LDA.b #!StatusBarPosition : STA $00		;\Set address to write at a given status bar position.
+		LDA.b #!StatusBarPosition>>8 : STA $01		;|
+		LDA.b #!StatusBarPosition>>16 : STA $02		;/
+		if !StatusbarFormat == $01				;\These offset the write position based on how many
+			JSL HexDec_ConvertToRightAligned		;|characters so that it is right-aligned.
+		else
+			JSL HexDec_ConvertToRightAlignedFormat2		;|$00-$02 will now contain where is the leftmost tile.
+		endif							;/
+	;Write to status bar
+		if !StatusbarFormat == $01
+			JSL HexDec_WriteStringDigitsToHUD
+		else
+			JSL HexDec_WriteStringDigitsToHUDFormat2
+		endif
+	..TooMuchDigits
+	RTL</pre></td></tr></table></p>
 
 <h2 id="RepeatedSymbol"><a href="#RepeatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
 <p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example
