@@ -59,6 +59,7 @@ on something simple as how to write a value to memory. You should also know abou
 		<ul>
 			<li><a href="#RightAligned" id="RightAlignedBack">Right aligned display</a></li>
 		</ul>
+		<li><a href="#IncrementDecrementAnimation" id="IncrementDecrementAnimationBack">Counting animation</a></li>
 	</ul>
 	<li><a href="#RepeatedSymbol" id="RepeatedSymbolBack">Displaying repeated symbol n times.</a></li>
 	<li><a href="#GraphicalBar" id="GraphicalBarBack">Display a graphical bar</a></li>
@@ -756,6 +757,81 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	..TooMuchDigits
 	RTL</pre></td></tr></table>It should result like this:<br>
 	<img src="Readme_Files/RightAligned2Numbers.png"></p>
+	
+<h3 id="IncrementDecrementAnimation"><a href="#IncrementDecrementAnimationBack">^</a>Counting animation</h3>
+<p>In many video games, when a number is displayed on the HUD and is added or subtracted by another value, the number will gradually increase or decrease, then stops. SMW does have that with the bonus stars and score when completing the level.
+SMW also does this with the coins, but only increment by 1 in the main game (an unused flying red coin, sprite $7E increments by 5). This is done by using $13CC as an &ldquo;adder&rdquo;, for every value in this RAM, increments the coin count,
+and decreases itself once per frame. There are two types of increment animation:
+<ul>
+	<li><p><b>Actual amount counting:</b> Your actual value is gradually counting, for example: SMW's coin is an example of this, if you were to check the player's coin count (<kbd>LDA $0DBF : CMP #$XX : &lt;BEQ/BNE/BCC/BCS&gt;</kbd>) while it's counting,
+	it will take the current value instead of the added total value.</p></li>
+	<li><p><b>Mere display counting:</b> A number displayed on the HUD does the counting animation, but if you were to check the number while it is counting, it would check the value that it would be once it stops counting instead of the current
+	number displayed on that frame. This is done by have 2 numbers stored in memory: one for display that counts gradually and the other that adds and subtract &ldquo;instantly&rdquo; which that is the actual amount.</p></li>
+</ul>
+I usually call this a &ldquo;record effect&rdquo; on my older ASM works, but this sounds kinda misleading, Here is the example code:
+<table>
+<tr><th>Actual amount counting</th><th>Mere display counting</th></tr>
+<tr>
+<td><pre>Placeholder</pre></td>
+<td>
+<table><tr><td><pre>!RAMToMeasure = $60			;>RAM address of the actual number
+!RAMToMeasure2 = $62			;>RAM address of the displayed amount
+!StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.CountingAnimation
+	LDA !RAMToMeasure2
+	CMP !RAMToMeasure
+	BEQ ..NoChange
+	BCC ..LessThan
+	
+	..GreaterThan
+	LDA !RAMToMeasure2
+	DEC
+	BRA ..Write
+	
+	..LessThan
+	LDA !RAMToMeasure2
+	INC
+	
+	..Write
+	STA !RAMToMeasure2
+	
+	..NoChange
+	
+	.DisplayStatusBar
+	LDA !RAMToMeasure2
+	JSL HexDec_EightBitHexDec3Digits
+	STA !StatusBarPosition+(2*!StatusbarFormat)	;>Write 1s place
+	TXA						;\Write 10s place
+	STA !StatusBarPosition+(1*!StatusbarFormat)	;/
+	TYA						;\Write 100s place.
+	STA !StatusBarPosition				;/
+	RTL
+</pre></td></tr></table><br>
+If you want the counter to count even slower instead of once per frame, under the sublabel
+<kbd>.CountingAnimation</kbd>, and before the first <kbd>LDA</kbd> add this code:
+<table><tr><td><pre>	LDA $13
+	AND.b #%00000011
+	BNE ..NoChange</pre></td></tr></table><br>
+The AND values must be powers of 2, minus 1 (value_for_AND = (2^n)-1) where n is how much delay, in powers of 2 of frames.
+What will happen is that the number will change by 1 every 2<sup>n</sup> frames. If you want the display to freeze when $9D is set, use this code instead:
+<table><tr><td><pre>	LDA $9D
+	ORA $13D4|!addr
+	BNE ..NoChange
+
+	LDA $14
+	AND.b #%00000011		;>Again, this is value_for_AND = (2^n)-1 where n is powers of 2 delay.
+	BNE ..NoChange
+</pre></td></tr></table>
+</td>
+</tr>
+</table>
+
+
+</p>
 
 <h2 id="RepeatedSymbol"><a href="#RepeatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
 <p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example
