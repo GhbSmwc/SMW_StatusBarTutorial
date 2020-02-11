@@ -772,7 +772,40 @@ I usually call this a &ldquo;record effect&rdquo; on my older ASM works, but thi
 <table>
 <tr><th>Actual amount counting</th><th>Mere display counting</th></tr>
 <tr>
-<td><pre>Placeholder</pre></td>
+<td><pre>
+<table><tr><td><pre>!RAMToMeasure = $60			;>RAM address of the actual number
+!Freeram_Adder = $62			;>RAM address that adds to !RAMToMeasure
+!StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.Adder
+	LDA !Freeram_Adder
+	BEQ ..NoChange
+	
+	..Increment
+	LDA !Freeram_Adder	;\Decrement on every step (frame)
+	DEC			;|for every adder value.
+	STA !Freeram_Adder	;|
+	LDA !RAMToMeasure	;|
+	INC			;|
+	STA !RAMToMeasure	;/
+	
+	..NoChange
+
+	.DisplayStatusBar
+	LDA !RAMToMeasure2
+	JSL HexDec_EightBitHexDec3Digits
+	STA !StatusBarPosition+(2*!StatusbarFormat)	;>Write 1s place
+	TXA						;\Write 10s place
+	STA !StatusBarPosition+(1*!StatusbarFormat)	;/
+	TYA						;\Write 100s place.
+	STA !StatusBarPosition				;/
+	RTL
+
+</pre></td></tr></table>
+</td>
 <td>
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address of the actual number
 !RAMToMeasure2 = $62			;>RAM address of the displayed amount
