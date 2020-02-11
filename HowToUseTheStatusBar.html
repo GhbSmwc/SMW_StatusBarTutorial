@@ -56,6 +56,9 @@ on something simple as how to write a value to memory. You should also know abou
 	</ul>
 	<ul>
 		<li><a href="#AlignedDigits" id="AlignedDigitsBack">Remove Leading zeros, with left/right-aligned digits</a></li>
+		<ul>
+			<li><a href="#RightAligned" id="RightAlignedBack">Right aligned display</a></li>
+		</ul>
 	</ul>
 	<li><a href="#RepeatedSymbol" id="RepeatedSymbolBack">Displaying repeated symbol n times.</a></li>
 	<li><a href="#GraphicalBar" id="GraphicalBarBack">Display a graphical bar</a></li>
@@ -555,7 +558,9 @@ have a huge number of digits it can display up to. Or, if you wanted the number 
 The first routine, <kbd>SupressLeadingZeros</kbd> works like this: Search all the digits in <kbd>!Scratchram_16bitHexDecOutput</kbd>, and copy all the non-leading zero digits on and after the first (leftmost) digit and paste them into
 <kbd>!Scratchram_CharacterTileTable</kbd>. You've now have a &ldquo;compressed string&rdquo; table stored. After this routine, The X register now contains a number incremented for every character being written.
 See picture below:<br>
-<img src="Readme_Files/NoLeadingZeroesLeftAligned.png">
+<img src="Readme_Files/NoLeadingZeroesLeftAligned.png"><br>
+When written to the status bar:<br>
+<img src="Readme_Files/StatusBarStringTransfer.png">
 </p>
 <p>To use the routine, here is the code template:
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
@@ -678,7 +683,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	RTL</pre></td></tr></table><br>
 Again, use the debugger if you wanted to test the values using the memory editor and editing the RAM address defined by <kbd>!RAMToMeasure</kbd>, and this time, also <kbd>!RAMToMeasure2</kbd>.</p>
 
-<p>But what about right-aligned number display? <abbr title="It's already explained using any hexdec routines, then anything under &ldquo;Removing leading zeroes&rdquo; through the leading spaces method">Don't
+<h4 id="RightAligned"><a href="#RightAlignedBack">^</a>Right aligned display</h3>
+
+<p>But what about right-aligned number display? <abbr title="It's already explained using any hexdec routines, then anything under &ldquo;Removing leading zeroes&rdquo; through the leading spaces method.">Don't
 ask if you wanted to display a single number</abbr>, here is how you do it: After checking if there are too many characters, you then store the RAM address of the <i>rightmost tile position</i> into $00-$02 (little endian),
 call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedFormat2</kbd> if using the [TTTTTTTT, YXPCCCTT] format), which will modify the position of where to write the digits based on how long the string are
 (loop-writes are based on the starting byte of an array, not the last) by taking the position, subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the routine to write to the HUD:
@@ -747,7 +754,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			JSL HexDec_WriteStringDigitsToHUDFormat2
 		endif
 	..TooMuchDigits
-	RTL</pre></td></tr></table></p>
+	RTL</pre></td></tr></table>It should result like this:<br>
+	<img src="Readme_Files/RightAligned2Numbers.png"></p>
 
 <h2 id="RepeatedSymbol"><a href="#RepeatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
 <p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example
