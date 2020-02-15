@@ -64,6 +64,7 @@ on something simple as how to write a value to memory. You should also know abou
 	<li><a href="#RepeatedSymbol" id="RepeatedSymbolBack">Displaying repeated symbol n times.</a></li>
 	<li><a href="#GraphicalBar" id="GraphicalBarBack">Display a graphical bar</a></li>
 </ul>
+<li><a href="#OverworldBorder" id="OverworldBorderBack">Displaying stuff on the overworld border</a></li>
 <li><a href="#OtherNotes" id="OtherNotesBack">Other Notes</a></li>
 <hr>
 <p>I have provided several routines to make writing codes much user-friendly as possible. So lets begin.</p>
@@ -286,7 +287,7 @@ the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have t
 <p>For the overworld border (<abbr title="So far, there isn't any other patches that lets you edit the overworld border similarly to the status bar.">assuming you're using the Overworld Border+ patch</abbr>),
 which is stored in <kbd>GFX2A</kbd>, after calling the HexDec routine, you must add each digit by #$22 (<a href="Readme_Files/OWB_Digits.png" target="_blank">digit graphics are stored as tile numbers $22-$2B</a>),
 and make sure you are using page 1 and not 0 on the tile properties (example, to display the number &ldquo;<font color="red">1</font><font color="blue">2</font>&rdquo;, the values must be <kbd><font color="red">$01</font>+$22 = $23</kbd>
-for the tens and <kbd><font color="blue">$02</font>+$22 = $24</kbd> for the ones).</p>
+for the tens and <kbd><font color="blue">$02</font>+$22 = $24</kbd> for the ones). I'll later explain how to display digits on the overworld border later on this document.</p>
 
 
 <p>Create a text file, name it <kbd>StatusBarTest.asm</kbd>. Edit that text file to include this code:
@@ -929,6 +930,141 @@ Graphical bar, as in this:<br>
 
 <a href="https://www.smwcentral.net/?p=section&a=details&id=19552">Resource here</a><sup><a href="https://github.com/GhbSmwc/SMW-Graphical-bar-display">[1]</a></sup>.
 Reason this package not including this is because too much information to be had here.</p>
+<hr>
+<h2 id="OverworldBorder"><a href="#OverworldBorderBack">^</a>Displaying stuff on the overworld border</h2>
+<p>You may be asking, how do I display information on the overworld border? Well, I have good news, because the only thing you have to do is convert the tile numbering for the status bar to
+the tile numbering of the overworld border. The graphical bar to be used on the OWB is already covered in that package. So only the numerical display we'll discuss here.</p>
+
+<p>Remember that I mentioned that the digit graphics are stored in page 1 at tile numbers <kbd>$22</kbd>-<kbd>$2B</kbd>? Well, I've also included OWB converters in the routines folder. Here are the examples
+(run this code either as (obviously overworld) or gamemode <kbd>$0D-$0E</kbd> ($0D so the display happens during fade)). Also remember that the provided examples assumes you've installed the overworld border plus patch:<br>
+
+
+8-bit 2-digit:
+<table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
+!OverworldBorderPosition = $7FEC00	;>Where to write on the status bar
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	init:
+	main:
+	LDA !RAMToMeasure
+	JSL HexDec_EightBitHexDec
+	CLC
+	ADC #$22
+	STA !OverworldBorderPosition+(1*2)		;>Write 1s place
+	TXA						;>if you are using status bar patches, STX $xxxxxx will not work.
+	CLC
+	ADC #$22
+	STA !OverworldBorderPosition			;>Write 10s place
+	
+	;Set properties:
+		LDA.b #%00111001
+		STA !OverworldBorderPosition+1
+		STA !OverworldBorderPosition+1+(1*2)
+	RTL</pre></td></tr></table>
+8-bit 3-digit:
+<table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
+!OverworldBorderPosition = $7FEC00	;>Where to write on the status bar
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	LDA !RAMToMeasure
+	JSL HexDec_EightBitHexDec3Digits			;>Obtain 3 digits in A, X and Y.
+	CLC
+	ADC #$22
+	STA !OverworldBorderPosition+(2*!StatusbarFormat)	;>Write 1s place
+	TXA							;\Write 10s place
+	CLC
+	ADC #$22
+	STA !OverworldBorderPosition+(1*!StatusbarFormat)	;/
+	TYA							;\Write 100s place.
+	CLC
+	ADC #$22
+	STA !OverworldBorderPosition				;/
+	
+	;Set properties
+		LDA.b #%00111001
+		STA !OverworldBorderPosition+1
+		STA !OverworldBorderPosition+1+(1*2)
+		STA !OverworldBorderPosition+1+(2*2)
+	RTL</pre></td></tr></table>
+16-bit n-digit:
+<table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
+!OverworldBorderPosition = $7FEC00	;>Where to write on the overworld border
+!NumberOfDigitsDisplayed = 5		;>How many digits, enter 1-5 (pointless if you enter less than 3).
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	init:
+	main:
+	REP #$20
+	LDA !RAMToMeasure
+	STA $00
+	SEP #$20
+	JSL HexDec_SixteenBitHexDecDivision
+	JSL HexDec_RemoveLeadingZeroes16Bit		;>Omit this if you want to display leading zeroes
+	JSL HexDec_SixteenBitHexDecDivisionToOWB	;>Convert to OWB graphic.
+	
+	;Write to overworld border
+		LDX.b #((!NumberOfDigitsDisplayed-1)*2)
+		LDY.b #(!NumberOfDigitsDisplayed-1)
+		-
+		LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
+		STA !OverworldBorderPosition,x
+		LDA.b #%00111001								;\Page 1, Palette 6, and Priority ON
+		STA.l !OverworldBorderPosition+1,x						;/
+		DEY
+		DEX #2
+		BPL -
+	RTL
+</pre></td></tr></table>
+32-bit n-digit:
+<table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
+!OverworldBorderPosition = $7FEC00	;>Where to write on the status bar
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !MaxNumberOfDigits
+;(the number digits stored in each byte in !Scratchram_32bitHexDecOutput), else garbage will appear.
+	!NumberOfDigitsDisplayed = 9		;>How many digits, enter 1-10 (pointless if you enter less than 5).
+
+	;Don't change this.
+		if defined("sa1") == 0
+			if read1($00FFD5) == $23
+				!sa1 = 1
+				sa1rom
+			else
+				!sa1 = 0
+			endif
+		endif
+	main:
+	REP #$20
+	LDA $60			;\Low word (example: $3344 -> [$44, $33] in $00, $01)
+	STA $00			;/
+	LDA $62			;\High word (example: $1122 -> [$22, $11] in $02, $03)
+	STA $02			;/
+	SEP #$20
+	JSL HexDec_Convert32bitIntegerToDecDigits	;>Should Output example as: [$02, $08, $07, $04, $05, $04, $00, $02, $00] on !Scratchram_32bitHexDecOutput.
+	JSL HexDec_RemoveLeadingZeroes32Bit		;>Again, remove to allow leading zeroes.
+	JSL HexDec_ThirtyTwoBitHexDecDivisionToOWB
+	
+	;Write to overworld border:
+		LDX #((!NumberOfDigitsDisplayed-1)*2)
+		LDY #(!NumberOfDigitsDisplayed-1)
+		-
+		PHX
+		TYX												;>Sigh, LDA $xxxxxx,y does not exist.
+		LDA (!Scratchram_32bitHexDecOutput)+(!MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
+		PLX
+		STA !OverworldBorderPosition,x
+		LDA.b #%00111001
+		STA.l !OverworldBorderPosition+1,x
+		DEY
+		DEX #2
+		BPL -
+	RTL</pre></td></tr></table>
+</p>
 <hr>
 <h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
 <ul>

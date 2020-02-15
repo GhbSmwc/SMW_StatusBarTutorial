@@ -1,4 +1,20 @@
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
+;Routines list:
+;-EightBitHexDec
+;-EightBitHexDec3Digits
+;-SixteenBitHexDecDivision
+;-MathDiv
+;-Convert32bitIntegerToDecDigits
+;-MathDiv32_16
+;-RemoveLeadingZeroes16Bit
+;-RemoveLeadingZeroes32Bit
+;-SixteenBitHexDecDivisionToOWB
+;-ThirtyTwoBitHexDecDivisionToOWB
+;-SupressLeadingZeros
+;-ConvertToRightAligned
+;-ConvertToRightAlignedFormat2
+;-WriteStringDigitsToHUD
+;-WriteStringDigitsToHUDFormat2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;HexDec routines.
 ;Converts a given number to binary-coded-decimal
@@ -293,6 +309,80 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		BCC .Loop				;>if not done yet, continue looping.
 		
 		.NonZero
+		RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Overworld digit converter.
+;
+;Converts decimal digits to OW graphic digits:
+;Tile $00		-> Tile $22
+;Tile $01		-> Tile $23
+;Tile $02		-> Tile $24
+;Tile $03		-> Tile $25
+;Tile $04		-> Tile $26
+;Tile $05		-> Tile $27
+;Tile $06		-> Tile $28
+;Tile $07		-> Tile $29
+;Tile $08		-> Tile $2A
+;Tile $09		-> Tile $2B
+;Tile $FC		-> Tile $1F
+;Tile $29		-> Tile $91
+;Note that the displaying of symbols are on page 1, not page 0, and the palette of the OWB is palette 6.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;Convert 16-bit number to OWB digits.
+	;Usage with other routines:
+	;	JSL SixteenBitHexDecDivision
+	;	JSL RemoveLeadingZeroes16Bit		;>Omit this if you want to display leading zeroes
+	;	JSL SixteenBitHexDecDivisionToOWB
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		SixteenBitHexDecDivisionToOWB:
+		LDX #$04
+		
+		.Loop
+		LDA !Scratchram_16bitHexDecOutput,x
+		CMP #$FC
+		BEQ ..Blank
+		
+		..Digit
+		CLC
+		ADC #$22
+		BRA ..Write
+		
+		..Blank
+		LDA #$1F
+		
+		..Write
+		STA !Scratchram_16bitHexDecOutput,x
+		DEX
+		BPL .Loop
+		RTL
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;Convert 16-bit number to OWB digits.
+	;Usage with other routines:
+	;	JSL SixteenBitHexDecDivision
+	;	JSL RemoveLeadingZeroes16Bit		;>Omit this if you want to display leading zeroes
+	;	JSL SixteenBitHexDecDivisionToOWB
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		ThirtyTwoBitHexDecDivisionToOWB:
+		LDX.b #!MaxNumberOfDigits-1
+		
+		.Loop
+		LDA !Scratchram_32bitHexDecOutput,x
+		CMP #$FC
+		BEQ ..Blank
+		
+		..Digit
+		CLC
+		ADC #$22
+		BRA ..Write
+		
+		..Blank
+		LDA #$1F
+		
+		..Write
+		STA !Scratchram_32bitHexDecOutput,x
+		DEX
+		BPL .Loop
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Leading zeroes remover, to convert numbers to left/right-aligned display.
