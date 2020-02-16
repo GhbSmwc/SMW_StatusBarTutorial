@@ -758,9 +758,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	
 <h3 id="IncrementDecrementAnimation"><a href="#IncrementDecrementAnimationBack">^</a>Counting animation</h3>
 <p>In many video games, when a number is displayed on the HUD and is added or subtracted by another value (that is greater than 1), the number will gradually increase or decrease,
-then stops. SMW does have that with the bonus stars and score when completing the level. SMW also does this with the coins, but most of the time increment by 1 in the main game
-(an unused flying red coin, sprite $7E increments by 5). This is done by using $13CC as an &ldquo;adder&rdquo;, for every value in this RAM, increments the coin count,
-and decreases itself once per frame. See this code here from its code:
+then stops, instead of instantly displaying the new result value. SMW does have that with the bonus stars and score when completing the level. SMW also does this with the coins,
+but most of the time increment by 1 in the main game (an unused flying red coin, sprite $7E increments by 5). This is done by using $13CC as an &ldquo;adder&rdquo;, for every
+value in this RAM, increments the coin count, and decreases itself once per frame. See this code here from its code:
 <table><tr><td><pre>CODE_008F1D:        AD CC 13      LDA.W $13CC               ; \ If Coin increase isn't x00, 
 CODE_008F20:        F0 19         BEQ CODE_008F3B           ; / branch to $8F3B 
 CODE_008F22:        CE CC 13      DEC.W $13CC               ; Decrease "Coin increase" 
@@ -768,18 +768,29 @@ CODE_008F25:        EE BF 0D      INC.W RAM_StatusCoins     ; Increase coins by 
 
 There are two types of increment animation:
 <ul>
-	<li><p><b>Actual amount counting:</b> Your actual value is gradually counting, for example: SMW's coin is an example of this, if you were to check the player's coin count (<kbd>LDA $0DBF : CMP #$XX : &lt;BEQ/BNE/BCC/BCS&gt;</kbd>) while it's counting,
-	it will take the current value instead of the added total value.</p></li>
-	<li><p><b>Mere display counting:</b> A number displayed on the HUD does the counting animation, but if you were to check the number while it is counting, it would check the value that it would be once it stops counting instead of the current
-	number displayed on that frame. This is done by have 2 numbers stored in memory: one for display that counts gradually and the other that adds and subtract &ldquo;instantly&rdquo; which that is the actual amount.</p></li>
+	<li><p><b>Actual amount counting:</b> Your actual value is gradually counting, for example:
+	SMW's coin is an example of this, if you were to check the player's coin count
+	(<kbd>LDA $0DBF : CMP #$XX : &lt;BEQ/BNE/BCC/BCS&gt;</kbd>) while it's counting,
+	it will take the current value instead of the added total value. You also don't
+	write towards the actual counter directly, you just write how much to add to the adder.</p></li>
+	
+	<li><p><b>Mere display counting:</b> A number displayed on the HUD does the
+	counting animation (therefore, the display uses the gradual-counting) upwards
+	or downwards towards the actual value (the actual amount can instantly change,
+	while the display counts gradually). This is done by have 2 numbers stored in
+	memory: one for display that counts gradually and the other that can add and
+	subtract &ldquo;instantly&rdquo; which that is the actual amount. Here, you have
+	more control, you can write any value towards the actual amount, and the counting animation
+	will play, even when you set it to a specific value (no adding/subtracting).</p></li>
 </ul>
 I usually call this a &ldquo;record effect&rdquo; on my older ASM works, but this sounds kinda misleading, Here is the example code:
 <table>
 <tr><th>Actual amount counting</th><th>Mere display counting</th></tr>
 <tr>
-<td><pre>
+<td>
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address of the actual number
 !Freeram_Adder = $62			;>RAM address that adds to !RAMToMeasure
+!Freeram_Subtractor = $0DC3		;>RAM address that subtracts to !RAMToMeasure
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -787,20 +798,49 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	main:
 	.Adder
 	LDA !Freeram_Adder
-	BEQ ..NoChange
+	BEQ ..Done
 	
 	..Increment
-	LDA !Freeram_Adder	;\Decrement on every step (frame)
-	DEC			;|for every adder value.
-	STA !Freeram_Adder	;|
+	DEC			;\Decrement on every step (frame)
+	STA !Freeram_Adder	;|for every adder value.
 	LDA !RAMToMeasure	;|
+	CMP #$FF
+	BEQ ..Cancel
 	INC			;|
 	STA !RAMToMeasure	;/
+	BRA ..Done
 	
-	..NoChange
+	..Cancel
+	;Prevent overflow. Note: Merely capping the number by writing to !RAMToMeasure will not cancel
+	;how much remaining to add, so if you happen to hit this maximum, while the adder is nonzero,
+	;then set !RAMToMeasure to a lower value, it will still increase from that lower value. Same
+	;thing applies to subtraction when it bottoms out at 0 with !Freeram_Subtractor being nonzero
+	;when !RAMToMeasure is > 0.
+		LDA #$00		;>STZ $xxxxxx does not exist.
+		STA !Freeram_Adder
+	..Done
+	
+	.Subtracter
+	LDA !Freeram_Subtractor
+	BEQ ..Done
+	
+	..Decrement
+	DEC
+	STA !Freeram_Subtractor
+	LDA !RAMToMeasure
+	BEQ ..Cancel
+	DEC
+	STA !RAMToMeasure
+	BRA ..Done
+	
+	..Cancel
+	;Prevent underflow
+		LDA #$00
+		STA !Freeram_Subtractor
+	..Done
 
 	.DisplayStatusBar
-	LDA !RAMToMeasure2
+	LDA !RAMToMeasure
 	JSL HexDec_EightBitHexDec3Digits
 	STA !StatusBarPosition+(2*!StatusbarFormat)	;>Write 1s place
 	TXA						;\Write 10s place
@@ -808,8 +848,14 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	TYA						;\Write 100s place.
 	STA !StatusBarPosition				;/
 	RTL
-
-</pre></td></tr></table>
+	;Also note that if you have both adder and subtractor nonzero, they will cancel
+	;each other out as both will increase and decrease together (results !RAMToMeasure
+	;will stay the same), until one or the other is zero and starts adding or subtracting,
+	;whatever is greater. For example, Adder is 30 and Subtracter is 5, results 5 frames
+	;of no change, then increments by 1 25 times.</pre></td></tr></table>
+Note that if you want to stack values (say you want to add by 30 twice individually), it is a better idea to not set <kbd>!Freeram_Adder</kbd> to <kbd>#$1E</kbd>, rather to
+take <kbd>!Freeram_Adder</kbd>, then add <kbd>CLC : ADC.b &lt;AdderAmount&gt;</kbd>, and then write back to <kbd>!Freeram_Adder</kbd>, otherwise it will not add properly (the second increase amount would be
+<kbd>SetToAmount - AdderAmountLeft</kbd> instead where in this example that <kbd>SetToAmount = 30</kbd> and <kbd>AdderAmountLeft</kbd> is the current amount to add up to <kbd>!RAMToMeasure</kbd>).
 </td>
 <td>
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address of the actual number
@@ -876,7 +922,7 @@ the counting.</p></li>
 </ul>
 </p>
 For the &ldquo;Mere display counting&rdquo; you can alleviate the lengthy counting animation by taking the absolute difference of the display amount and actual amount, and check if the difference is too big, would
-subtract/add by a larger amount, therefore the difference is proportional to how much to subtract per frame. Here is an example using 16-bit number:
+subtract/add by a larger amount, therefore instead of subtracting by a set amount per frame, you subtract by the proportion of the difference size. Here is an example using 16-bit number:
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address of the actual number
 !RAMToMeasure2 = $62			;>RAM address of the displayed amount
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
