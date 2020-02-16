@@ -28,7 +28,7 @@
 <ul>
 
 <li><p>Ersanio's tutorial<sup><a href="https://www.smwcentral.net/?p=section&a=details&id=15073">[1]</a><a href="https://www.smwcentral.net/?p=section&a=details&id=14268">[2]</a></sup>
-on something simple as how to write a value to memory. You should also know about binary and hexidecimal, since many data explained here store in memory are bitwise.</p></li>
+on something simple as how to write a value to memory. You should also know about binary and hexidecimal, since many data explained here store in memory are bitwise (mainly the tile properties).</p></li>
 
 <li><p>Understand the mechanics of <a href="https://www.smwcentral.net/?p=section&a=details&id=19043">Asar</a>, such as defines and labels.</p></li>
 
@@ -52,7 +52,7 @@ on something simple as how to write a value to memory. You should also know abou
 <ul>
 	<li><a href="#DisplayNumbers" id="DisplayNumbersBack">Displaying decimal numbers</a></li>
 	<ul>
-		<li><a href="#RemoveLeadingZeroes" id="RemoveLeadingZeroesBack">Remove leading zeroes</a></li>
+		<li><a href="#RemoveLeadingZeroes" id="RemoveLeadingZeroesBack">Remove leading zeroes (leading spaces)</a></li>
 	</ul>
 	<ul>
 		<li><a href="#AlignedDigits" id="AlignedDigitsBack">Remove Leading zeros, with left/right-aligned digits</a></li>
@@ -124,7 +124,7 @@ and then you can use that coordinate and CTRL+F here on this HTML file to locate
 <p>I've also provided a patch, <kbd>DefaultTiles.asm</kbd> which is intended to be an ASM patch version of the <a href="https://www.smwcentral.net/?p=section&a=details&id=4580">SMW status bar editor tool</a>.</p>
 <hr>
 <h2 id="TileFormat"><a href="#TileFormatBack">^</a>Tile data format</h2>
-<p>As explained earlier about the palette issue, and that each 8x8 tile possess 2 tiles, I'll give you a summary of the entire tile data:
+<p>As explained earlier about the palette issue, and that each 8x8 tile possess 2 bytes, I'll give you a summary of the entire tile data:
 <ul>
 	<li>
 		<kbd>TTTTTTTT</kbd> is the tile number (previously explained already), refers to what tile to use from the tile stored in VRAM. Note that this alone is the tile number within a page.
@@ -505,8 +505,8 @@ displayed, while <kbd>!MaxNumberOfDigits</kbd> is the fixed number of digits (us
 Having both in case if you want to only display up to n digits less than the routine can output. For example, a counter to display 6 digits, 0-999999. You wouldn't want display
 unused digits always showing 0 on the millions (1000000s) and beyond (so don't display &ldquo;0000999999&rdquo;, those first 4 digits are always 0 and therefore redundant).</p>
 
-<h4 id="RemoveLeadingZeroes"><a href="#RemoveLeadingZeroesBack">^</a>Removing leading zeroes</h4>
-	<p>I've also provided routines that removes leading zeroes by simply replacing the first n digits with tile $FC in the digits table. After calling the the JSL routines to convert them into decimal
+<h4 id="RemoveLeadingZeroes"><a href="#RemoveLeadingZeroesBack">^</a>Removing leading zeroes (leading spaces)</h4>
+	<p>I've also provided routines that removes leading zeroes by simply replacing the first n digits with tile $FC in the digits table (I call this &ldquo;leading spaces&rdquo;). After calling the the JSL routines to convert them into decimal
 	digits, you then call <kbd>RemoveLeadingZeroes16Bit</kbd> or <kbd>RemoveLeadingZeroes32Bit</kbd> before writing to the status bar. Make sure you match the 16 and 32 bits. For the 8-bit versions,
 	a routine isn't necessary:
 	<ul>
@@ -527,7 +527,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	BNE ..HundredsNonZero				;/No, then erase the 100s digit and see if 10s is also part of the leading 0s.
 	
 	..NoHundreds
-	LDY #$FC					;\Erase the 100s digit
+	LDY #!StatusBarBlankTile			;\Erase the 100s digit
 	TYA						;|
 	STA !StatusBarPosition				;/
 	BRA .HandleTens					;>Check if the next digit is also part of the leading zero.
@@ -542,7 +542,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	BNE ..WriteTens					;/No, then erase the 10s.
 	
 	..NoTens
-	LDX #$FC					;>If 0, replace 10s digit with blank.
+	LDX #!StatusBarBlankTile			;>If 0, replace 10s digit with blank.
 	
 	..WriteTens
 	TXA						;\Write 10s place
@@ -578,7 +578,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;won't display "90").
 		LDX.b #(!NumberOfDigitsDisplayed-1)*!StatusbarFormat
 		-
-		LDA #$FC
+		LDA #!StatusBarBlankTile
 		STA !StatusBarPosition,x
 		DEX #!StatusbarFormat
 		BPL -
@@ -639,7 +639,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;won't display "90").
 		LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat	;>2 NumberOfDigitsDisplayed due to 2 numbers displayed, plus 1 because of the "/" symbol.
 		-
-		LDA #$FC
+		LDA #!StatusBarBlankTile
 		STA !StatusBarPosition,x
 		DEX #!StatusbarFormat
 		BPL -
@@ -686,12 +686,11 @@ Again, use the debugger if you wanted to test the values using the memory editor
 
 <h4 id="RightAligned"><a href="#RightAlignedBack">^</a>Right aligned display</h3>
 
-<p>But what about right-aligned number display? <abbr title="It's already explained using any hexdec routines, then anything under &ldquo;Removing leading zeroes&rdquo; through the leading spaces method.">Don't
-ask if you wanted to display a single number</abbr>, here is how you do it: After checking if there are too many characters, you then store the RAM address of the <i>rightmost tile position</i> into $00-$02 (little endian),
+<p>But what about right-aligned number display? First things first, if you are displaying a single number, this routine isn't necessary as calling the HexDec routines and replacing leading zeroes with leading spaces
+is automatically right-aligned, therefore only use this routines if you are displaying X/Y. Here is how you do it: After checking if there are too many characters, you then store the RAM address of the <i>rightmost tile position</i> into $00-$02 (little endian),
 call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedFormat2</kbd> if using the [TTTTTTTT, YXPCCCTT] format), which will modify the position of where to write the digits based on how long the string are
-(loop-writes are based on the starting byte of an array, not the last) by taking the position, subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the routine to write to the HUD:
-
-
+(loop-writes are based on the starting byte of an array, not the last) by taking the position, subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the
+routine to write to the HUD:
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
 !RAMToMeasure2 = $62			;>Same as above
 !StatusBarPosition = $7Fa03E		;>Where to write on the status bar. NOTE: This is now the position of the rightmost/last tile (tiles will be written here and before it).
@@ -706,7 +705,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;won't display "90").
 		LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat	;>2 NumberOfDigitsDisplayed due to 2 numbers displayed, plus 1 because of the "/" symbol.
 		-
-		LDA #$FC
+		LDA #!StatusBarBlankTile
 		STA !StatusBarPosition-((((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat),x
 		DEX #!StatusbarFormat
 		BPL -
