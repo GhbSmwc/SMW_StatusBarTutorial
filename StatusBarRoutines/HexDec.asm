@@ -1,20 +1,27 @@
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ;Routines list:
-;-EightBitHexDec
-;-EightBitHexDec3Digits
-;-SixteenBitHexDecDivision
-;-MathDiv
-;-Convert32bitIntegerToDecDigits
-;-MathDiv32_16
-;-RemoveLeadingZeroes16Bit
-;-RemoveLeadingZeroes32Bit
-;-SixteenBitHexDecDivisionToOWB
-;-ThirtyTwoBitHexDecDivisionToOWB
-;-SupressLeadingZeros
-;-ConvertToRightAligned
-;-ConvertToRightAlignedFormat2
-;-WriteStringDigitsToHUD
-;-WriteStringDigitsToHUDFormat2
+;HexDec routines:
+; -EightBitHexDec
+; -EightBitHexDec3Digits
+; -SixteenBitHexDecDivision
+; -MathDiv
+; -Convert32bitIntegerToDecDigits
+; -MathDiv32_16
+;Leading zeroes remover:
+; -RemoveLeadingZeroes16Bit
+; -RemoveLeadingZeroes32Bit
+;Overworld:
+; -SixteenBitHexDecDivisionToOWB
+; -ThirtyTwoBitHexDecDivisionToOWB
+;Leading zeroes remover:
+; -SupressLeadingZeros
+; -ConvertToRightAligned
+; -ConvertToRightAlignedFormat2
+;Aligned digit to OWB digits:
+; -Convert16BitAlignedDigitToOWB
+;Write to status bar or overworld border:
+; -WriteStringDigitsToHUD
+; -WriteStringDigitsToHUDFormat2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;HexDec routines.
 ;Converts a given number to binary-coded-decimal
@@ -287,7 +294,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		.Loop
 		LDA !Scratchram_16bitHexDecOutput,x			;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
 		BNE .NonZero				;/
-		LDA #$FC				;\blank tile to replace leading zero
+		LDA #!StatusBarBlankTile				;\blank tile to replace leading zero
 		STA !Scratchram_16bitHexDecOutput,x			;/
 		INX					;>next digit
 		CPX.b #$04				;>last digit to check. So that it can display a single 0.
@@ -302,7 +309,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		.Loop
 		LDA !Scratchram_32bitHexDecOutput,x	;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
 		BNE .NonZero				;/
-		LDA #$FC				;\blank tile to replace leading zero
+		LDA #!StatusBarBlankTile				;\blank tile to replace leading zero
 		STA !Scratchram_32bitHexDecOutput,x	;/
 		INX					;>next digit
 		CPX.b #!MaxNumberOfDigits-1		;>last digit to check. So that it can display a single 0.
@@ -314,18 +321,19 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ;Overworld digit converter.
 ;
 ;Converts decimal digits to OW graphic digits:
-;Tile $00		-> Tile $22
-;Tile $01		-> Tile $23
-;Tile $02		-> Tile $24
-;Tile $03		-> Tile $25
-;Tile $04		-> Tile $26
-;Tile $05		-> Tile $27
-;Tile $06		-> Tile $28
-;Tile $07		-> Tile $29
-;Tile $08		-> Tile $2A
-;Tile $09		-> Tile $2B
-;Tile $FC		-> Tile $1F
-;Tile $29		-> Tile $91
+;StatusBar tile numb:	OWB tile numb:		Description:
+;Tile $00		Tile $22		Digit tile ("0")
+;Tile $01		Tile $23		Digit tile ("1")
+;Tile $02		Tile $24		Digit tile ("2")
+;Tile $03		Tile $25		Digit tile ("3")
+;Tile $04		Tile $26		Digit tile ("4")
+;Tile $05		Tile $27		Digit tile ("5")
+;Tile $06		Tile $28		Digit tile ("6")
+;Tile $07		Tile $29		Digit tile ("7")
+;Tile $08		Tile $2A		Digit tile ("8")
+;Tile $09		Tile $2B		Digit tile ("9")
+;Tile $FC		Tile $1F		Blank tile
+;Tile $29		Tile $91		Slash tile ("/")
 ;Note that the displaying of symbols are on page 1, not page 0, and the palette of the OWB is palette 6.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -340,7 +348,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		
 		.Loop
 		LDA !Scratchram_16bitHexDecOutput,x
-		CMP #$FC
+		CMP #!StatusBarBlankTile
 		BEQ ..Blank
 		
 		..Digit
@@ -357,10 +365,10 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		BPL .Loop
 		RTL
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;Convert 16-bit number to OWB digits.
+	;Convert 32-bit number to OWB digits.
 	;Usage with other routines:
 	;	JSL SixteenBitHexDecDivision
-	;	JSL RemoveLeadingZeroes16Bit		;>Omit this if you want to display leading zeroes
+	;	JSL RemoveLeadingZeroes32Bit		;>Omit this if you want to display leading zeroes
 	;	JSL SixteenBitHexDecDivisionToOWB
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		ThirtyTwoBitHexDecDivisionToOWB:
@@ -368,7 +376,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		
 		.Loop
 		LDA !Scratchram_32bitHexDecOutput,x
-		CMP #$FC
+		CMP #!StatusBarBlankTile
 		BEQ ..Blank
 		
 		..Digit
@@ -518,6 +526,85 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;		SBC #$00				;|
 	;		STA $05					;/
 		endif
+		RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Aligned digit to OWB digits
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;Convert 16-bit number that has its leading zeroes suppressed (also left-aligned)
+	;to OWB digits
+	;Input:
+	;X = Number of characters in the string
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	Convert16BitAlignedDigitToOWB:
+		PHX
+		DEX
+		.Loop
+		LDA !Scratchram_CharacterTileTable,x
+		CMP #$0A
+		BCC .Digits
+		CMP #!StatusBarBlankTile
+		BEQ .Blank
+		CMP #$29
+		BEQ .Slash
+		
+		.Slash
+		LDA #$91
+		BRA .Write
+		
+		.Blank
+		LDA #$1F
+		BRA .Write
+		
+		.Digits
+		CLC
+		ADC #$22
+		
+		.Write
+		STA !Scratchram_CharacterTileTable,x
+		
+		..Next
+		DEX
+		BPL .Loop
+		PLX
+		RTL
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;Convert 32-bit number that has its leading zeroes suppressed (also left-aligned)
+	;to OWB digits
+	;Input:
+	;X = Number of characters in the string
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	Convert32BitAlignedDigitToOWB:
+		PHX
+		DEX
+		.Loop
+		LDA !Scratchram_CharacterTileTable,x
+		CMP #$0A
+		BCC .Digits
+		CMP #!StatusBarBlankTile
+		BEQ .Blank
+		CMP #$29
+		BEQ .Slash
+		
+		.Slash
+		LDA #$91
+		BRA .Write
+		
+		.Blank
+		LDA #$1F
+		BRA .Write
+		
+		.Digits
+		CLC
+		ADC #$22
+		
+		.Write
+		STA !Scratchram_CharacterTileTable,x
+		
+		..Next
+		DEX
+		BPL .Loop
+		PLX
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Misc routines

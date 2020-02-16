@@ -44,9 +44,14 @@
 		; This define is needed to prevent writing what it assumes tile properties into invalid
 		; RAM addresses.
 		
-		!BlankTile = $FC
-		;^Tile number for where there is no characters to be written for each 8x8 space.
-
+	;Status bar and OWB clearing tiles:
+		;Status bar tiles
+			!StatusBarSlashCharacterTileNumb = $29		;>Slash tile number (status bar, now OWB!)
+			!StatusBarBlankTile = $FC			;>Don't change! just in case
+			;^Tile number for where there is no characters to be written for each 8x8 space.
+		;Overworld border tiles
+			!OverWorldBorderSlashCharacterTileNumb = $91
+			!OverWorldBorderBlankTile = $1F
 	;For [Convert32bitIntegerToDecDigits]
 		!MaxNumberOfDigits = 9
 		;^Number of digits to be stored (fixed). Up to 10 because maximum

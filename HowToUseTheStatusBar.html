@@ -629,7 +629,6 @@ Here is an example using 2 16-bit numbers:
 !RAMToMeasure2 = $62			;>Same as above
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
 !NumberOfDigitsDisplayed = 5		;>How many digits, enter 1-5 (pointless if you enter less than 3).
-!SlashCharacterTileNumb = $29		;>Tile number for the "/" symbol.
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -655,7 +654,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			LDX #$00					;>Start at character position 0.
 			JSL HexDec_SupressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
 	;"/" symbol
-			LDA #!SlashCharacterTileNumb			;\Slash symbol.
+			LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
 			STA !Scratchram_CharacterTileTable,x		;/
 			INX						;>Next character position.
 	;Second number
@@ -697,7 +696,6 @@ call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedF
 !RAMToMeasure2 = $62			;>Same as above
 !StatusBarPosition = $7Fa03E		;>Where to write on the status bar. NOTE: This is now the position of the rightmost/last tile (tiles will be written here and before it).
 !NumberOfDigitsDisplayed = 5		;>How many digits, enter 1-5 (pointless if you enter less than 3).
-!SlashCharacterTileNumb = $29		;>Tile number for the "/" symbol.
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -723,7 +721,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			LDX #$00					;>Start at character position 0.
 			JSL HexDec_SupressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
 	;"/" symbol
-			LDA #!SlashCharacterTileNumb			;\Slash symbol.
+			LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
 			STA !Scratchram_CharacterTileTable,x		;/
 			INX						;>Next character position.
 	;Second number
@@ -933,7 +931,8 @@ Reason this package not including this is because too much information to be had
 <hr>
 <h2 id="OverworldBorder"><a href="#OverworldBorderBack">^</a>Displaying stuff on the overworld border</h2>
 <p>You may be asking, how do I display information on the overworld border? Well, I have good news, because the only thing you have to do is convert the tile numbering for the status bar to
-the tile numbering of the overworld border. The graphical bar to be used on the OWB is already covered in that package. So only the numerical display we'll discuss here.</p>
+the tile numbering of the overworld border, if you are dealing with displaying digits, for non-digit based things like the repeated symbols, just use a different tile number. The graphical
+bar to be used on the OWB is already covered in that package. So only the numerical display we'll discuss here.</p>
 
 <p>Remember that I mentioned that the digit graphics are stored in page 1 at tile numbers <kbd>$22</kbd>-<kbd>$2B</kbd>? Well, I've also included OWB converters in the routines folder. Here are the examples
 (run this code either as (obviously overworld) or gamemode <kbd>$0D-$0E</kbd> ($0D so the display happens during fade)). Also remember that the provided examples assumes you've installed the overworld border plus patch:<br>
@@ -1063,6 +1062,109 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		DEY
 		DEX #2
 		BPL -
+	RTL</pre></td></tr></table>
+Left and right aligned:
+<table><tr><td><pre>!DisplayTwoNumbers = 1			;>0 = only the first number, 1 = display 2.
+!RightAligned = 1			;>0 = left, 1 = right.
+!RAMToMeasure = $60			;>RAM address you what to show
+!RAMToMeasure2 = $62			;>Second number
+if !RightAligned == 0
+	!OverworldBorderPosition = $7FEC00	;>Where to write on the OWB (left aligned)
+else
+	!OverworldBorderPosition = $7FEC3E	;>Where to write on the OWB (right aligned)
+endif
+!NumberOfDigitsDisplayed = 5		;>How many digits, enter 1-5 (pointless if you enter less than 3).
+
+;Note: Pointless and a waste of processing to use the digit alignment display if you plan on having
+;!DisplayTwoNumbers set to 0 and !RightAligned set to 1, as calling the HexDec routine, replace leading
+;zeroes with blank tiles, then writing to the status bar/OWB would do the exact same thing with less processing.
+
+;What's stupid is that asar currently does not allow me to use Built-in Functions's logical operation with "assert".
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.NumberDisplayTest
+	;Clear the tiles. To prevent leftover "ghost" tiles that should've
+	;disappear when the number of digits decreases (so when "10" becomes "9",
+	;won't display "90"). Also set up the properties.
+		if !DisplayTwoNumbers == 0
+			LDX.b #(!NumberOfDigitsDisplayed-1)*2
+		else
+			LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*2
+		endif
+		-
+		if !RightAligned == 0
+			LDA #!OverWorldBorderBlankTile		;\Clear tiles
+			STA !OverworldBorderPosition,x		;/
+			LDA.b #%00111001			;\Set tile properties
+			STA.l !OverworldBorderPosition+1,x	;/
+		else
+			LDA #!OverWorldBorderBlankTile
+			STA !OverworldBorderPosition-((((!NumberOfDigitsDisplayed*2)+1)-1)*2),x
+			LDA.b #%00111001
+			STA.l !OverworldBorderPosition+1-((((!NumberOfDigitsDisplayed*2)+1)-1)*2),x
+		endif
+		DEX #2
+		BPL -
+	if !DisplayTwoNumbers == 0
+		;Number to string.
+			;Process HexDec
+				REP #$20					;\Convert a given number to decimal digits.
+				LDA !RAMToMeasure				;|
+				STA $00						;|
+				SEP #$20					;|
+				JSL HexDec_SixteenBitHexDecDivision		;/
+			;Remove leading zeroes and have it as a character table
+				LDX #$00					;>Start at character position 0.
+				JSL HexDec_SupressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
+			;Prevent writing too much characters.
+				CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
+				BCS ..TooMuchDigits				;/not being cleared from the previous code.
+			;Convert to OWB digits
+				JSL HexDec_Convert16BitAlignedDigitToOWB	;>Convert to OWB digits (aligned digits)
+	else
+		;First number
+			;Process HexDec
+				REP #$20					;\Convert a given number to decimal digits.
+				LDA !RAMToMeasure				;|
+				STA $00						;|
+				SEP #$20					;|
+				JSL HexDec_SixteenBitHexDecDivision		;/
+			;Remove leading zeroes and have it as a character table
+				LDX #$00					;>Start at character position 0.
+				JSL HexDec_SupressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
+		;"/" symbol
+				LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
+				STA !Scratchram_CharacterTileTable,x		;/
+				INX						;>Next character position.
+		;Second number
+			;Process HexDec
+				PHX						;>Push X because it gets modified by the HexDec routine.
+				REP #$20					;\Convert a given number to decimal digits.
+				LDA !RAMToMeasure2				;|
+				STA $00						;|
+				SEP #$20					;|
+				JSL HexDec_SixteenBitHexDecDivision		;/
+				PLX						;>Restore.
+			;Remove leading zeroes and have it as a character table
+				JSL HexDec_SupressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
+			;Prevent writing too much characters.
+				CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
+				BCS ..TooMuchDigits				;/not being cleared from the previous code.
+			;Convert to OWB digits
+				JSL HexDec_Convert16BitAlignedDigitToOWB	;>Convert to OWB digits (aligned digits)
+	endif
+	;Write to OWB
+		LDA.b #!OverworldBorderPosition     : STA $00
+		LDA.b #!OverworldBorderPosition>>8  : STA $01
+		LDA.b #!OverworldBorderPosition>>16 : STA $02
+		if !RightAligned != 0
+			;Convert to right-aligned
+				JSL HexDec_ConvertToRightAlignedFormat2
+		endif
+		JSL HexDec_WriteStringDigitsToHUDFormat2
+	..TooMuchDigits
 	RTL</pre></td></tr></table>
 </p>
 <hr>
