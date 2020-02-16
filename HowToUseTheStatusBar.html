@@ -693,7 +693,7 @@ call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedF
 routine to write to the HUD:
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
 !RAMToMeasure2 = $62			;>Same as above
-!StatusBarPosition = $7Fa03E		;>Where to write on the status bar. NOTE: This is now the position of the rightmost/last tile (tiles will be written here and before it).
+!StatusBarPosition = $7FA03E		;>Where to write on the status bar. NOTE: This is now the position of the rightmost/last tile (tiles will be written here and before it).
 !NumberOfDigitsDisplayed = 5		;>How many digits, enter 1-5 (pointless if you enter less than 3).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -757,9 +757,16 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	<img src="Readme_Files/RightAligned2Numbers.png"></p>
 	
 <h3 id="IncrementDecrementAnimation"><a href="#IncrementDecrementAnimationBack">^</a>Counting animation</h3>
-<p>In many video games, when a number is displayed on the HUD and is added or subtracted by another value, the number will gradually increase or decrease, then stops. SMW does have that with the bonus stars and score when completing the level.
-SMW also does this with the coins, but only increment by 1 in the main game (an unused flying red coin, sprite $7E increments by 5). This is done by using $13CC as an &ldquo;adder&rdquo;, for every value in this RAM, increments the coin count,
-and decreases itself once per frame. There are two types of increment animation:
+<p>In many video games, when a number is displayed on the HUD and is added or subtracted by another value (that is greater than 1), the number will gradually increase or decrease,
+then stops. SMW does have that with the bonus stars and score when completing the level. SMW also does this with the coins, but most of the time increment by 1 in the main game
+(an unused flying red coin, sprite $7E increments by 5). This is done by using $13CC as an &ldquo;adder&rdquo;, for every value in this RAM, increments the coin count,
+and decreases itself once per frame. See this code here from its code:
+<table><tr><td><pre>CODE_008F1D:        AD CC 13      LDA.W $13CC               ; \ If Coin increase isn't x00, 
+CODE_008F20:        F0 19         BEQ CODE_008F3B           ; / branch to $8F3B 
+CODE_008F22:        CE CC 13      DEC.W $13CC               ; Decrease "Coin increase" 
+CODE_008F25:        EE BF 0D      INC.W RAM_StatusCoins     ; Increase coins by 1 </pre></td></tr></table>
+
+There are two types of increment animation:
 <ul>
 	<li><p><b>Actual amount counting:</b> Your actual value is gradually counting, for example: SMW's coin is an example of this, if you were to check the player's coin count (<kbd>LDA $0DBF : CMP #$XX : &lt;BEQ/BNE/BCC/BCS&gt;</kbd>) while it's counting,
 	it will take the current value instead of the added total value.</p></li>
@@ -860,9 +867,92 @@ What will happen is that the number will change by 1 every 2<sup>n</sup> frames.
 </td>
 </tr>
 </table>
-
-
+Note that there are a major drawback:
+<ul>
+<li><p>If the amount adds or subtract by a very large value, the counting animation will take a very long time to finally display the final amount.</p></li>
+<li><p>Make sure when you do things that would &ldquo;clear memory&rdquo; such as going to another level, make sure when using &ldquo;Actual amount counting&rdquo;, not to have the
+adder/subtractor be reset during transitions, otherwise the amount change gets cut off, unless you want something similar to earthbound's &ldquo;rolling HP&rdquo; system which can interrupt
+the counting.</p></li>
+</ul>
 </p>
+For the &ldquo;Mere display counting&rdquo; you can alleviate the lengthy counting animation by taking the absolute difference of the display amount and actual amount, and check if the difference is too big, would
+subtract/add by a larger amount, therefore the difference is proportional to how much to subtract per frame. Here is an example using 16-bit number:
+<table><tr><td><pre>!RAMToMeasure = $60			;>RAM address of the actual number
+!RAMToMeasure2 = $62			;>RAM address of the displayed amount
+!StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
+!NumberOfDigitsDisplayed = 5		;>Number of digits shown.
+!ChangeDivisorRate = 60			;>Scaling of increment/decrement rate. Higher number = slower.
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.CountingAnimation
+	REP #$20
+	LDA !RAMToMeasure2
+	SEC
+	SBC !RAMToMeasure
+	BEQ ..Done			;>Safty check just in case it increments/decrements when it doesn't need to
+	BCS ..Postive			;>Unsigned check of difference (alternative to BPL), making use of the 16-bit's carry flag as an extra bit, allowing 0-65535 instead of 0-32768
+	
+	..Negative
+	;Add upwards towards !RAMToMeasure.
+	EOR #$FFFF			;\Invert sign of number
+	INC				;/
+	STA $00				;\ChangePerFrame = floor(Difference/60) + 1
+	LDA.w #!ChangeDivisorRate	;|
+	STA $02				;|
+	SEP #$20			;|
+	JSL HexDec_MathDiv		;/
+	REP #$20
+	INC $00				;>Shouldn't subtract by 0
+	LDA !RAMToMeasure2		;\The bigger the difference, the faster it increments.
+	CLC				;|
+	ADC $00				;/
+	BRA ..Write
+	
+	..Postive
+	;Subtract downwards towards !RAMToMeasure.
+	STA $00				;\ChangePerFrame = floor(Difference/60) + 1
+	LDA.w #!ChangeDivisorRate	;|
+	STA $02				;|
+	SEP #$20			;|
+	JSL HexDec_MathDiv		;/
+	REP #$20
+	INC $00				;>Shouldn't subtract by 0
+	LDA !RAMToMeasure2		;\The bigger the difference, the faster it increments.
+	SEC				;|
+	SBC $00				;/
+	
+	..Write
+	STA !RAMToMeasure2
+	
+	..Done
+	
+	.DisplayStatusBar
+	LDA !RAMToMeasure2
+	STA $00
+	JSL HexDec_SixteenBitHexDecDivision
+	JSL HexDec_RemoveLeadingZeroes16Bit
+	
+	;Write to status bar
+		if !StatusbarFormat == $01
+			LDX.b #(!NumberOfDigitsDisplayed-1)
+			-
+			LDA.b !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1),x
+			STA !StatusBarPosition,x
+			DEX
+			BPL -
+		else
+			LDX.b #((!NumberOfDigitsDisplayed-1)*2)
+			LDY.b #(!NumberOfDigitsDisplayed-1)
+			-
+			LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
+			STA !StatusBarPosition,x
+			DEY
+			DEX #2
+			BPL -
+		endif
+	RTL</pre></td></tr></table>
 
 <h2 id="RepeatedSymbol"><a href="#RepeatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
 <p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example
