@@ -67,9 +67,9 @@
 
 	;For [WriteStringDigitsToHUD]
 		if !sa1 == 0
-		!Scratchram_CharacterTileTable = $7F844A
+			!Scratchram_CharacterTileTable = $7F844A
 		else
-		!Scratchram_CharacterTileTable = $400198
+			!Scratchram_CharacterTileTable = $400198
 		endif
 		;^[X bytes] A table containing strings of "characters"
 		; (more specifically digits). The number of bytes used
@@ -80,3 +80,14 @@
 		; -If you want to display [10000/10000], that will be
 		;  11 bytes (there are 5 digits on each 10000, plus 1
 		;  because "/"; 5 + 5 + 1 = 11)
+	;For 32-bit timer frame to Hours:Minutes:Seconds:Centiseconds format.
+		if !sa1 == 0
+			!Scratchram_Frames2TimeOutput = $7F844E
+		else
+			!Scratchram_Frames2TimeOutput = $40019C
+		endif
+		;^[4 bytes], the output in HH:MM:SS.CC format:
+		;+$00 = hour
+		;+$01 = minutes
+		;+$02 = seconds
+		;+$03 = centiseconds (display 00-99)
