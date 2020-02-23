@@ -549,15 +549,15 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		BCC .Digits
 		CMP #!StatusBarBlankTile
 		BEQ .Blank
-		CMP #$29
+		CMP #!StatusBarSlashCharacterTileNumb
 		BEQ .Slash
 		
 		.Slash
-		LDA #$91
+		LDA #!OverWorldBorderSlashCharacterTileNumb
 		BRA .Write
 		
 		.Blank
-		LDA #$1F
+		LDA #!OverWorldBorderBlankTile
 		BRA .Write
 		
 		.Digits

@@ -44,7 +44,7 @@
 		; This define is needed to prevent writing what it assumes tile properties into invalid
 		; RAM addresses.
 		
-	;Status bar and OWB clearing tiles:
+	;Status bar and OWB tiles:
 		;Status bar tiles
 			!StatusBarSlashCharacterTileNumb = $29		;>Slash tile number (status bar, now OWB!)
 			!StatusBarBlankTile = $FC			;>Don't change! just in case
