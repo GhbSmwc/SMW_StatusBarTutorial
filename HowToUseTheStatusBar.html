@@ -1009,7 +1009,7 @@ Perhaps, if you wanted to display a timer on the HUD in HH:MM:SS.CC (or MM:SS.CC
 <table><tr><td><pre>!RAMToMeasure = $60			;>[4 bytes] the 32-bit frame counter
 
 ;Settings
- !StatusBarPosition = $7FA000	;>Where to write on the status bar
+ !StatusBarPosition = $7FA000		;>Where to write on the status bar
  !Decrement = 0				;>0 = increment, 1 = decrement
  !ShowHours = 0				;>0 = MM:SS.CC, 1 = HH:MM:SS.CC
 ;Start timer (used only when set to decrement):
@@ -1081,7 +1081,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		STA !RAMToMeasure		;||
 		STA !RAMToMeasure+2		;|/
 		
-		..NoUnderflow
+		..NoUnderflow			;/
 		
 		LDA !RAMToMeasure		;\Check again, AFTER subtracting by 1, so that the code executes only once.
 		ORA !RAMToMeasure+2		;|
@@ -1143,8 +1143,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		RTL
 	endif</pre></td></tr></table>
 	
-<p>This works by taking a 32-bit frame counter (it should increment every 1/60 of a second), divide by 60 and the remainder is
-the frames within a second (which later is multiplied by 100 and then divided by 60 to get the centiseconds), the quotient
+<p>This works by taking a 32-bit frame counter (it must increment every 1/60 of a second, which is the SNES's game loop speed; 60hz, in SMW, handled at $00806B), divide by 60 and the remainder is
+the frames within a second (which later is multiplied by 100 and then divided by 60 to get the approximate centiseconds), the quotient
 is the minutes, which then is divided by 60 again. The quotient is the hour and the remainder is the minutes 0-59 within the hour.
 This is an entirely different format from <a href="https://www.smwcentral.net/?p=section&a=details&id=16365">Imamelia's timer</a>
 that mine have a 32-bit frame counter as a single number while Imamelia have his with each byte being stored containing each units
@@ -1153,7 +1153,7 @@ but rather jiffyseconds that display numbers 0-59.</p>
 
 <p>For debugging purposes, I've provided <a href="Readme_Files/JS_FrameToTimer.html" id="DebugTimerValue">a converter</a> in case if you need to check their values stored in memory</p>
 
-<p>Protip: most video games never have a countdown timer of over 10 minutes, so you don't need a 32-bit number, you can simply do this via masking the high n bytes with zeroes. For example:
+<p>Protip: most video games never have a countdown timer of over 10 minutes, so you don't need a 32-bit number, you can simply use a smaller number of bytes and mask the high n bytes with zeroes. For example:
 <table><tr><td><pre>	..StopTimer
 	REP #$20			;\Get timer format
 	LDA !RAMToMeasure		;|
