@@ -87,7 +87,7 @@
 			!Scratchram_Frames2TimeOutput = $40019C
 		endif
 		;^[4 bytes], the output in HH:MM:SS.CC format:
-		;+$00 = hour
-		;+$01 = minutes
-		;+$02 = seconds
-		;+$03 = centiseconds (display 00-99)
+		; !Scratchram_Frames2TimeOutput+0 = hour
+		; !Scratchram_Frames2TimeOutput+1 = minutes
+		; !Scratchram_Frames2TimeOutput+2 = seconds
+		; !Scratchram_Frames2TimeOutput+3 = centiseconds (display 00-99)

@@ -665,7 +665,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	; This routine converts a 32-bit frame counter into 
 	; hours:minutes:seconds.centiseconds format.
 	;
-	; Note: This assumes that each frame is 1/60 of a second.
+	; Note: This assumes that the frame counter increments every 1/60th of a second.
 	; The routine functions like this:
 	; 1. FrameWithinSeconds = 32BitFrame MOD 60 ;>This will get a number 0-59 within a second (aka. jiffysecond)
 	; 2. Seconds = Floor(32BitFrame/60) MOD 60 ;>This will get a number 0-59 within a minute.
@@ -730,7 +730,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		BRA .Loop
 		
 		.ConvertFramesToCentiseconds
-		;simply put [Frames*100/60], highest [Frames*100 should be 5900]
+		;simply put [Frames*100/60], highest [Frames*100 should be 5900] shouldn't overflow.
 		if !sa1 == 0
 			LDA !Scratchram_Frames2TimeOutput+3	;\Frames*100
 			STA $4202				;|
@@ -775,8 +775,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			LDX $2306				;>Quotient
 			LDA $2308
 		endif
-		CMP.b #30
-		BCC ..NoRound
+		CMP.b #30					;\If remainder less than half, then round downwards.
+		BCC ..NoRound					;/
 		
 		..Round
 		INX					;>round up quotient

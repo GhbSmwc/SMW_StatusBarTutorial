@@ -1143,7 +1143,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		RTL
 	endif</pre></td></tr></table>
 	
-<p>This works by taking a 32-bit frame counter (it must increment every 1/60 of a second, which is the SNES's game loop speed; 60hz, in SMW, handled at $00806B), divide by 60 and the remainder is
+<p>This works by taking a 32-bit frame counter (it must increment by 1 every 1/60th of a second, which is the NTSC SNES's game loop speed), divide by 60 and the remainder is
 the frames within a second (which later is multiplied by 100 and then divided by 60 to get the approximate centiseconds), the quotient
 is the minutes, which then is divided by 60 again. The quotient is the hour and the remainder is the minutes 0-59 within the hour.
 This is an entirely different format from <a href="https://www.smwcentral.net/?p=section&a=details&id=16365">Imamelia's timer</a>
@@ -1151,7 +1151,65 @@ that mine have a 32-bit frame counter as a single number while Imamelia have his
 and increments and decrements individually. As of the time of writing this, the rightmost number on Imamelia's timer isn't the centiseconds
 but rather jiffyseconds that display numbers 0-59.</p>
 
-<p>For debugging purposes, I've provided <a href="Readme_Files/JS_FrameToTimer.html" id="DebugTimerValue">a converter</a> in case if you need to check their values stored in memory</p>
+<p>The biggest advantages of mine is that you can add/subtract time much more easily (an item increases the timer by 5 seconds). Remember that how
+65c816's addition and subtraction with carry (CLC/SEC/ADC/SBC) works? Well:
+<ul>
+	<li>
+		ADC:
+			<ul>
+				<li>
+					Before: If the carry is clear, will add normally. If the carry is set, will add an additional 1. For example: [<kbd>LDA #$01 : CLC : ADC #$01, Now A = #$02</kbd>],
+					[<kbd>LDA #$01 : SEC : ADC #$01, Now A = #$03</kbd>]
+				</li>
+				<li>
+					After: If A overflows (goes greater than 255 in 8-bit, 65535 in 16-bit, unsigned), the carry will be SET, otherwise if not, will be CLEAR. Example:
+					[<kbd>LDA #$FF : CLC : ADC #$01, now carry is set (#$FF+#$01 = #$100 &rightarrow; #$00)</kbd>], [<kbd>LDA #$FE : CLC : ADC #$01, now carry is clear (A = #$FF)</kbd>].
+				</li>
+			</ul>
+	</li>
+	<li>
+		SBC
+			<ul>
+				<li>
+					Before: If the carry is set, will subtract normally. If the carry is clear, will subtract an additional 1. Example: [<kbd>LDA #$05 : SEC : SBC #$01, now A = #$04</kbd>]
+					[<kbd>LDA #$05 : CLC : SBC #$01, now A = #$03</kbd>].
+				</li>
+				<li>
+					After: If A underflows (goes under 0 on both 8-bit and 16-bit, unsigned), the carry will be CLEARED. Otherwise is SET. Example:
+					[<kbd>LDA #$03 : SEC : SBC #$03, Now A = #$00 and carry set</kbd>], [<kbd>LDA #$03 : SEC : SBC #$04, Now A = -#$01 &rightarrow; #$FF and carry clear</kbd>].
+				</li>
+			</ul>
+	</li>
+	This is commonly done in pseudo 8-bit math to produce a potentially 16-bit number, for example with addition:
+<table><tr><td><pre>
+	;Made-up example: #$<font color="blue">12</font><font color="red">34</font> + #$<font color="blue"><u>56</font><font color="red">78</u></font> without carry set.
+		LDA <font color="red">#$34</font>	;\Low byte
+		CLC		;|#$34 + #$78 = #$AC
+		ADC <font color="red"><u>#$78</u></font>	;|
+		STA $00		;/
+		LDA <font color="blue"><u>#$12</u></font>	;\High byte
+		ADC <font color="blue"><u>#$56</u></font>	;|>If this second number is 8-bit, (for example, $78, you treat it as it has leading zeroes: $0078)
+		STA $01		;/(#$12 + #$56 = #$68)
+		
+		;$00 to $01 = #$68AC
+	;Another example: #$<font color="blue">FE</font><font color="red">FF</font> + #$<u><font color="blue">02</font><font color="red">01</font></u>, when the carry are set when they overflow
+		LDA <font color="red">#$FF</font>	;\Low byte, #$FF + #$01 = #$0100, carry set and A as 8-bit = #$00.
+		CLC		;|
+		ADC <font color="red">#$01</font>	;|
+		STA $00		;/
+		LDA <font color="blue"><u>#$FE</u></font>	;\High byte, #$FE + #$02 + 1 (+1 because of the carry set) = #$0101, A as 8-bit = #$01
+		ADC <font color="blue"><u>#$02</u></font>	;|carry set after this since A went above #$FF.
+		STA $01		;/
+		
+		;$00 to $01 = #$0100, carry set. The actual correct math is #$FEFF + #$0201 = #$10100 but the low 2 bytes are stored in $00-$01.</pre></td></tr></table>
+	The exact same thing can be done using 16-bit numbers to produce values that are bigger than the maximum register size (bigger than 16-bit, like 32-bit mode). Off-topic note: this also works with bit shifting as well, by using ASL/LSR, and then ROL/ROR.
+	The carry flag is essentially a &ldquo;bridge&rdquo; to numbers bigger than the register size. To detect an overflow/underflow, just use BCC/BCS (branch if carry clear/set) AFTER all the bytes are added/subtracted/shifted.
+</ul>
+
+</p>
+
+<p>For debugging purposes, or if you are planning to have items that would increase/decrease the timer, I've provided <a href="Readme_Files/JS_FrameToTimer.html" id="DebugTimerValue">a javascript converter between the total frames and timer format</a>
+in case if you need to check their values stored in memory or needed to put direct frame values in there for adding/subtracting.</p>
 
 <p>Protip: most video games never have a countdown timer of over 10 minutes, so you don't need a 32-bit number, you can simply use a smaller number of bytes and mask the high n bytes with zeroes. For example:
 <table><tr><td><pre>	..StopTimer
