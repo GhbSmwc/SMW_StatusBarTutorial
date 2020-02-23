@@ -1012,7 +1012,7 @@ Perhaps, if you wanted to display a timer on the HUD in HH:MM:SS.CC (or MM:SS.CC
  !StatusBarPosition = $7FA000	;>Where to write on the status bar
  !Decrement = 0				;>0 = increment, 1 = decrement
  !ShowHours = 0				;>0 = MM:SS.CC, 1 = HH:MM:SS.CC
-;Start timer (used only ):
+;Start timer (used only when set to decrement):
  !StartTimerHour = 0
  !StartTimerMinute = 3
  !StartTimerSeconds = 30
@@ -1143,13 +1143,34 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		RTL
 	endif</pre></td></tr></table>
 	
-This works by taking a 32-bit frame counter (it should increment every 1/60 of a second), divide by 60 and the remainder is
+<p>This works by taking a 32-bit frame counter (it should increment every 1/60 of a second), divide by 60 and the remainder is
 the frames within a second (which later is multiplied by 100 and then divided by 60 to get the centiseconds), the quotient
 is the minutes, which then is divided by 60 again. The quotient is the hour and the remainder is the minutes 0-59 within the hour.
 This is an entirely different format from <a href="https://www.smwcentral.net/?p=section&a=details&id=16365">Imamelia's timer</a>
 that mine have a 32-bit frame counter as a single number while Imamelia have his with each byte being stored containing each units
 and increments and decrements individually. As of the time of writing this, the rightmost number on Imamelia's timer isn't the centiseconds
-but rather jiffyseconds that display numbers 0-59.
+but rather jiffyseconds that display numbers 0-59.</p>
+
+<p>For debugging purposes, I've provided <a href="Readme_Files/JS_FrameToTimer.html" id="DebugTimerValue">a converter</a> in case if you need to check their values stored in memory</p>
+
+<p>Protip: most video games never have a countdown timer of over 10 minutes, so you don't need a 32-bit number, you can simply do this via masking the high n bytes with zeroes. For example:
+<table><tr><td><pre>	..StopTimer
+	REP #$20			;\Get timer format
+	LDA !RAMToMeasure		;|
+	STA $00				;|
+	LDA #$0000			;|\High words (upper 2 bytes of the 4-byte 32-bit input masked)
+	STA $02				;|/
+	SEP #$20			;|
+	JSL HexDec_Frames2Timer		;/</pre></td></tr></table>
+Here are the maximums values of the frame value and their timer equivalents:
+<table>
+	<tr><th>Number of bytes (max value)</th><th>How long</th></tr>
+	<tr><td>1 (255)</td><td>00:00:04.25</td></tr>
+	<tr><td>2 (65535)</td><td>00:18:12.25</td></tr>
+	<tr><td>3 (16777215)</td><td>77:40:20.25</td></tr>
+	<tr><td>4 (4294967295)</td><td>19884:06:28.25 (hours will display incorrectly)</td></tr>
+</table>
+</p>
 <hr>
 <h2 id="RepeatedSymbol"><a href="#RepeatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
 <p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example

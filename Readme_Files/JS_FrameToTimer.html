@@ -21,9 +21,10 @@
 			abbr{cursor: help;}
 		</style>
 	</head>
-	<body onload="InitalizeValues()">
-<a href="../HowToUseTheStatusBar.html#QuickJSTools_JS_FrameToTimer">Back</a>
-<center><h1>Frames from and timer converter</h1></center>
+	<body onload="Reset()">
+<a href="../HowToUseTheStatusBar.html#QuickJSTools_JS_FrameToTimer">Back</a><br>
+<a href="../HowToUseTheStatusBar.html#DebugTimerValue">Return to where I mentioned about debugging</a>
+<center><h1>Frames to and from timer converter</h1></center>
 <table>
 <tr><th>32-bit frame</th><th>Hours:Minutes:Seconds:Centiseconds</th><th>In-game display</th></tr>
 <tr>
@@ -52,9 +53,6 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 		document.getElementById("TimerSeconds").value = "00"
 		document.getElementById("TimerFramesWithinSeconds").value = "00"
 		document.getElementById("GameDisplay").innerHTML = "00:00:00.00"
-	}
-	function InitalizeValues() {
-		document.getElementById("Timer32BitFrame").value = "00000000"
 	}
 	function ThirtyTwoBitFrameToTimer() {
 		var ThirtyTwoBitFrame = BigintClamp(BigintClamp(CorrectHexBigIntValue(document.getElementById("Timer32BitFrame").value)), 0n, 4294967295n)
