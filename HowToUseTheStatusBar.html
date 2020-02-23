@@ -1238,9 +1238,10 @@ Here are the maximums values of the frame value and their timer equivalents:
 <font size="10">&#9642;&#9642;&#9642;&#9642;&#9643;</font><br>
 SMW actually does this with its yoshi coin counter (some or all of them shows a coin symbol with the rest showing tile $FC). This is often used whenever a number of something is a small amount. Code follows (make sure you insert
 &ldquo;<kbd>RepeatedSymbols.asm</kbd>&rdquo; into uberasm tool's library as well):
-<table><tr><td><pre>!MaxNumberOfSymbols = 5			;>RAM address you what to show
+<table><tr><td><pre>!MaxNumberOfSymbols = 5			;>Total number of symbols (maximum)
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
 !RAMToMeasure = $60			;>RAM address you what to show
+!Leftwards = 0				;>0 = left-to-right when filling, 1 = right-to-left when filling.
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -1249,7 +1250,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	!FullTile = $2E
 
 	main:
-	LDA $60
+	LDA !RAMToMeasure
 	STA $00
 	LDA #!MaxNumberOfSymbols
 	STA $01
@@ -1263,12 +1264,23 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	STA $05
 	LDA.b #!StatusBarPosition>>16
 	STA $06
-	JSL RepeatedSymbols_WriteRepeatedSymbols
+	if !StatusbarFormat == $01
+		if !Leftwards == 0
+			JSL RepeatedSymbols_WriteRepeatedSymbols
+		else
+			JSL RepeatedSymbols_WriteRepeatedSymbolsLeftwards
+		endif
+	else
+		if !Leftwards == 0
+			JSL RepeatedSymbols_WriteRepeatedSymbolsFormat2
+		else
+			JSL RepeatedSymbols_WriteRepeatedSymbolsLeftwardsFormat2
+		endif
+	endif
 	RTL</pre></td></tr></table><br>
-To make it fill leftwards, just use <kbd>RepeatedSymbols_WriteRepeatedSymbolsLeftwards</kbd> instead of <kbd>RepeatedSymbols_WriteRepeatedSymbols</kbd>. Using that code from above,
-the result is this with RAM $60 containing the value 3:<br>
+Using that code from above, the result is this with RAM $60 containing the value 3:<br>
 <kbd>WriteRepeatedSymbols</kbd>: <img src="Readme_Files/RepeatedSymbol_3_5.png"> (SMW does not have a &ldquo;empty tile&rdquo; that is visible, so instead of using tile $FC, I used
-tile $26, which is the &ldquo;X&rdquo; symbol.), <kbd>WriteRepeatedSymbolsLeftwards</kbd>: <img src="Readme_Files/RepeatedSymbolLeftwards_3_5.png"></p>
+tile $26, which is the &ldquo;X&rdquo; symbol.), when using <kbd>WriteRepeatedSymbolsLeftwards</kbd> (<kbd>!Leftwards = 1</kbd>): <img src="Readme_Files/RepeatedSymbolLeftwards_3_5.png"></p>
 
 <h2 id="GraphicalBar"><a href="#GraphicalBarBack">^</a>Display a graphical bar</h2>
 

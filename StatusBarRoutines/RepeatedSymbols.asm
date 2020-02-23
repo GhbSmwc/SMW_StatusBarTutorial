@@ -37,8 +37,8 @@ WriteRepeatedSymbols:
 	STA [$04],y		;/
 	
 	..Next
-	INY #!StatusbarFormat	;>Next status bar tile
-	DEC $01			;>Decrement how many of all tiles are left.
+	INY 			;>Next status bar tile
+	DEC $01			;>Decrement how many total tiles are left.
 	BNE .Loop
 	
 	.Done
@@ -68,8 +68,63 @@ WriteRepeatedSymbolsLeftwards:
 	STA [$04],y		;/
 	
 	..Next
-	DEY #!StatusbarFormat	;>Next status bar tile
-	DEC $01			;>Decrement how many of all tiles are left.
+	DEY 			;>Next status bar tile
+	DEC $01			;>Decrement how many total tiles are left.
+	BNE .Loop
+	
+	.Done
+	RTL
+WriteRepeatedSymbolsFormat2:
+	LDY #$00
+	
+	.Loop
+	LDA $01			;\If no tiles left, done.
+	BEQ .Done		;/
+	LDA $00			;\If no full tiles, write empty.
+	BEQ ..Empty		;/
+	
+	..Full
+	LDA $03			;\Write full tile
+	STA [$04],y		;/
+	DEC $00			;>Decrement how much full tiles left.
+	BRA ..Next
+	
+	..Empty
+	LDA $02			;\Write empty tile
+	STA [$04],y		;/
+	
+	..Next
+	INY #2			;>Next status bar tile
+	DEC $01			;>Decrement how many total tiles are left.
+	BNE .Loop
+	
+	.Done
+	RTL
+WriteRepeatedSymbolsLeftwardsFormat2:
+	LDA $01
+	DEC
+	ASL
+	TAY
+	
+	.Loop
+	LDA $01			;\If no tiles left, done.
+	BEQ .Done		;/
+	LDA $00			;\If no full tiles, write empty.
+	BEQ ..Empty		;/
+	
+	..Full
+	LDA $03			;\Write full tile
+	STA [$04],y		;/
+	DEC $00			;>Decrement how much full tiles left.
+	BRA ..Next
+	
+	..Empty
+	LDA $02			;\Write empty tile
+	STA [$04],y		;/
+	
+	..Next
+	DEY #2			;>Next status bar tile
+	DEC $01			;>Decrement how many total tiles are left.
 	BNE .Loop
 	
 	.Done
