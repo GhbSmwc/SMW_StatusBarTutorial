@@ -1,0 +1,147 @@
+<html>
+	<head>
+		<style>
+			html {
+			background-color: #000207;
+			color: white;
+			font-family: sans-serif;
+			}
+			
+			table, th, td {
+			border: 1px solid white;
+			border-collapse: collapse;
+			}
+			
+			span.NoLineBreak {
+				white-space: nowrap;
+			}
+			
+			input[type='text'] { font-family: monospace;}
+			input[type='number'] { font-family: monospace;}
+			abbr{cursor: help;}
+		</style>
+	</head>
+	<body onload="InitalizeValues()">
+<a href="../HowToUseTheStatusBar.html#QuickJSTools_JS_FrameToTimer">Back</a>
+<center><h1>Frames from and timer converter</h1></center>
+<table>
+<tr><th>32-bit frame</th><th>Hours:Minutes:Seconds:Centiseconds</th><th>In-game display</th></tr>
+<tr>
+<td>
+$<input type="text" value="0" maxlength="8" id="Timer32BitFrame" onchange="ThirtyTwoBitFrameToTimer()"><button onclick="BigintIncreaseDecreaseHexInput(1n, 'Timer32BitFrame', 0n, 4294967295n)">+</button><button onclick="BigintIncreaseDecreaseHexInput(-1n, 'Timer32BitFrame', 0n, 4294967295n)">-</button>
+
+</td>
+<td>
+Hours:<input type="number" value="00" min="0" max="19884" id="TimerHours" onchange="TimerTo32BitFrame()">
+Minutes:<input type="number" value="00" min="0" max="59" id="TimerMinutes" onchange="TimerTo32BitFrame()">
+Seconds:<input type="number" value="00" min="0" max="59" id="TimerSeconds" onchange="TimerTo32BitFrame()">
+Frames within seconds: <input type="number" value="00" min="0" max="59" id="TimerFramesWithinSeconds" onchange="TimerTo32BitFrame()">
+</td>
+<td>
+	<kbd><span id="GameDisplay"></span></kbd>
+</td>
+</tr>
+</table>
+<button onclick="Reset()">Reset</button>
+
+<script>
+	function Reset() {
+		document.getElementById("Timer32BitFrame").value = "00000000"
+		document.getElementById("TimerHours").value = "00"
+		document.getElementById("TimerMinutes").value = "00"
+		document.getElementById("TimerSeconds").value = "00"
+		document.getElementById("TimerFramesWithinSeconds").value = "00"
+		document.getElementById("GameDisplay").innerHTML = "00:00:00.00"
+	}
+	function InitalizeValues() {
+		document.getElementById("Timer32BitFrame").value = "00000000"
+	}
+	function ThirtyTwoBitFrameToTimer() {
+		var ThirtyTwoBitFrame = BigintClamp(BigintClamp(CorrectHexBigIntValue(document.getElementById("Timer32BitFrame").value)), 0n, 4294967295n)
+		document.getElementById("Timer32BitFrame").value = pad(ThirtyTwoBitFrame.toString(16).toUpperCase(), 8n)
+		
+		var TimeFrameWithinSeconds = ThirtyTwoBitFrame % 60n
+		document.getElementById("TimerFramesWithinSeconds").value = pad(TimeFrameWithinSeconds.toString(10), 2n)
+		
+		var TimeSeconds = (ThirtyTwoBitFrame/60n) % 60n
+		document.getElementById("TimerSeconds").value = pad(TimeSeconds.toString(10), 2n)
+		
+		var TimeMinutes = (ThirtyTwoBitFrame/60n/60n) % 60n
+		document.getElementById("TimerMinutes").value = pad(TimeMinutes.toString(10), 2n)
+		
+		var TimeHours = (ThirtyTwoBitFrame/60n/60n/60n)
+		document.getElementById("TimerHours").value = pad(TimeHours.toString(10), 2n)
+		
+		InGameDisplay(TimeHours, TimeMinutes, TimeSeconds, TimeFrameWithinSeconds)
+	
+	}
+	function TimerTo32BitFrame() {
+		var TimeHours = BigintClamp(CorrectDecBigIntValue(document.getElementById("TimerHours").value), 0n, 19884n)
+		document.getElementById("TimerHours").value = pad(TimeHours.toString(10), 2n)
+		
+		var TimeMinutes = BigintClamp(CorrectDecBigIntValue(document.getElementById("TimerMinutes").value), 0n, 59n)
+		document.getElementById("TimerMinutes").value = pad(TimeMinutes.toString(10), 2n)
+		
+		var TimeSeconds = BigintClamp(CorrectDecBigIntValue(document.getElementById("TimerSeconds").value), 0n, 59n)
+		document.getElementById("TimerSeconds").value = pad(TimeSeconds.toString(10), 2n)
+		
+		var TimeFrameWithinSeconds =  BigintClamp(CorrectDecBigIntValue(document.getElementById("TimerFramesWithinSeconds").value), 0n, 59n)
+		document.getElementById("TimerFramesWithinSeconds").value = pad(TimeFrameWithinSeconds.toString(10), 2n)
+	
+		var ThirtyTwoBitFrame = (TimeHours*216000n)+(TimeMinutes*3600n)+(TimeSeconds*60n)+TimeFrameWithinSeconds
+		document.getElementById("Timer32BitFrame").value = pad(ThirtyTwoBitFrame.toString(16).toUpperCase(), 8n)
+		
+		//Prevent entering a timer value that would result a frame counter greater than $FFFFFFFF.
+			if (ThirtyTwoBitFrame > 4294967295n) {
+				ThirtyTwoBitFrame = 4294967295n
+				document.getElementById("Timer32BitFrame").value = pad(ThirtyTwoBitFrame.toString(16).toUpperCase(), 8n)
+				ThirtyTwoBitFrameToTimer()
+			} else {
+				InGameDisplay(TimeHours, TimeMinutes, TimeSeconds, TimeFrameWithinSeconds)
+			}
+	}
+	function InGameDisplay(Hrs, Min, Sec, Jiffy) {
+		var Centiseconds = (Jiffy*100n)/60n
+		//Round up if remainder is at least half
+			if ((Jiffy*100n) % 60n >= 30n) {
+				Centiseconds++
+			}
+	
+		document.getElementById("GameDisplay").innerHTML = pad(Hrs, 2n) + ":" + pad(Min, 2n) + ":" + pad(Sec, 2n) + "." + pad(Centiseconds, 2n)
+	
+	}
+	function BigintClamp(num, min, max) {
+		//Restrict a number within a specified range, bigInt edition.
+		return num <= min ? min : num >= max ? max : num;
+	}
+	function BigintIncreaseDecreaseHexInput(ChangeBy, WhatInput, Min, Max) {
+		//To be used along with a hex input the user enters.
+		//This function is for the increment/decrement buttons since
+		//only the "number" input (only allows characters 0-9) allows
+		//the increment/decrement action (up/down button when selected,
+		//and pressing up and down)
+		document.getElementById(WhatInput).value = BigintClamp((CorrectHexBigIntValue(document.getElementById(WhatInput).value) + ChangeBy), Min, Max).toString(16).toUpperCase()
+		ThirtyTwoBitFrameToTimer()
+	}
+	function CorrectHexBigIntValue(String) {
+		//This converts the user's input hex string (negative numbers not allowed)
+		//to BigInt.
+		if ((/^([0-9]|[A-F]|[a-f])+$/).test(String) == false) {
+			String = 0n
+		}
+		return CanConvertHexStringToBigInt = BigInt("0x" + String)
+	}
+	function CorrectDecBigIntValue(String) {
+		//This converts the user's input decimal string (negative numbers not allowed)
+		//to BigInt.
+		if ((/^([0-9])+$/).test(String) == false) {
+			String = 0n
+		}
+		return CanConvertStringToBigInt = BigInt(String)
+	}
+	function pad(num, size) {
+		var s = num+"";
+		while (s.length < size) s = "0" + s;
+		return s;
+	}
+</script>
