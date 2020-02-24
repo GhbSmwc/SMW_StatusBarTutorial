@@ -235,7 +235,9 @@ every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead
 </ul>
 Therefore, many ASM patches that display on the status bar that I made are hybrid-support of these two formats. The define <kbd>!StatusbarFormat</kbd> is what
 you need to edit to work with other status bar patches, set it to <kbd>$01</kbd> if &ldquo;TileNumber and Props in their own table&rdquo; otherwise set it to
-<kbd>$02</kbd>.</p>
+<kbd>$02</kbd>. In case if you are wondering why there are duplicate routines (<abbr title="For &ldquo;TileNumber and Props in their own table">a normal version</abbr> and <abbr title="For &ldquo;2-bytes together&rdquo;">a version with &ldquo;Format2&rdquo; appended to the end of
+the subroutine label</abbr>) in the ASM files is because in case if you are designing a hack that have the status bar patch using the &ldquo;TileNumber and Props in
+their own table&rdquo; format and the overworld border plus patch, which your hack is now using BOTH formats.</p>
 
 <p>Thankfully, I made HTML Javascript files for all of these ASM resources to enable you to search what RAM address of a given tile.</p>
 
