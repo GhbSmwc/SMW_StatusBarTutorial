@@ -206,6 +206,9 @@ every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead
 </table>
 </p>
 
+<p>I've made a &ldquo;friendly hex-edit&rdquo; patch included in this package called <kbd>DefaultTiles.asm</kbd>, which is an alternative to
+<a href="https://www.smwcentral.net/?p=section&a=details&id=4580">Smallhacker's status bar editor patch</a>.</p>
+
 <hr>
 <h2 id="SBPatches"><a href="#SBPatchesBack">^</a>Other status bar patches</h2>
 <p>Because SMW's status bar is extremely limited, other users decided to make status bar patches:
@@ -1226,7 +1229,8 @@ but rather jiffyseconds that display numbers 0-59.</p>
 		
 		;$00 to $01 = #$0100, carry set. The actual correct math is #$FEFF + #$0201 = #$10100 but the low 2 bytes are stored in $00-$01.</pre></td></tr></table>
 	The exact same thing can be done using 16-bit numbers to produce values that are bigger than the maximum register size (bigger than 16-bit, like 32-bit mode). Off-topic note: this also works with bit shifting as well, by using ASL/LSR, and then ROL/ROR.
-	The carry flag is essentially a &ldquo;bridge&rdquo; to numbers bigger than the register size. To detect an overflow/underflow, just use BCC/BCS (branch if carry clear/set) AFTER all the bytes are added/subtracted/shifted.
+	The carry flag is essentially a &ldquo;bridge&rdquo; to numbers bigger than the register size. To detect an overflow/underflow, just use BCC/BCS (branch if carry clear/set) AFTER all the bytes are added/subtracted/shifted. Also another off-topic is that
+	SBC is very similar to CMP, but without affecting the A register.
 </ul>
 
 </p>
@@ -1245,11 +1249,11 @@ in case if you need to check their values stored in memory or needed to put dire
 	JSL HexDec_Frames2Timer		;/</pre></td></tr></table>
 Here are the maximums values of the frame value and their timer equivalents:
 <table>
-	<tr><th>Number of bytes (max value)</th><th>How long</th></tr>
-	<tr><td>1 (255)</td><td>00:00:04.25</td></tr>
-	<tr><td>2 (65535)</td><td>00:18:12.25</td></tr>
-	<tr><td>3 (16777215)</td><td>77:40:20.25</td></tr>
-	<tr><td>4 (4294967295)</td><td>19884:06:28.25 (hours will display incorrectly)</td></tr>
+	<tr><th>Number of bytes (max value/hex)</th><th>How long</th></tr>
+	<tr><td>1 (255/$FF)</td><td>00:00:04.25</td></tr>
+	<tr><td>2 (65535/$FFFF)</td><td>00:18:12.25</td></tr>
+	<tr><td>3 (16777215/$FFFFFF)</td><td>77:40:20.25</td></tr>
+	<tr><td>4 (4294967295/$FFFFFFFF)</td><td>19884:06:28.25 (hours will display incorrectly)</td></tr>
 </table>
 </p>
 <hr>
