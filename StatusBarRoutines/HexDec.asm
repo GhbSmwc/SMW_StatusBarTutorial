@@ -290,8 +290,12 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ;
 ;Example: 00123 ([$00, $00, $01, $02, $03]) becomes
 ; __123 ([$FC, $FC, $01, $02, $03])
+;
+;Call this routine after using: [Convert32bitIntegerToDecDigits]
+;or [SixteenBitHexDecDivision].
+;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;16-bit version, use with [SixteenBitHexDecDivision]
+	;16-bit version, use after [SixteenBitHexDecDivision]
 		RemoveLeadingZeroes16Bit:
 		LDX #$00				;>Start at the leftmost digit
 		
@@ -306,7 +310,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		
 		.NonZero
 		RTL
-	;32-bit version, use with [Convert32bitIntegerToDecDigits]
+	;32-bit version, use after [Convert32bitIntegerToDecDigits]
 		RemoveLeadingZeroes32Bit:
 		LDX #$00				;>Start at the leftmost digit
 		

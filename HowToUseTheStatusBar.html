@@ -247,6 +247,9 @@ inserted into uberasm tool's &ldquo;<kbd>library</kbd>&rdquo; folder, and have t
 
 <p>Feel free to look into the library ASM files, since I added descriptions and comments to give a better understanding how they work.</p>
 
+<p>NOTE: most codes provided here do not modify the tile properties in any way, since very unlikely that many hacks would ever modify the tile properties. If you happen to have a display to &ldquo;overlap&rdquo; and
+is using different tile properties, upon switching back to the old display may cause the old display to use the YXPCCCTT data of the new display over it. You can simply fix that by reverting the YXPCCCTT.</p>
+
 <p>You also need to insert the graphic file from this provided <kbd>ExGFX</kbd> folder (<kbd>ExGFX80.bin</kbd>) if you are wanting to test out the code of displaying the &ldquo;/&rdquo; symbol when displaying
 2 numbers. It should be inserted as &ldquo;LG1&rdquo; on the layer 3 GFX.</p>
 
@@ -574,6 +577,9 @@ When written to the status bar:<br>
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
 !NumberOfDigitsDisplayed = 5		;>How many digits, enter 1-5 (pointless if you enter less than 3).
+!StatusBarPositionProps = $7FA001	;>Same as above but tile props (when enabled).
+!DigitProps = %00111000			;>Properties of the digits (when enabled).
+
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -581,11 +587,15 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	.NumberDisplayTest
 	;Clear the tiles. To prevent leftover "ghost" tiles that should've
 	;disappear when the number of digits decreases (so when "10" becomes "9",
-	;won't display "90").
+	;won't display "90"). Also setup tile properties when enabled.
 		LDX.b #(!NumberOfDigitsDisplayed-1)*!StatusbarFormat
 		-
 		LDA #!StatusBarBlankTile
 		STA !StatusBarPosition,x
+		if !StatusBar_UsingCustomProperties != 0
+			LDA.b #!DigitProps
+			STA !StatusBarPositionProps,x
+		endif
 		DEX #!StatusbarFormat
 		BPL -
 	;Number to string.
@@ -602,6 +612,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
 	;Write to status bar
+		LDA.b #!StatusBarPosition : STA $00
+		LDA.b #!StatusBarPosition>>8 : STA $01
+		LDA.b #!StatusBarPosition>>16 : STA $02
 		if !StatusbarFormat == $01
 			JSL HexDec_WriteStringDigitsToHUD
 		else
@@ -635,6 +648,8 @@ Here is an example using 2 16-bit numbers:
 !RAMToMeasure2 = $62			;>Same as above
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
 !NumberOfDigitsDisplayed = 5		;>How many digits, enter 1-5 (pointless if you enter less than 3).
+!StatusBarPositionProps = $7FA001	;>Same as above but tile props (when enabled).
+!DigitProps = %00111000			;>Properties of the digits (when enabled).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -647,6 +662,10 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		-
 		LDA #!StatusBarBlankTile
 		STA !StatusBarPosition,x
+		if !StatusBar_UsingCustomProperties != 0
+			LDA.b #!DigitProps
+			STA !StatusBarPositionProps,x
+		endif
 		DEX #!StatusbarFormat
 		BPL -
 	;First number
