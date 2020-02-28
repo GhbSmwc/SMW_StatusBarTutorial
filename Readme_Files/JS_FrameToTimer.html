@@ -29,7 +29,7 @@
 <tr><th>32-bit frame counter</th><th>Hours:Minutes:Seconds:Centiseconds</th><th>In-game display</th></tr>
 <tr>
 <td>
-$<input type="text" value="0" maxlength="8" id="Timer32BitFrame" onchange="ThirtyTwoBitFrameToTimer()"><button onclick="BigintIncreaseDecreaseHexInput(1n, 'Timer32BitFrame', 0n, 4294967295n)">+</button><button onclick="BigintIncreaseDecreaseHexInput(-1n, 'Timer32BitFrame', 0n, 4294967295n)">-</button>
+<span class="NoLineBreak">$<input type="text" value="0" maxlength="8" id="Timer32BitFrame" onchange="ThirtyTwoBitFrameToTimer()"><button onclick="BigintIncreaseDecreaseHexInput(1n, 'Timer32BitFrame', 0n, 4294967295n)">+</button><button onclick="BigintIncreaseDecreaseHexInput(-1n, 'Timer32BitFrame', 0n, 4294967295n)">-</button></span>
 
 </td>
 <td>
@@ -58,16 +58,16 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 		var ThirtyTwoBitFrame = BigintClamp(BigintClamp(CorrectHexBigIntValue(document.getElementById("Timer32BitFrame").value)), 0n, 4294967295n)
 		document.getElementById("Timer32BitFrame").value = pad(ThirtyTwoBitFrame.toString(16).toUpperCase(), 8n)
 		
-		var TimeFrameWithinSeconds = ThirtyTwoBitFrame % 60n
+		var TimeFrameWithinSeconds = ThirtyTwoBitFrame % 60n // 60 frames per second (or 1 frame every 1/60th of a second). MOD by 60 gives you a looping counter 0-59, which is later converted to 0-99 by doing [Centiseconds = ((FrameCount MOD 60)*100) / 60]
 		document.getElementById("TimerFramesWithinSeconds").value = pad(TimeFrameWithinSeconds.toString(10), 2n)
 		
-		var TimeSeconds = (ThirtyTwoBitFrame/60n) % 60n
+		var TimeSeconds = (ThirtyTwoBitFrame/60n) % 60n // Every 60th frame is 1 second
 		document.getElementById("TimerSeconds").value = pad(TimeSeconds.toString(10), 2n)
 		
-		var TimeMinutes = (ThirtyTwoBitFrame/60n/60n) % 60n
+		var TimeMinutes = (ThirtyTwoBitFrame/3600n) % 60n // ThirtyTwoBitFrame / 60 = number of seconds, divide by 60 again gets the minutes., therefore, [(ThirtyTwoBitFrame/60)/60] simplified to [ThirtyTwoBitFrame/(60*60)]. (invisible denominator of 1, then reciprocal)
 		document.getElementById("TimerMinutes").value = pad(TimeMinutes.toString(10), 2n)
 		
-		var TimeHours = (ThirtyTwoBitFrame/60n/60n/60n)
+		var TimeHours = (ThirtyTwoBitFrame/216000n) // ThirtyTwoBitFrame divide by 60 gives seconds, divide by 60 again to get minutes, divide by 60 again to get hours, therefore [ThirtyTwoBitFrame/60/60/60] -> [ThirtyTwoBitFrame/(60*60*60)]
 		document.getElementById("TimerHours").value = pad(TimeHours.toString(10), 2n)
 		
 		InGameDisplay(TimeHours, TimeMinutes, TimeSeconds, TimeFrameWithinSeconds)
