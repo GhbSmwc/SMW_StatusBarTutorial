@@ -294,7 +294,7 @@ and if you are tired of using branches, then an even simpler approach is to use 
 <p>To display a single digit, just store the value directly to the tile RAM. Digits are correctly displayed if the value is 0-9. Any above that will display more than just digits.</p>
 
 <p>But how do you display multi-digits on the status bar? Well, you use a routine that would wrap each digits just like how our real-world decimal number works
-(ones place reset every 10s, 10s increases every 10th value, and the 10s resets every 100). The routine, <kbd>HexDec</kbd> converts a given number to
+(ones place reset every 10s, 10s increases every 100th value, and the 1000s resets every 10000s, and so on). The routine, <kbd>HexDec</kbd> converts a given number to
 <a href="https://en.wikipedia.org/wiki/Binary-coded_decimal">binary-coded decimal (BCD, unpacked)</a> to write each digit tiles onto the status bar. Thankfully,
 the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have to convert digit numbers to digit graphics.</p>
 
@@ -1169,9 +1169,12 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		RTL
 	endif</pre></td></tr></table>
 	
-<p>This works by taking a 32-bit frame counter (it must increment by 1 every 1/60th of a second, which is the NTSC SNES's game loop speed), divide by 60 and the remainder is
-the frames within a second (which later is multiplied by 100 and then divided by 60 to get the approximate centiseconds), the quotient
-is the minutes, which then is divided by 60 again. The quotient is the hour and the remainder is the minutes 0-59 within the hour.
+<p>This works by taking a 32-bit frame counter (it must increment by 1 every 1/60th of a second, which is the NTSC SNES's game loop speed) and doing repeated divisions by 60:
+<table><tr><td><pre>Frames / 60 = Q: Seconds R: Frames		;&gt;We have seconds (not wrapped 0-59 yet), and frames (wrapped 0-59, then displayed as 0-99)
+Seconds / 60 = Q: Minutes R: Seconds		;&gt;We have minutes (not wrapped 0-59 yet), and seconds (wrapped 0-59)
+Minutes / 60 = Q: Hours R: Minutes		;&gt;We have hours (not wrapped 0-59), and minutes (wrapped 0-59)</pre></td></tr></table>
+
+
 This is an entirely different format from <a href="https://www.smwcentral.net/?p=section&a=details&id=16365">Imamelia's timer</a>
 that mine have a 32-bit frame counter as a single number while Imamelia have his with each byte being stored containing each units
 and increments and decrements individually. As of the time of writing this, the rightmost number on Imamelia's timer isn't the centiseconds
@@ -1575,11 +1578,26 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 <h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
 <ul>
 	<li>
-		<p>When using SA-1 ROM, SMW's vanilla status bar RAM address is relocated to address bank <kbd>$40</kbd>. Meaning that instead of entering <kbd>$7E0EF9</kbd> or <kbd>$000EF9</kbd>, you enter <kbd>$400EF9</kbd>
-		for routines that require 24-bit address (such as the repeated symbols display) for the input.</p>
+		<p>When using SA-1 ROM, SMW's vanilla status bar RAM address is relocated to address bank <kbd>$40</kbd> and also
+		like most 2-byte RAM address at and above <kbd>$0100</kbd>, they are added (or bitwise OR'ed) by <kbd>$6000</kbd>.
+		For example: <kbd>$7E0EF9</kbd> &rightarrow;<kbd>$<u>40</u>0EF9</kbd> &rightarrow; <kbd>$40<u>6</u>EF9</kbd>.
+		This can be mitigated by placing <kbd>|!addr</kbd> or <kbd>|!base2</kbd> at the end of the address (<kbd>LDA $0EF9|!addr</kbd>,
+		these defines will be <kbd>$0000</kbd> or <kbd>$6000</kbd> if your hack is normal or SA-1).
+		
+		<ul>
+			<li>However, if you are dealing with routines that require a full width of 24-bit address, such as dealing with my left/right number display written at $00-$02, then instead of doing
+			whats mentioned eariler, is to have the entire address itself in a define that differs based on SA-1:
+<table><tr><td><pre>;Make sure this is used AFTER declaring the define !sa1.
+if !sa1 == 0
+	!StatusBarPosition_Long_address = $7E0EF9
+else
+	!StatusBarPosition_Long_address = $406EF9
+endif</pre></td></tr></table>
+			and any instruction using the address should be: <kbd>&lt;opcode&gt; StatusBarPosition_Long_address</kbd> (e.g. <kbd>LDA !StatusBarPosition_Long_address</kbd>).</li>
+		</ul></p>
 	</li>
 	<li>
-		<p>SMW does actually have a 32-bit (up to 999,999) HexDec handling routine, this is used for displaying the score and strangely, the bonus stars. Unlike the 2-digit simple HexDec,
+		<p>SMW does actually have a 32-bit (up to 999,999, but <abbr title="6 changeable digits, there are 7 displayed, but the rightmost 0 is static.">up to 6 digits</abbr>) HexDec handling routine, this is used for displaying the score and strangely, the bonus stars. Unlike the 2-digit simple HexDec,
 		it is handled from left-to-right (just <a href="#Left2RightHexDec">like this</a>), and by subtracting by 10<sup>(NumberOfDigits-1) &rightarrow; 0</sup> repeatedly. Here is what I mean with the example of a number 123456 ($01E240).
 		Note that the score is stored internally as the displayed number, divided by 10 (&ldquo;1234560&rdquo; is 123456, which that is $01E240 in hex, stored in little endian as
 		<kbd>[$40, $E2, $01]</kbd>, not as $12D680/<kbd>[$80, $D6, $12]</kbd>.), here is an example showing that same number:
