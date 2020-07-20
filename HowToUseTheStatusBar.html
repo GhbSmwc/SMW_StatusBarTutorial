@@ -1578,23 +1578,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 <h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
 <ul>
 	<li>
-		<p>When using SA-1 ROM, SMW's vanilla status bar RAM address is relocated to address bank <kbd>$40</kbd> and also
-		like most 2-byte RAM address at and above <kbd>$0100</kbd>, they are added (or bitwise OR'ed) by <kbd>$6000</kbd>.
-		For example: <kbd>$7E0EF9</kbd> &rightarrow;<kbd>$<u>40</u>0EF9</kbd> &rightarrow; <kbd>$40<u>6</u>EF9</kbd>.
-		This can be mitigated by placing <kbd>|!addr</kbd> or <kbd>|!base2</kbd> at the end of the address (<kbd>LDA $0EF9|!addr</kbd>,
-		these defines will be <kbd>$0000</kbd> or <kbd>$6000</kbd> if your hack is normal or SA-1).
-		
-		<ul>
-			<li>However, if you are dealing with routines that require a full width of 24-bit address, such as dealing with my left/right number display written at $00-$02, then instead of doing
-			whats mentioned eariler, is to have the entire address itself in a define that differs based on SA-1:
-<table><tr><td><pre>;Make sure this is used AFTER declaring the define !sa1.
-if !sa1 == 0
-	!StatusBarPosition_Long_address = $7E0EF9
-else
-	!StatusBarPosition_Long_address = $406EF9
-endif</pre></td></tr></table>
-			and any instruction using the address should be: <kbd>&lt;opcode&gt; StatusBarPosition_Long_address</kbd> (e.g. <kbd>LDA !StatusBarPosition_Long_address</kbd>).</li>
-		</ul></p>
+		<p>When using SA-1 ROM, SMW's vanilla status bar RAM address is relocated to address bank <kbd>$40</kbd> while its absolute address ($12<u>3456</u>)
+		are kept the same ($7E0EF9 &rightarrow; $400EF9).</p>
 	</li>
 	<li>
 		<p>SMW does actually have a 32-bit (up to 999,999, but <abbr title="6 changeable digits, there are 7 displayed, but the rightmost 0 is static.">up to 6 digits</abbr>) HexDec handling routine, this is used for displaying the score and strangely, the bonus stars. Unlike the 2-digit simple HexDec,
