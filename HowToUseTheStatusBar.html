@@ -218,7 +218,7 @@ every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead
 	
 	<li><p><a href="https://www.smwcentral.net/?p=section&a=details&id=21665">Overworld Border +</a>. Not a &ldquo;status bar&rdquo;, but similar
 	in terms of editing the layer 3 8x8 tiles. This gives you 32x<kbd>!TopLines</kbd> (for the top of the screen) and 32x<kbd>!BottomLines</kbd> (for the bottom of the screen)
-	8x8 tile area, therefore, up to 224 8x8 tiles you can edit.<sup>1</sup>. <kbd>!TopLines</kbd> is how many lines for the top of the screen, an integer 0-5.
+	8x8 tile area, therefore, up to 224 8x8 tiles you can edit.<sup>1</sup> <kbd>!TopLines</kbd> is how many lines for the top of the screen, an integer 0-5.
 	<kbd>!BottomLines</kbd> is same as previously mentioned, but for the bottom of the screen being an integer 0-2.</p></li>
 	
 <li><p><a href="https://www.smwcentral.net/?p=profile&id=4842">Ladida</a>'s status bar patches<sup>2</sup></p></li>
@@ -946,9 +946,10 @@ What will happen is that the number will change by 1 every 2<sup>n</sup> frames.
 Note that there are a major drawback:
 <ul>
 <li><p>If the amount adds or subtract by a very large value, the counting animation will take a very long time to finally display the final amount.</p></li>
-<li><p>Make sure when you do things that would &ldquo;clear memory&rdquo; such as going to another level, make sure when using &ldquo;Actual amount counting&rdquo;, not to have the
+<li><p>Make sure when you do things that would &ldquo;clear memory&rdquo; (or simply &rdquo;reset/initialize values&rdquo;) such as going to another level, make sure when using &ldquo;Actual amount counting&rdquo;, not to have the
 adder/subtractor be reset during transitions, otherwise the amount change gets cut off, unless you want something similar to earthbound's &ldquo;rolling HP&rdquo; system which can interrupt
-the counting.</p></li>
+the counting. You can make this &ldquo;skip the animation&rdquo; by taking the current value, and add by the remaing values to be added (like taking the coin counter (<kbd>$0DBF</kbd>), add <kbd>CLC : ADC</kbd> by <kbd>$13CC</kbd>,
+and then store the total back to <kbd>$0DBF</kbd>).</p></li>
 </ul>
 </p>
 For the &ldquo;Mere display counting&rdquo; you can alleviate the lengthy counting animation by taking the absolute difference of the display amount and actual amount, and check if the difference is too big, would
@@ -980,7 +981,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	SEP #$20			;|
 	JSL HexDec_MathDiv		;/
 	REP #$20
-	INC $00				;>Shouldn't subtract by 0
+	INC $00				;>Shouldn't add by 0
 	LDA !RAMToMeasure2		;\The bigger the difference, the faster it increments.
 	CLC				;|
 	ADC $00				;/
@@ -995,7 +996,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	JSL HexDec_MathDiv		;/
 	REP #$20
 	INC $00				;>Shouldn't subtract by 0
-	LDA !RAMToMeasure2		;\The bigger the difference, the faster it increments.
+	LDA !RAMToMeasure2		;\The bigger the difference, the faster it decrements.
 	SEC				;|
 	SBC $00				;/
 	
