@@ -495,7 +495,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	; -ConvertToRightAlignedFormat2 is designed for [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
 	; -This routine is meant to be used when displaying 2 numbers (For example: 123/456). Since
 	;  when displaying a single number, using HexDec and removing leading zeroes (turns them
-	;into leading spaces) is automatically right-aligned, using this routine is pointless.
+	;  into leading spaces) is automatically right-aligned, using this routine is pointless.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	ConvertToRightAligned:
 		TXA
