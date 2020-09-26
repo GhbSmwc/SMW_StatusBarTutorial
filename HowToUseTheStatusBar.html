@@ -1294,39 +1294,39 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 main:
 	;Submit fraction
 		REP #$20
-		LDA !RAMToMeasure
-		STA !Scratchram_PercentageQuantity
-		LDA !RAMToMeasure2
-		STA !Scratchram_PercentageMaxQuantity
+		LDA !RAMToMeasure			;\Enter a fraction as the input
+		STA !Scratchram_PercentageQuantity	;|
+		LDA !RAMToMeasure2			;|
+		STA !Scratchram_PercentageMaxQuantity	;/
 		SEP #$20
-		JSL HexDec_ConvertToPercentage
+		JSL HexDec_ConvertToPercentage		;&gt;Convert to percentage.
 	;Avoid displaying 0% and 100% misleadingly if close to them.
 		CPY #$00
 		BEQ .Normal
 		CPY #$01
 		BEQ .RoundTo1Percent
 		CPY #$02
-		BCS .RoundTo99Percent		;>Just in case somehow Y is a value $03 or more
+		BCS .RoundTo99Percent		;&gt;Just in case somehow Y is a value $03 or more
 		
 		.RoundTo1Percent
-			REP #$20
-			LDA.w #1
-			STA $00
-			STZ $02
-			SEP #$20
-			BRA .Normal
+			REP #$20		;\between exclusively 0.00 and 0.50 to display 1%
+			LDA.w #1		;|(between 0.50 and 0.99 already is 1%)
+			STA $00			;|
+			STZ $02			;|
+			SEP #$20		;|
+			BRA .Normal		;/
 		.RoundTo99Percent
-			REP #$20
-			LDA.w #99
-			STA $00
-			STZ $02
-			SEP #$20
+			REP #$20		;\between 99.50 (included) and 99.99 to display 99%
+			LDA.w #99		;|
+			STA $00			;|
+			STZ $02			;|
+			SEP #$20		;/
 		.Normal
 	;Display the number. Since it is very unlikely you display percentage greater than 100, you mostly
 	;just need to use $00 (8-bit) alone.
 		LDA $00
 		JSL HexDec_EightBitHexDec3Digits
-		STA !StatusBarPosition+(2*!StatusbarFormat)	;>Write 1s place
+		STA !StatusBarPosition+(2*!StatusbarFormat)	;&gt;Write 1s place
 		
 		.HandleHundreds
 		CPY #$00					;\Is the 100s place nonzero? Yes, then leave that and the 10s showing up
@@ -1336,19 +1336,19 @@ main:
 		LDY #!StatusBarBlankTile			;\Erase the 100s digit
 		TYA						;|
 		STA !StatusBarPosition				;/
-		BRA .HandleTens					;>Check if the next digit is also part of the leading zero.
+		BRA .HandleTens					;&gt;Check if the next digit is also part of the leading zero.
 		
 		..HundredsNonZero
 		TYA
-		STA !StatusBarPosition				;>Write 100s place
-		BRA .HandleTens_WriteTens			;>If at least 100, 10s shouldn't be omitted.
+		STA !StatusBarPosition				;&gt;Write 100s place
+		BRA .HandleTens_WriteTens			;&gt;If at least 100, 10s shouldn't be omitted.
 		
 		.HandleTens
 		CPX #$00					;\Is the 10s place nonzero? Yes, then leave the 10s place showing up
 		BNE ..WriteTens					;/No, then erase the 10s.
 		
 		..NoTens
-		LDX #!StatusBarBlankTile			;>If 0, replace 10s digit with blank.
+		LDX #!StatusBarBlankTile			;&gt;If 0, replace 10s digit with blank.
 		
 		..WriteTens
 		TXA						;\Write 10s place

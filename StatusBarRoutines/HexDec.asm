@@ -884,7 +884,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;  Y=$02: Rounded from 99 to 100.
 	;Destroyed:
 	; $06-$07: Needed to compare the remainder with half the denominator.
-	;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		ConvertToPercentage:
 			;First, do [Quantity * 100]
@@ -895,7 +894,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				STA $02
 				SEP #$20
 				JSL MathMul16_16	;>$04 to $07 = product
-			;And we divide my maxquantity.
+			;And we divide by maxquantity.
 				REP #$20
 				LDA $04
 				STA $00
