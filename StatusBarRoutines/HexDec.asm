@@ -26,7 +26,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ; -WriteStringDigitsToHUDFormat2
 ;Misc:
 ; -Frames2Timer
-; -RoundPercentage
+; -ConvertToPercentage
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;General math routines.
 ;Due to the fact that registers have limitations and such.
@@ -867,35 +867,92 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			RTS
 		endif
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;Round percentage value to the nearest integer
+	;Convert fraction to percentage
 	;Input:
-	; $00 to $01: The remainder needed to determine if fraction is >= 1/2 to round upwards
-	; $02 to $03: The divisor.
+	; !Scratchram_PercentageQuantity to !Scratchram_PercentageQuantity+1:
+	;  The numerator of the fraction
+	; !Scratchram_PercentageMaxQuantity to !Scratchram_PercentageMaxQuantity+1:
+	;  The denominator of the fraction
 	;Output:
-	; $00: equals to #$00 (to round down) if fraction is less than 1/2, other #$01 (to round
-	;      up) if >= 1/2.
+	; $00-$03: Percentage, rounded 1/2 up. Using 32-bit unsigned
+	;          integer to prevent potential overflow (mainly going beyond 65535)
+	;          if your hack allows going higher than 100%.
+	; Y register: Detect rounding to 0 or 100. Can be used to display 1% if exclusively between 0 and 1%
+	;             and 99% if exclusively between 99 and 100%.
+	;  Y=$00: no
+	;  Y=$01: Rounded to 0
+	;  Y=$02: Rounded from 99 to 100.
+	;Destroyed:
+	; $06-$07: Needed to compare the remainder with half the denominator.
+	;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-		CheckIfFractionGreaterThanHalf:
-			.FindHalfPoint
+		ConvertToPercentage:
+			;First, do [Quantity * 100]
 				REP #$20
-				LDA $02
-				LSR			;>LSR essentially divides the value by 2. The carry flag here is the remainder, which indicates if there is a 0.5.
+				LDA !Scratchram_PercentageQuantity
+				STA $00
+				LDA.w #100
 				STA $02
-				BCC ..NoRound
-				..Round
-					INC $02
-				..NoRound
-			.CheckIfRemainderGreaterThanHalf
-				LDA $00
-				CMP $02
-				BCC ..LessThanHalf
-				
-				..AtLeastHalf
-					SEP #$20
-					LDA #$01
-					STA $00
-					RTL
-				..LessThanHalf
-					SEP #$20
-					STZ $00
-					RTL
+				SEP #$20
+				JSL MathMul16_16	;>$04 to $07 = product
+			;And we divide my maxquantity.
+				REP #$20
+				LDA $04
+				STA $00
+				LDA $06
+				STA $02
+				LDA !Scratchram_PercentageMaxQuantity
+				STA $04
+				SEP #$20
+				JSL MathDiv32_16	;>$00-$03 quotient, $04-$05 remainder
+			;After dividing, quotient, currently rounded down is our (raw) percentage value
+			;The remainder can be used to determine should the percentage value be rounded up.
+				LDY #$00		;>Default Y = $00
+				.RoundHalfUp
+					..GetHalfDenominatorPoint
+						REP #$20
+						LDA !Scratchram_PercentageMaxQuantity	;\Half the denominator
+						LSR					;/
+						BCC ...NoRoundHalfPoint			
+						
+						...RoundHalfWayPoint
+							INC				;>Round halfpoint upwards
+						
+						...NoRoundHalfPoint
+				.CheckQuotientShouldRoundUp
+					;You may be wondering, why am I handling this 16-bit?
+					;Well this is to prevent overflow if your hack allows
+					;displaying greater than 100%.
+					CMP $04			;>Remainder
+					BEQ ..RoundUp		;\If HalfPoint is >= Remainder (or Remainder is < HalfPoint), don't round up
+					BCS ..NoRoundUp		;/
+					..RoundUp
+						LDA $00		;\Increment percentage value.
+						CLC		;|
+						ADC #$0001	;|
+						STA $00		;|
+						LDA $02		;|
+						CLC		;|
+						ADC #$0000	;|
+						STA $02		;/
+						
+						...CheckIfRoundedUpTo100
+							LDA $00			;\If not representing 100 on 32 bits, leave Y=$00.
+							CMP.w #100		;|
+							BNE ..RoundDone		;|
+							LDA $02			;|
+							CMP #$0000		;|
+							BNE ..RoundDone		;/
+							LDY #$02
+							BRA ..RoundDone
+					..NoRoundUp
+						...CheckIfRoundedDownTo0
+							LDA $00			;\If 32-bit quotient is nonzero, then skip.
+							ORA $02			;|
+							BNE ..RoundDone		;/
+							LDA $04			;\If remainder is at least 1, then the percentage should be between (exclusively)
+							BEQ ..RoundDone		;/0 and 1%, however, here assumes the value would be in between (exclusive) 0 and 0.5%
+							LDY #$01
+					..RoundDone
+						SEP #$20
+						RTL

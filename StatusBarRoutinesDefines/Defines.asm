@@ -91,3 +91,16 @@
 		; !Scratchram_Frames2TimeOutput+1 = minutes
 		; !Scratchram_Frames2TimeOutput+2 = seconds
 		; !Scratchram_Frames2TimeOutput+3 = centiseconds (display 00-99)
+	;For percentage converter
+		if !sa1 == 0
+			!Scratchram_PercentageQuantity = $7F844E
+		else
+			!Scratchram_PercentageQuantity = $40019C
+		endif
+		;^[2 bytes] The quantity
+		if !sa1 == 0
+			!Scratchram_PercentageMaxQuantity = $7F8450
+		else
+			!Scratchram_PercentageMaxQuantity = $40019E
+		endif
+		;^[2 bytes] The max quantity.

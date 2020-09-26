@@ -1286,73 +1286,47 @@ Proper way of dividing integers:
 a percentage rounded to the nearest 1s place:
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;[2 bytes] RAM address you what to show (Quantity)
 !RAMToMeasure2 = $62			;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
+!PercentSymbolTile = $2A		;&gt;The tile number to represent the percent symbol.
 !StatusBarPosition = $7FA000	;&gt;Where to write on the status bar
-
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 main:
-	;Quantity * 100...
+	;Submit fraction
 		REP #$20
 		LDA !RAMToMeasure
-		STA $00
-		LDA.w #100
-		STA $02
-		SEP #$20
-		JSL HexDec_MathMul16_16	;&gt;I'm using the 32-bit product as there is a possibility of going beyond 65535.
-	;.../ MaxQuantity
-		REP #$20
-		LDA $04
-		STA $00
-		LDA $06
-		STA $02
+		STA !Scratchram_PercentageQuantity
 		LDA !RAMToMeasure2
-		STA $04
+		STA !Scratchram_PercentageMaxQuantity
 		SEP #$20
-		JSL HexDec_MathDiv32_16 ;&gt;After this, $00-$03 contains the percentage value (rounded down), $04-$05 contains the remainder.
-	;The division routines here outputs the quotient (rounded down) and remainder. We can make it round
-	;upwards to the nearest integer. Care should be taken that values could be misleadingly display 0 or 100
-	;when very close to such values (such as 0.01 to 0.49% displays as 0% and 99.50% to 99.99% displays as 100%).
-		LDA $00						;\Preserve percentage
-		PHA						;/
-		REP #$20
-		LDA $04						;\Remainder
-		STA $00						;/
-		LDA !RAMToMeasure2				;\Divisor
-		STA $02						;/
-		SEP #$20
-		JSL HexDec_CheckIfFractionGreaterThanHalf
-		LDA $00						;\Move rounding flag to $01
-		STA $01						;/
-		PLA
-		STA $00						;&gt;Move quotient (percentage) to $00
-		.HandleRounding
-			..No100
-				CMP.b #99			;\If 99% don't ever round upwards at all.
-				BEQ ..RoundingDone		;/
-			..No0
-				;Instead of rounding 1/2 up, we apply the ceiling function; if the remainder isn't 0, then round percentage to 1.
-					LDA $00					;\If quotient isn't 0, we shouldn't worry about round towards 0.
-					BNE ..MayRoundUp			;/
-					REP #$20
-					LDA $04					;&gt;When the remainder isn't 0, this means division resulted a value between (exclusively) 0 and 1.
-					SEP #$20
-					BEQ ..RoundingDone			;&gt;Avoid rounding, should the quotient be 0 with no remainder (EXACTLY 0.000000000%)
-					BRA ..MayRoundUp_ShouldRoundUp
-			..MayRoundUp
-				LDA $01					;\If rounding flag is 0, don't round up
-				BEQ ...LessThanHalf			;/
-				
-				...ShouldRoundUp
-				INC $00					;&gt;Otherwise round the quotient by adding it by 1.
-				
-				...LessThanHalf
-			..RoundingDone
+		JSL HexDec_ConvertToPercentage
+	;Avoid displaying 0% and 100% misleadingly if close to them.
+		CPY #$00
+		BEQ .Normal
+		CPY #$01
+		BEQ .RoundTo1Percent
+		CPY #$02
+		BCS .RoundTo99Percent		;>Just in case somehow Y is a value $03 or more
+		
+		.RoundTo1Percent
+			REP #$20
+			LDA.w #1
+			STA $00
+			STZ $02
+			SEP #$20
+			BRA .Normal
+		.RoundTo99Percent
+			REP #$20
+			LDA.w #99
+			STA $00
+			STZ $02
+			SEP #$20
+		.Normal
 	;Display the number. Since it is very unlikely you display percentage greater than 100, you mostly
 	;just need to use $00 (8-bit) alone.
 		LDA $00
 		JSL HexDec_EightBitHexDec3Digits
-		STA !StatusBarPosition+(2*!StatusbarFormat)	;&gt;Write 1s place
+		STA !StatusBarPosition+(2*!StatusbarFormat)	;>Write 1s place
 		
 		.HandleHundreds
 		CPY #$00					;\Is the 100s place nonzero? Yes, then leave that and the 10s showing up
@@ -1362,24 +1336,26 @@ main:
 		LDY #!StatusBarBlankTile			;\Erase the 100s digit
 		TYA						;|
 		STA !StatusBarPosition				;/
-		BRA .HandleTens					;&gt;Check if the next digit is also part of the leading zero.
+		BRA .HandleTens					;>Check if the next digit is also part of the leading zero.
 		
 		..HundredsNonZero
 		TYA
-		STA !StatusBarPosition				;&gt;Write 100s place
-		BRA .HandleTens_WriteTens			;&gt;If at least 100, 10s shouldn't be omitted.
+		STA !StatusBarPosition				;>Write 100s place
+		BRA .HandleTens_WriteTens			;>If at least 100, 10s shouldn't be omitted.
 		
 		.HandleTens
 		CPX #$00					;\Is the 10s place nonzero? Yes, then leave the 10s place showing up
 		BNE ..WriteTens					;/No, then erase the 10s.
 		
 		..NoTens
-		LDX #!StatusBarBlankTile			;&gt;If 0, replace 10s digit with blank.
+		LDX #!StatusBarBlankTile			;>If 0, replace 10s digit with blank.
 		
 		..WriteTens
 		TXA						;\Write 10s place
 		STA !StatusBarPosition+(1*!StatusbarFormat)	;/
-		
+	;Percent symobl
+		LDA #!PercentSymbolTile
+		STA !StatusBarPosition+(3*!StatusbarFormat)
 		.Done
 	;Done
 		RTL</pre></td></tr></table>
