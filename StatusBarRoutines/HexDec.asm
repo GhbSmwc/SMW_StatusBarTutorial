@@ -26,6 +26,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ; -WriteStringDigitsToHUDFormat2
 ;Misc:
 ; -Frames2Timer
+; -RoundPercentage
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;General math routines.
 ;Due to the fact that registers have limitations and such.
@@ -865,3 +866,36 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			WaitCalculation:	;>The register to perform multiplication and division takes 8/16 cycles to complete.
 			RTS
 		endif
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;Round percentage value to the nearest integer
+	;Input:
+	; $00 to $01: The remainder needed to determine if fraction is >= 1/2 to round upwards
+	; $02 to $03: The divisor.
+	;Output:
+	; $00: equals to #$00 (to round down) if fraction is less than 1/2, other #$01 (to round
+	;      up) if >= 1/2.
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		CheckIfFractionGreaterThanHalf:
+			.FindHalfPoint
+				REP #$20
+				LDA $02
+				LSR			;>LSR essentially divides the value by 2. The carry flag here is the remainder, which indicates if there is a 0.5.
+				STA $02
+				BCC ..NoRound
+				..Round
+					INC $02
+				..NoRound
+			.CheckIfRemainderGreaterThanHalf
+				LDA $00
+				CMP $02
+				BCC ..LessThanHalf
+				
+				..AtLeastHalf
+					SEP #$20
+					LDA #$01
+					STA $00
+					RTL
+				..LessThanHalf
+					SEP #$20
+					STZ $00
+					RTL
