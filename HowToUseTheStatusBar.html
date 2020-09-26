@@ -64,6 +64,7 @@ on something simple as how to write a value to memory. You should also know abou
 		</ul>
 		<li><a href="#IncrementDecrementAnimation" id="IncrementDecrementAnimationBack">Counting animation</a></li>
 		<li><a href="#Frames2Timer" id="Frames2TimerBack">Display a timer in Hours:Minutes:Seconds:Centiseconds format</a></li>
+		<li><a href="#Percentage" id="PercentageBack">Display a percentage</li>
 	</ul>
 	<li><a href="#RepeatedSymbol" id="RepeatedSymbolBack">Displaying repeated symbol n times.</a></li>
 	<li><a href="#GraphicalBar" id="GraphicalBarBack">Display a graphical bar</a></li>
@@ -1236,7 +1237,6 @@ but rather jiffyseconds that display numbers 0-59.</p>
 	The carry flag is essentially a &ldquo;bridge&rdquo; to numbers bigger than the register size. To detect an overflow/underflow, just use BCC/BCS (branch if carry clear/set) AFTER all the bytes are added/subtracted/shifted. Also another off-topic is that
 	SBC is very similar to CMP, but without affecting the A register.
 </ul>
-
 </p>
 
 <p>For debugging purposes, or if you are planning to have items that would increase/decrease the timer, I've provided <a href="Readme_Files/JS_FrameToTimer.html" id="DebugTimerValue">a javascript converter between the total frames and timer format</a>
@@ -1259,6 +1259,26 @@ Here are the maximums values of the frame value and their timer equivalents:
 	<tr><td>3 (16777215/$FFFFFF)</td><td>77:40:20.25</td></tr>
 	<tr><td>4 (4294967295/$FFFFFFFF)</td><td>19884:06:28.25 (hours will display incorrectly)</td></tr>
 </table>
+</p>
+<hr>
+<h2 id="Percentage"><a href="#PercentageBack">^</a>Display a percentage</h2>
+<p>This tutorial display a number representing a percentage of something. Because we are dealing with integers here (The SNES does not support floating point numbers), we have to multiply first before we divide, as every
+arithmetic operation rounds the number to an integer:
+<table><tr><td><pre>Improper way of dividing integers:
+	Percentage = (Amount / TotalAmount) * PercentagePrecision
+	
+	This will round to 0 if X out of Y is less than Y, otherwise it is 100% when they equal when rounded down.
+	This is because when you take a number, and divide by a larger number, it will land between 0 and 1, which
+	cannot be represented in integers. So only 0 and 100 are being possible as the end result.
+Proper way of dividing integers:
+	Percentage = (Amount * PercentagePrecision) / TotalAmount
+	
+	Because this is scaled before losing some precision from division, therefore minimizing the loss. This
+	is because it is handled and treated as fractions manually.
+</pre></td></tr></table><br>
+<kbd>PercentagePrecision</kbd> is 100, 1000, or 10000. You may be wondering, why not just 100? Well, if you wanted more precise percentage display by displaying something like 50.03% this is using
+<a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point arthmetic</a>. Meaning that a value <kbd>1</kbd> stored in memory means 0.01 when using 10000.
+
 </p>
 <hr>
 <h2 id="RepeatedSymbol"><a href="#RepeatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
