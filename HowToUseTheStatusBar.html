@@ -299,10 +299,13 @@ and if you are tired of using branches, then an even simpler approach is to use 
 
 <p>To display a single digit, just store the value directly to the tile RAM. Digits are correctly displayed if the value is 0-9. Any above that will display more than just digits.</p>
 
-<p>But how do you display multi-digits on the status bar? Well, you use a routine that would wrap each digits just like how our real-world decimal number works
+<p>But how do you display multi-digits on the status bar? Well, you use a subroutine that would wrap each digits just like how our real-world decimal number works
 (ones place reset every 10s, 10s increases every 100th value, and the 1000s resets every 10000s, and so on). The routine, <kbd>HexDec</kbd> converts a given number to
 <a href="https://en.wikipedia.org/wiki/Binary-coded_decimal">binary-coded decimal (BCD, unpacked)</a> to write each digit tiles onto the status bar. Thankfully,
 the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have to convert digit numbers to digit graphics.</p>
+
+<p>Do note that all subroutines here will always have leading zeroes stored (either as in the registers for 2-3 digits or as an array of digits for 4+ digit displays) when there are fewer
+digits than the maximum. If you wanted to remove leading zeroes, I will explain that in the next section.</p>
 
 <p>For the overworld border (<abbr title="So far, there isn't any other patches that lets you edit the overworld border similarly to the status bar.">assuming you're using the Overworld Border+ patch</abbr>),
 which is stored in <kbd>GFX2A</kbd>, after calling the HexDec routine, you must add each digit by #$22 (<a href="Readme_Files/OWB_Digits.png" target="_blank">digit graphics are stored as tile numbers $22-$2B</a>),
@@ -530,7 +533,26 @@ unused digits always showing 0 on the millions (1000000s) and beyond (so don't d
 	digits, you then call <kbd>RemoveLeadingZeroes16Bit</kbd> or <kbd>RemoveLeadingZeroes32Bit</kbd> before writing to the status bar. Make sure you match the 16 and 32 bits. For the 8-bit versions,
 	a routine isn't necessary:
 	<ul>
-		<li>For 2-digit numbers, just replace the 10s place digit with tile #$FC</li>
+		<li>For 2-digit numbers, just replace the 10s place digit with tile #$FC if it is 0:
+<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
+!StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	LDA !RAMToMeasure
+	JSL HexDec_EightBitHexDec
+	STA !StatusBarPosition+(1*!StatusbarFormat)	;&gt;Write 1s place
+	TXA						;&gt;if you are using status bar patches, STX $xxxxxx will not work.
+	BNE .NotLeadingZero
+	
+	.LeadingZero
+	LDA #$FC					;&gt;Blank tile
+	
+	.NotLeadingZero
+	STA !StatusBarPosition				;&gt;Write 10s place
+	RTL</pre></td></tr></table>
+		</li>
 		<li>For 3-digit numbers, use this code template:
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;>Where to write on the status bar
@@ -1287,7 +1309,7 @@ a percentage rounded to the nearest 1s place:
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;[2 bytes] RAM address you what to show (Quantity)
 !RAMToMeasure2 = $62			;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
 !PercentSymbolTile = $2A		;&gt;The tile number to represent the percent symbol.
-!Default_PercentagePrecision = 2
+!Default_PercentagePrecision = 1
 ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
 ; with !Scratchram_PercentageFixedPointPrecision.
 
@@ -1364,6 +1386,7 @@ main:
 		else
 			JSL HexDec_SixteenBitHexDecDivision
 			if !Default_PercentagePrecision == 1
+				JSL HexDec_RemoveLeadingZeroes16BitLeaveLast2
 				;XXX.X%
 				;DigitsFromHexDec (IntegerDigits) -&gt; DisplayedDigits
 				;!Scratchram_16bitHexDecOutput+$01 (1000s place) -&gt; 100s place
@@ -1377,6 +1400,7 @@ main:
 				LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition+(4*!StatusbarFormat)
 				LDA #!PercentSymbolTile : STA !StatusBarPosition+(5*!StatusbarFormat)			;&gt;percent symbol
 			elseif !Default_PercentagePrecision == 2
+				JSL HexDec_RemoveLeadingZeroes16BitLeaveLast3
 				;XXX.XX%
 				;DigitsFromHexDec (IntegerDigits) -&gt; DisplayedDigits
 				;!Scratchram_16bitHexDecOutput+$00 (10000s place) -&gt; 100s place

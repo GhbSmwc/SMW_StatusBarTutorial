@@ -9,13 +9,15 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ; -EightBitHexDec3Digits
 ; -SixteenBitHexDecDivision
 ; -Convert32bitIntegerToDecDigits
-;Leading zeroes remover:
+;Leading zeroes remover (leading spaces):
 ; -RemoveLeadingZeroes16Bit
 ; -RemoveLeadingZeroes32Bit
+; -RemoveLeadingZeroes16BitLeaveLast2
+; -RemoveLeadingZeroes16BitLeaveLast3
 ;Overworld:
 ; -SixteenBitHexDecDivisionToOWB
 ; -ThirtyTwoBitHexDecDivisionToOWB
-;Leading zeroes remover:
+;Leading zeroes remover (left or aligned digits):
 ; -SupressLeadingZeros
 ; -ConvertToRightAligned
 ; -ConvertToRightAlignedFormat2
@@ -378,6 +380,38 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		STA !Scratchram_16bitHexDecOutput,x			;/
 		INX					;>next digit
 		CPX.b #$04				;>last digit to check. So that it can display a single 0.
+		BCC .Loop				;>if not done yet, continue looping.
+		
+		.NonZero
+		RTL
+	;16-bit version, use after [SixteenBitHexDecDivision]. This one leaves out the last two digits, this is so that
+	;for displaying fixed-point numbers, will not wipe out the ones and tenths place for displaying a percentage of
+	;XXX.X%.
+		RemoveLeadingZeroes16BitLeaveLast2:
+		LDX #$00				;>Start at the leftmost digit
+		
+		.Loop
+		LDA !Scratchram_16bitHexDecOutput,x			;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
+		BNE .NonZero				;/
+		LDA #!StatusBarBlankTile				;\blank tile to replace leading zero
+		STA !Scratchram_16bitHexDecOutput,x			;/
+		INX					;>next digit
+		CPX.b #$03				;>last digit to check. So that it can display a single 0.
+		BCC .Loop				;>if not done yet, continue looping.
+		
+		.NonZero
+		RTL
+	;Same as before, but leaves the last 3 digits.
+		RemoveLeadingZeroes16BitLeaveLast3:
+		LDX #$00				;>Start at the leftmost digit
+		
+		.Loop
+		LDA !Scratchram_16bitHexDecOutput,x			;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
+		BNE .NonZero				;/
+		LDA #!StatusBarBlankTile				;\blank tile to replace leading zero
+		STA !Scratchram_16bitHexDecOutput,x			;/
+		INX					;>next digit
+		CPX.b #$02				;>last digit to check. So that it can display a single 0.
 		BCC .Loop				;>if not done yet, continue looping.
 		
 		.NonZero
