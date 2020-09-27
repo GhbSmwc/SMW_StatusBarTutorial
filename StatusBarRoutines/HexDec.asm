@@ -873,12 +873,18 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;  The numerator of the fraction
 	; !Scratchram_PercentageMaxQuantity to !Scratchram_PercentageMaxQuantity+1:
 	;  The denominator of the fraction
+	; !Scratchram_PercentageFixedPointPrecision:
+	;  Rather to convert the fraction to:
+	;   $00 = out of 100.
+	;   $01 = out of 1000 (can be converted to XXX.X% via fixed point)
+	;   $02 = out of 10000 (can be converted to XXX.XX%, same as a above)
 	;Output:
 	; $00-$03: Percentage, rounded 1/2 up. Using 32-bit unsigned
 	;          integer to prevent potential overflow (mainly going beyond 65535)
 	;          if your hack allows going higher than 100%.
 	; Y register: Detect rounding to 0 or 100. Can be used to display 1% if exclusively between 0 and 1%
-	;             and 99% if exclusively between 99 and 100%.
+	;             and 99% if exclusively between 99 and 100%. This also applies to higher precision, but
+	;             instead of by the ones place, it is actually the rightmost/last digit.
 	;  Y=$00: no
 	;  Y=$01: Rounded to 0
 	;  Y=$02: Rounded from 99 to 100.
@@ -886,11 +892,14 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	; $06-$07: Needed to compare the remainder with half the denominator.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		ConvertToPercentage:
+			LDA !Scratchram_PercentageFixedPointPrecision
+			ASL
+			TAX
 			;First, do [Quantity * 100]
 				REP #$20
 				LDA !Scratchram_PercentageQuantity
 				STA $00
-				LDA.w #100
+				LDA.l .PercentageFixedPointScaling,x
 				STA $02
 				SEP #$20
 				JSL MathMul16_16	;>$04 to $07 = product
@@ -904,6 +913,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				STA $04
 				SEP #$20
 				JSL MathDiv32_16	;>$00-$03 quotient, $04-$05 remainder
+			print "................................$",pc
 			;After dividing, quotient, currently rounded down is our (raw) percentage value
 			;The remainder can be used to determine should the percentage value be rounded up.
 				LDY #$00		;>Default Y = $00
@@ -936,12 +946,12 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 						STA $02		;/
 						
 						...CheckIfRoundedUpTo100
-							LDA $00			;\If not representing 100 on 32 bits, leave Y=$00.
-							CMP.w #100		;|
-							BNE ..RoundDone		;|
-							LDA $02			;|
-							CMP #$0000		;|
-							BNE ..RoundDone		;/
+							LDA $00					;\If not representing 100 on 32 bits, leave Y=$00.
+							CMP.l .PercentageFixedPointScaling,x	;|
+							BNE ..RoundDone				;|
+							LDA $02					;|
+							CMP #$0000				;|
+							BNE ..RoundDone				;/
 							LDY #$02
 							BRA ..RoundDone
 					..NoRoundUp
@@ -955,3 +965,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 					..RoundDone
 						SEP #$20
 						RTL
+			.PercentageFixedPointScaling
+				dw 100		;>Integer not scaled at all
+				dw 1000		;>Scaled by 1/10 to display the tenths place
+				dw 10000	;>Scaled by 1/100 to display the hundredths place.

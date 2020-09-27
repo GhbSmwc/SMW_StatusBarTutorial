@@ -1358,7 +1358,9 @@ main:
 		STA !StatusBarPosition+(3*!StatusbarFormat)
 		.Done
 	;Done
-		RTL</pre></td></tr></table>
+		RTL</pre></td></tr></table><br>
+		
+You may be wondering, why am I using 16-bit on some areas (including within the <kbd>ConvertToPercentage</kbd>) when I don't need to? Well, this is designed to prevent potential overflows and displaying wrong values.
 
 </p>
 <hr>

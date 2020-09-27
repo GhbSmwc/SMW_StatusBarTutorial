@@ -104,3 +104,16 @@
 			!Scratchram_PercentageMaxQuantity = $40019E
 		endif
 		;^[2 bytes] The max quantity.
+		if !sa1 == 0
+			!Scratchram_PercentageFixedPointPrecision = $7F8452
+		else
+			!Scratchram_PercentageFixedPointPrecision = $4001A0
+		endif
+		;^[1 byte] Determines how many digits of display via percentage fixed point:
+		;  $00 = XXX%. Overflows if over 65535%.
+		;  $01 = XXX.X%, an integer, scaled by 1/10 (example: 503 as an integer stored is 50.3%).
+		;        Overflows if over 6553.5%
+		;  $02 = XXX.XX%. Same as above but scaled by 1/100. Overflows if over 655.35%.
+		;
+		;Overflows, as in if you use the 16-bit hexdec. But very unlikely your hack allows
+		;percentages over 100.
