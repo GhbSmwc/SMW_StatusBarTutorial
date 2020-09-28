@@ -1304,14 +1304,15 @@ Proper way of dividing integers:
 	is because it is handled and treated as fractions manually.
 </pre></td></tr></table><br>
 <kbd>PercentagePrecision</kbd> is 100, 1000, or 10000. You may be wondering, why not just 100? Well, if you wanted more precise percentage display by displaying something like 50.03% this is using
-<a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point arthmetic</a>. Meaning that a value <kbd>5003</kbd> stored in memory means 50.03 when using 10000. Here is the code to display
-a percentage rounded to the nearest 1s place:
+<a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point arthmetic</a>. Meaning that a value <kbd>5003</kbd> stored in memory means 50.03 when using 10000. Here is a sample template
+code to display a percentage:
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;[2 bytes] RAM address you what to show (Quantity)
 !RAMToMeasure2 = $62			;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
-!PercentSymbolTile = $2A		;&gt;The tile number to represent the percent symbol.
-!Default_PercentagePrecision = 1
+!Default_PercentagePrecision = 2
 ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
 ; with !Scratchram_PercentageFixedPointPrecision.
+
+!DigitDisplayAlignment = 0		;&gt;0 = left-aligned, 1 = right-aligned.
 
 !StatusBarPosition = $7FA000	;&gt;Where to write on the status bar
 
@@ -1385,45 +1386,90 @@ main:
 			STA !StatusBarPosition+(1*!StatusbarFormat)	;/
 		else
 			JSL HexDec_SixteenBitHexDecDivision
-			if !Default_PercentagePrecision == 1
-				JSL HexDec_RemoveLeadingZeroes16BitLeaveLast2
-				;XXX.X%
-				;DigitsFromHexDec (IntegerDigits) -&gt; DisplayedDigits
-				;!Scratchram_16bitHexDecOutput+$01 (1000s place) -&gt; 100s place
-				;!Scratchram_16bitHexDecOutput+$02 (100s place) -&gt; 10s place
-				;!Scratchram_16bitHexDecOutput+$03 (10s place) -&gt; 1s place
-				;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/10s place
-				LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarPosition
-				LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarPosition+(1*!StatusbarFormat)
-				LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition+(2*!StatusbarFormat)
-				LDA #$24 : STA !StatusBarPosition+(3*!StatusbarFormat)					;&gt;Decimal point symbol
-				LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition+(4*!StatusbarFormat)
-				LDA #!PercentSymbolTile : STA !StatusBarPosition+(5*!StatusbarFormat)			;&gt;percent symbol
-			elseif !Default_PercentagePrecision == 2
-				JSL HexDec_RemoveLeadingZeroes16BitLeaveLast3
-				;XXX.XX%
-				;DigitsFromHexDec (IntegerDigits) -&gt; DisplayedDigits
-				;!Scratchram_16bitHexDecOutput+$00 (10000s place) -&gt; 100s place
-				;!Scratchram_16bitHexDecOutput+$01 (1000s place) -&gt; 10s place
-				;!Scratchram_16bitHexDecOutput+$02 (100s place) -&gt; 1s place
-				;!Scratchram_16bitHexDecOutput+$03 (10s place) -&gt; 1/10s place
-				;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/100s place
-				LDA !Scratchram_16bitHexDecOutput+$00 : STA !StatusBarPosition
-				LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarPosition+(1*!StatusbarFormat)
-				LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarPosition+(2*!StatusbarFormat)
-				LDA #$24 : STA !StatusBarPosition+(3*!StatusbarFormat)					;&gt;Decimal point symbol
-				LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition+(4*!StatusbarFormat)
-				LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition+(5*!StatusbarFormat)
-				LDA #!PercentSymbolTile : STA !StatusBarPosition+(6*!StatusbarFormat)			;&gt;percent symbol
+			if !DigitDisplayAlignment != 0
+				if !Default_PercentagePrecision == 1
+					JSL HexDec_RemoveLeadingZeroes16BitLeaveLast2
+					;XXX.X%
+					;DigitsFromHexDec (IntegerDigits) -&gt; DisplayedDigits
+					;!Scratchram_16bitHexDecOutput+$01 (1000s place) -&gt; 100s place
+					;!Scratchram_16bitHexDecOutput+$02 (100s place) -&gt; 10s place
+					;!Scratchram_16bitHexDecOutput+$03 (10s place) -&gt; 1s place
+					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/10s place
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarPosition
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarPosition+(1*!StatusbarFormat)
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition+(2*!StatusbarFormat)
+					LDA #$24 : STA !StatusBarPosition+(3*!StatusbarFormat)					;&gt;Decimal point symbol
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition+(4*!StatusbarFormat)
+					LDA #!TileNumb_PercentSymbol : STA !StatusBarPosition+(5*!StatusbarFormat)			;&gt;percent symbol
+				elseif !Default_PercentagePrecision == 2
+					JSL HexDec_RemoveLeadingZeroes16BitLeaveLast3
+					;XXX.XX%
+					;DigitsFromHexDec (IntegerDigits) -&gt; DisplayedDigits
+					;!Scratchram_16bitHexDecOutput+$00 (10000s place) -&gt; 100s place
+					;!Scratchram_16bitHexDecOutput+$01 (1000s place) -&gt; 10s place
+					;!Scratchram_16bitHexDecOutput+$02 (100s place) -&gt; 1s place
+					;!Scratchram_16bitHexDecOutput+$03 (10s place) -&gt; 1/10s place
+					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/100s place
+					LDA !Scratchram_16bitHexDecOutput+$00 : STA !StatusBarPosition
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarPosition+(1*!StatusbarFormat)
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarPosition+(2*!StatusbarFormat)
+					LDA #$24 : STA !StatusBarPosition+(3*!StatusbarFormat)					;&gt;Decimal point symbol
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition+(4*!StatusbarFormat)
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition+(5*!StatusbarFormat)
+					LDA #!TileNumb_PercentSymbol : STA !StatusBarPosition+(6*!StatusbarFormat)			;&gt;percent symbol
+				endif
+			else
+				.ClearTiles
+					LDA #$FC
+					if !Default_PercentagePrecision == 1
+						LDX.b #($06-1)*!StatusbarFormat		;&gt;[100.0%] is 6 characters. So we must clear out 6 tiles.
+					elseif !Default_PercentagePrecision == 2
+						LDX.b #($07-1)*!StatusbarFormat		;&gt;[100.00%] is 7 characters. So we must clear out 7 tiles.
+					endif
+					..Loop
+						STA !StatusBarPosition,x
+						DEX #!StatusbarFormat
+						BPL ..Loop
+				
+				
+				LDX #$00
+				if !Default_PercentagePrecision == 1
+					JSL HexDec_SupressLeadingZerosPercentageLeaveLast2
+				elseif !Default_PercentagePrecision == 2
+					JSL HexDec_SupressLeadingZerosPercentageLeaveLast3
+				endif
+				LDA #!TileNumb_PercentSymbol			;\Write percent symbol
+				STA !Scratchram_CharacterTileTable,x		;/
+				INX
+				;Write to status bar
+					LDA.b #!StatusBarPosition : STA $00
+					LDA.b #!StatusBarPosition&gt;&gt;8 : STA $01
+					LDA.b #!StatusBarPosition&gt;&gt;16 : STA $02
+					if !StatusbarFormat == $01
+						JSL HexDec_WriteStringDigitsToHUD
+					else
+						JSL HexDec_WriteStringDigitsToHUDFormat2
+					endif
 			endif
 		endif
 		;Percent symbol
-			LDA #!PercentSymbolTile
-			STA !StatusBarPosition+((4+!Default_PercentagePrecision)*!StatusbarFormat)
+			if !DigitDisplayAlignment != 0
+				LDA #!TileNumb_PercentSymbol
+				STA !StatusBarPosition+((4+!Default_PercentagePrecision)*!StatusbarFormat)
+			endif
 			.Done
 	;Done
 		RTL</pre></td></tr></table><br>
-		
+The calculation to find the percentage is handled in <kbd>ConvertToPercentage</kbd>. Depending on what is written to <kbd>!Scratchram_PercentageFixedPointPrecision</kbd> determines should the numerator be out of 100, 1000, or 10000,
+which after the HexDec routine, you can write the first n digits, then the decimal point (tile <kbd>#$24</kbd>), and then the last n digits, example:
+<table>
+<tr><th>Fixed point (fraction it represents)</th><th>Intended Display</th><th>Precision Type</th><th>Where to place the decimal point</th></tr>
+<tr><td>50 (50/100)</td><td>50%</td><td><kbd>!Default_PercentagePrecision = 0</kbd></td><td>No need to place decimal point, it is already the percentage value.</td></tr>
+<tr><td>101 (101/1000)</td><td>10.1%</td><td><kbd>!Default_PercentagePrecision = 1</kbd></td><td>Write the decimal point between the 1s and 10s place of the fixed point number. This results in the 1s becoming the tenths, 10s become the 1s and so on.</td></tr>
+<tr><td>2004 (2004/10000)</td><td>20.04%</td><td><kbd>!Default_PercentagePrecision = 2</kbd></td><td>Write the decimal point between the 10s and 100s of the fixed point number. This results in the 1s becoming the hundredths, 10s becomes the tenths, and so on.</td></tr>
+</table><br>
+I've made a left-aligned code that automatically writes the decimal point, so no worries if you wanted this format. That template code should have everything you need.<br><br>
+
 You may be wondering, why am I using 16-bit on some areas (including within the <kbd>ConvertToPercentage</kbd>) when I don't need to? Well, this is designed to prevent potential overflows and displaying wrong values.
 
 </p>

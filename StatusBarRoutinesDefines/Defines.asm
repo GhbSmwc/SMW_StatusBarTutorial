@@ -91,7 +91,7 @@
 		; !Scratchram_Frames2TimeOutput+1 = minutes
 		; !Scratchram_Frames2TimeOutput+2 = seconds
 		; !Scratchram_Frames2TimeOutput+3 = centiseconds (display 00-99)
-	;For percentage converter
+	;For percentage converter and displays
 		if !sa1 == 0
 			!Scratchram_PercentageQuantity = $7F844E
 		else
@@ -117,3 +117,4 @@
 		;
 		;Overflows, as in if you use the 16-bit hexdec. But very unlikely your hack allows
 		;percentages over 100.
+		!TileNumb_PercentSymbol = $2A

@@ -19,6 +19,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ; -ThirtyTwoBitHexDecDivisionToOWB
 ;Leading zeroes remover (left or aligned digits):
 ; -SupressLeadingZeros
+; -SupressLeadingZerosPercentageLeaveLast2
 ; -ConvertToRightAligned
 ; -ConvertToRightAlignedFormat2
 ;Aligned digit to OWB digits:
@@ -519,7 +520,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Suppress Leading zeros via left-aligned positioning
 	;
-	;This routines takes a 16-bit unsigned integer (works up to 5 digits),
+	;This routine takes a 16-bit unsigned integer (works up to 5 digits),
 	;suppress leading zeros and moves the digits so that the first non-zero
 	;digit number is located where X is indexed to. Example: the number 00123
 	;with X = $00:
@@ -555,24 +556,92 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		STA !Scratchram_CharacterTileTable,x	;/(gets overwritten should nonzero input exist)
 
 		.Loop
-		LDA.w !Scratchram_16bitHexDecOutput|!dp,Y		;\If there is a leading zero, move to the next digit to check without moving the position to
-		BEQ ..NextDigit				;/place the tile in the table
+			LDA.w !Scratchram_16bitHexDecOutput|!dp,Y	;\If there is a leading zero, move to the next digit to check without moving the position to
+			BEQ ..NextDigit					;/place the tile in the table
 		
-		..FoundDigit
-		LDA.w !Scratchram_16bitHexDecOutput|!dp,Y		;\Place digit
-		STA !Scratchram_CharacterTileTable,x	;/
-		INX					;>Next string position in table
-		INY					;\Next digit
-		CPY #$05				;|
-		BCC ..FoundDigit			;/
-		RTL
+			..FoundDigit
+				LDA.w !Scratchram_16bitHexDecOutput|!dp,Y	;\Place digit
+				STA !Scratchram_CharacterTileTable,x	;/
+				INX					;>Next string position in table
+				INY					;\Next digit
+				CPY #$05				;|
+				BCC ..FoundDigit			;/
+				RTL
 		
-		..NextDigit
-		INY			;>1 digit to the right
-		CPY #$05		;\Loop until no digits left (minimum is 1 digit)
-		BCC .Loop		;/
-		INX			;>Next item in table
-		RTL
+			..NextDigit
+				INY			;>1 digit to the right
+				CPY #$05		;\Loop until no digits left (minimum is 1 digit)
+				BCC .Loop		;/
+				INX			;>Next item in table
+				RTL
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;Same as above, but this is for fixed-point numbers.
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	SupressLeadingZerosPercentageLeaveLast2:
+		;XXX.X% (XXXX.X%)
+		LDY #$00
+		.Loop
+			CPY #$03					;\Avoid skipping the last two digits (force to write the last two digits, ones and tenths)
+			BCS ..FoundDigit				;/
+			LDA.w !Scratchram_16bitHexDecOutput|!dp,Y	;\If there is a leading zero, move to the next digit to check without moving the position to
+			BEQ ..NextDigit					;/place the tile in the table
+		
+			..FoundDigit
+				LDA.w !Scratchram_16bitHexDecOutput|!dp,Y	;\Place digit
+				STA !Scratchram_CharacterTileTable,x		;/
+				INX						;>Next string position in table
+				INY						;\Write next digit
+				CPY #$04					;|
+				BCC ..FoundDigit				;/
+				LDA #$24					;\Write decimal point
+				STA !Scratchram_CharacterTileTable,x		;/
+				INX
+				LDA !Scratchram_16bitHexDecOutput+$04		;\Write tenths place.
+				STA !Scratchram_CharacterTileTable,x		;/
+				INX
+				RTL
+		
+			..NextDigit
+				INY			;>1 digit to the right
+				CPY #$04		;\Loop until no digits left (minimum is 1 digit)
+				BCC .Loop		;/
+				INX			;>Next item in table
+				RTL
+	SupressLeadingZerosPercentageLeaveLast3:
+		;XXX.XX%
+		print "................................$",pc
+		LDY #$00
+		
+		.Loop
+			CPY #$02					;\Avoid skipping the last three digits
+			BCS ..FoundDigit				;/
+			LDA.w !Scratchram_16bitHexDecOutput|!dp,Y	;\If there is a leading zero, move to the next digit to check without moving the position to
+			BEQ ..NextDigit					;/place the tile in the table
+		
+			..FoundDigit
+				LDA.w !Scratchram_16bitHexDecOutput|!dp,Y	;\Place digit
+				STA !Scratchram_CharacterTileTable,x		;/
+				INX						;>Next string position in table
+				INY						;\Write next digit
+				CPY #$03					;|
+				BCC ..FoundDigit				;/
+				LDA #$24					;\Write decimal point
+				STA !Scratchram_CharacterTileTable,x		;/
+				INX
+				LDA !Scratchram_16bitHexDecOutput+$03		;\Write tenths place.
+				STA !Scratchram_CharacterTileTable,x		;/
+				INX
+				LDA !Scratchram_16bitHexDecOutput+$04		;\Write hundredths place.
+				STA !Scratchram_CharacterTileTable,x		;/
+				INX
+				RTL
+		
+			..NextDigit
+				INY			;>1 digit to the right
+				CPY #$03		;\Loop until no digits left (minimum is 1 digit)
+				BCC .Loop		;/
+				INX			;>Next item in table
+				RTL
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Convert left-aligned to right-aligned.
 	;
@@ -732,6 +801,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	; --$03-$05 = Same as $00-$02 but tile properties.
 	; --$06 = the tile properties, for all tiles.
 	; -X = The number of characters to write, ("123" would have X = 3)
+	; -!Scratchram_CharacterTileTable-(!Scratchram_CharacterTileTable+N-1)
+	;  the string to write to the status bar.
 	;
 	;Note:
 	; -WriteStringDigitsToHUD is designed for [TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]
@@ -947,7 +1018,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				STA $04
 				SEP #$20
 				JSL MathDiv32_16	;>$00-$03 quotient, $04-$05 remainder
-			print "................................$",pc
 			;After dividing, quotient, currently rounded down is our (raw) percentage value
 			;The remainder can be used to determine should the percentage value be rounded up.
 				LDY #$00		;>Default Y = $00
