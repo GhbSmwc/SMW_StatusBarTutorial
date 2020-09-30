@@ -400,8 +400,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 </pre></td></tr></table></p>
 
 <p>What about if I wanted to convert 16-bit numbers (or if you have 3-4 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit HexDec
-converters. Here is the code in question (up to 65535). Example, RAM $60 contains the value <kbd>$1234</kbd> (in memory, its <kbd>$34, $12</kbd>), I call the routine <kbd>SixteenBitHexDecDivision</kbd>
-after that, the digits of 4660 are stored. Note that this is ordered in decreasing significant decimal digits
+converters. Here is the code in question (up to 65535). Example, RAM $60 contains the value <kbd>$1234</kbd> (in memory, its <kbd>$34, $12</kbd>), I write my 16-bit number to address
+<kbd>$00-$01</kbd>, then call the subroutine <kbd>SixteenBitHexDecDivision</kbd> after that, the digits of 4660 are stored. Note that this is ordered in decreasing significant decimal digits
 (<abbr title="!Scratchram_16bitHexDecOutput+4">last</abbr> byte = 1s, second-last = 10s...):
 <table>
 <tr><th>Define relative address</th><th>RAM address (normal/Sa-1)</th><th>Output value</th></tr>
@@ -411,6 +411,9 @@ after that, the digits of 4660 are stored. Note that this is ordered in decreasi
 <tr><td><kbd>!Scratchram_16bitHexDecOutput+3</kbd></td><td><kbd>$05/$07</kbd></td><td><kbd>$06</kbd> (represents &ldquo;6&rdquo; for 10s place)</td></tr>
 <tr><td><kbd>!Scratchram_16bitHexDecOutput+4</kbd></td><td><kbd>$06/$08</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; 1s place)</td></tr>
 </table><br>
+As a side note, all &ldquo;bigger number&rdquo; (handles more bytes to handle larger values) hexdec subroutines can work with &ldquo;smaller numbers&rdquo; (less bytes) hexdec subroutines by masking out
+the higher byte(s). For example: using a 16-bit hexdec, an 8-bit number #$FF, when supplied into the input, you then zero out the high byte (<kbd>STZ $01</kbd>) so that it treats the value as #$00FF.
+
 Here is the code in question for you to test:</p>
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
 !StatusBarPosition = $0EF9|!addr	;&gt;Where to write on the status bar
@@ -420,8 +423,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	main:
 	REP #$20
-	LDA !RAMToMeasure
-	STA $00
+	LDA !RAMToMeasure		;\Submit the value into $00-$01, the input to convert the raw binary value into BCD, unpacked.
+	STA $00				;/
 	SEP #$20
 	JSL HexDec_SixteenBitHexDecDivision
 	
@@ -1308,7 +1311,7 @@ Proper way of dividing integers:
 code to display a percentage:
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;[2 bytes] RAM address you what to show (Quantity)
 !RAMToMeasure2 = $62			;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
-!Default_PercentagePrecision = 2
+!Default_PercentagePrecision = 0
 ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
 ; with !Scratchram_PercentageFixedPointPrecision.
 
@@ -1355,38 +1358,79 @@ main:
 	;Display the number. Since it is very unlikely you display percentage greater than 100, you mostly
 	;just need to use $00 (8-bit) alone.
 		if !Default_PercentagePrecision == 0
-			LDA $00
-			JSL HexDec_EightBitHexDec3Digits
-			STA !StatusBarPosition+(2*!StatusbarFormat)	;&gt;Write 1s place
-			
-			.HandleHundreds
-			CPY #$00					;\Is the 100s place nonzero? Yes, then leave that and the 10s showing up
-			BNE ..HundredsNonZero				;/No, then erase the 100s digit and see if 10s is also part of the leading 0s.
-			
-			..NoHundreds
-			LDY #!StatusBarBlankTile			;\Erase the 100s digit
-			TYA						;|
-			STA !StatusBarPosition				;/
-			BRA .HandleTens					;&gt;Check if the next digit is also part of the leading zero.
-			
-			..HundredsNonZero
-			TYA
-			STA !StatusBarPosition				;&gt;Write 100s place
-			BRA .HandleTens_WriteTens			;&gt;If at least 100, 10s shouldn't be omitted.
-			
-			.HandleTens
-			CPX #$00					;\Is the 10s place nonzero? Yes, then leave the 10s place showing up
-			BNE ..WriteTens					;/No, then erase the 10s.
-			
-			..NoTens
-			LDX #!StatusBarBlankTile			;&gt;If 0, replace 10s digit with blank.
-			
-			..WriteTens
-			TXA						;\Write 10s place
-			STA !StatusBarPosition+(1*!StatusbarFormat)	;/
+			if !DigitDisplayAlignment == 1
+				LDA $00
+				JSL HexDec_EightBitHexDec3Digits
+				STA !StatusBarPosition+(2*!StatusbarFormat)	;&gt;Write 1s place
+				
+				.HandleHundreds
+				CPY #$00					;\Is the 100s place nonzero? Yes, then leave that and the 10s showing up
+				BNE ..HundredsNonZero				;/No, then erase the 100s digit and see if 10s is also part of the leading 0s.
+				
+				..NoHundreds
+				LDY #!StatusBarBlankTile			;\Erase the 100s digit
+				TYA						;|
+				STA !StatusBarPosition				;/
+				BRA .HandleTens					;&gt;Check if the next digit is also part of the leading zero.
+				
+				..HundredsNonZero
+				TYA
+				STA !StatusBarPosition				;&gt;Write 100s place
+				BRA .HandleTens_WriteTens			;&gt;If at least 100, 10s shouldn't be omitted.
+				
+				.HandleTens
+				CPX #$00					;\Is the 10s place nonzero? Yes, then leave the 10s place showing up
+				BNE ..WriteTens					;/No, then erase the 10s.
+				
+				..NoTens
+				LDX #!StatusBarBlankTile			;&gt;If 0, replace 10s digit with blank.
+				
+				..WriteTens
+				TXA						;\Write 10s place
+				STA !StatusBarPosition+(1*!StatusbarFormat)	;/
+			elseif !DigitDisplayAlignment == 0
+				STZ $01
+				JSL HexDec_SixteenBitHexDecDivision
+				
+				.ClearTiles
+				;Clear the tiles. To prevent leftover "ghost" tiles that should've
+				;disappear when the number of digits decreases (so when "10" becomes "9",
+				;won't display "90"). Also setup tile properties when enabled.
+					LDX.b #(4-1)*!StatusbarFormat
+					..Loop
+						LDA #!StatusBarBlankTile
+						STA !StatusBarPosition,x
+						if !StatusBar_UsingCustomProperties != 0
+							LDA.b #!DigitProps
+							STA !StatusBarPositionProps,x
+						endif
+						DEX #!StatusbarFormat
+						BPL ..Loop
+				.StatusBarString
+				;Remove leading zeroes and have it as a character table
+					LDX #$00					;&gt;Start at character position 0.
+					JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+				;Prevent writing too much characters.
+					CPX.b #4+1					;\Failsafe to avoid writing more characters than intended would write onto tiles
+					BCS ..TooMuchDigits				;/not being cleared from the previous code.
+				;Write percent symbol after the number
+					LDA #!TileNumb_PercentSymbol			;\Write percent symbol
+					STA !Scratchram_CharacterTileTable,x		;/
+					INX
+				;Write to status bar
+					LDA.b #!StatusBarPosition : STA $00
+					LDA.b #!StatusBarPosition&gt;&gt;8 : STA $01
+					LDA.b #!StatusBarPosition&gt;&gt;16 : STA $02
+					if !StatusbarFormat == $01
+						JSL HexDec_WriteStringDigitsToHUD
+					else
+						JSL HexDec_WriteStringDigitsToHUDFormat2
+					endif
+					..TooMuchDigits
+			endif
 		else
 			JSL HexDec_SixteenBitHexDecDivision
-			if !DigitDisplayAlignment != 0
+			if !DigitDisplayAlignment == 1
 				if !Default_PercentagePrecision == 1
 					JSL HexDec_RemoveLeadingZeroes16BitLeaveLast2
 					;XXX.X%
@@ -1418,9 +1462,9 @@ main:
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition+(5*!StatusbarFormat)
 					LDA #!TileNumb_PercentSymbol : STA !StatusBarPosition+(6*!StatusbarFormat)			;&gt;percent symbol
 				endif
-			else
+			elseif !DigitDisplayAlignment == 0
 				.ClearTiles
-					LDA #$FC
+					LDA #!StatusBarBlankTile
 					if !Default_PercentagePrecision == 1
 						LDX.b #($06-1)*!StatusbarFormat		;&gt;[100.0%] is 6 characters. So we must clear out 6 tiles.
 					elseif !Default_PercentagePrecision == 2
