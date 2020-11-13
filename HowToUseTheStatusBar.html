@@ -33,7 +33,7 @@
 <ul>
 
 <li><p>Ersanio's tutorial<sup><a href="https://www.smwcentral.net/?p=section&a=details&id=15073">[1]</a><a href="https://www.smwcentral.net/?p=section&a=details&id=14268">[2]</a></sup>
-on something simple as how to write a value to memory. You should also know about binary and hexidecimal, since many data explained here store in memory are bitwise (mainly the tile properties).</p></li>
+on something simple as how to write a value to memory. You should also know about binary and hexidecimal, since many data explained here stored in memory are bitwise (mainly the tile properties).</p></li>
 
 <li><p>Understand the mechanics of <a href="https://www.smwcentral.net/?p=section&a=details&id=19043">Asar</a>, such as defines and labels.</p></li>
 
@@ -1303,8 +1303,9 @@ arithmetic operation rounds (specifically, division) the number to an integer:
 Proper way of dividing integers:
 	Percentage = (Amount * PercentagePrecision) / TotalAmount
 	
-	Because this is scaled before losing some precision from division, therefore minimizing the loss. This
-	is because it is handled and treated as fractions manually.
+	Because this is multiplied before losing some precision from division, therefore minimizing the loss. This
+	is because multiplying 2 integers always have a product being the correct number (besides wrapping around),
+	whereas division, it is possible to land in between values.
 </pre></td></tr></table><br>
 <kbd>PercentagePrecision</kbd> is 100, 1000, or 10000. You may be wondering, why not just 100? Well, if you wanted more precise percentage display by displaying something like 50.03% this is using
 <a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point arthmetic</a>. Meaning that a value <kbd>5003</kbd> stored in memory means 50.03 when using 10000. Here is a sample template
