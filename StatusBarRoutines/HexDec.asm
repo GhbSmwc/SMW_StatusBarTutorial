@@ -986,7 +986,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;Output:
 	; $00-$03: Percentage, rounded 1/2 up. Using 32-bit unsigned
 	;          integer to prevent potential overflow (mainly going beyond 65535)
-	;          if your hack allows going higher than 100%.
+	;          if your hack allows going higher than 100% and with higher Scratchram_PercentageFixedPointPrecision setting.
 	; Y register: Detect rounding to 0 or 100. Can be used to display 1% if exclusively between 0 and 1%
 	;             and 99% if exclusively between 99 and 100%. This also applies to higher precision, but
 	;             instead of by the ones place, it is actually the rightmost/last digit.

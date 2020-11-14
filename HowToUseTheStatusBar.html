@@ -1305,7 +1305,7 @@ Proper way of dividing integers:
 	
 	Because this is multiplied before losing some precision from division, therefore minimizing the loss. This
 	is because multiplying 2 integers always have a product being the correct number (besides wrapping around),
-	whereas division, it is possible to land in between values.
+	whereas division, it is possible to land in between representable values.
 </pre></td></tr></table><br>
 <kbd>PercentagePrecision</kbd> is 100, 1000, or 10000. You may be wondering, why not just 100? Well, if you wanted more precise percentage display by displaying something like 50.03% this is using
 <a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point arthmetic</a>. Meaning that a value <kbd>5003</kbd> stored in memory means 50.03 when using 10000. Here is a sample template
@@ -1315,7 +1315,7 @@ code to display a percentage:
 !Default_PercentagePrecision = 0
 ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
 ; with !Scratchram_PercentageFixedPointPrecision.
-
+!CapAt100 = 1			;&gt;0 = allow percentage to display values greater than 100, 1 = cap at 100.
 !DigitDisplayAlignment = 0		;&gt;0 = left-aligned, 1 = right-aligned.
 
 !StatusBarPosition = $7FA000	;&gt;Where to write on the status bar
@@ -1334,6 +1334,29 @@ main:
 		LDA #!Default_PercentagePrecision
 		STA !Scratchram_PercentageFixedPointPrecision
 		JSL HexDec_ConvertToPercentage
+	;Prevent display percentages greater than 100%.
+	;Note to self:
+	;100				= $00000064
+	;1000 (display as ***.*)	= $000003E8
+	;10000 (display as ***.**)	= $00002710
+		if !CapAt100 != 0
+			.CheckExceed100
+				REP #$30
+				LDX.w #(10**(!Default_PercentagePrecision+2))
+				;Check the high word of the XXXX (RAM_00-RAM_03 = $XXXXYYYY)
+					LDA $02			;\Any nonzero digits in the high word would mean at least
+					BNE ..Cap100		;/65536 ($00010000), which is guaranteed over 100/1000/10000.
+				;Check low word
+					TXA
+					CMP $00			;\Max compares with RAM_00
+					BCS ..Under		;/If Max &gt;= RAM_00 or RAM_00 is lower, don't set it to max.
+				
+				..Cap100
+					TXA
+					STA $00
+				..Under
+				SEP #$30
+		endif
 	;Avoid displaying 0% and 100% misleadingly if close to them.
 		CPY #$00
 		BEQ .Normal
