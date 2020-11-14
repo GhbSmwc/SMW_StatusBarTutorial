@@ -748,9 +748,9 @@ Again, use the debugger if you wanted to test the values using the memory editor
 <h4 id="RightAligned"><a href="#RightAlignedBack">^</a>Right aligned display</h3>
 
 <p>But what about right-aligned number display? First things first, if you are displaying a single number, this routine isn't necessary as calling the HexDec routines and replacing leading zeroes with leading spaces
-is automatically right-aligned, therefore only use this routines if you are displaying X/Y. Here is how you do it: After checking if there are too many characters, you then store the RAM address of the <i>rightmost tile position</i> into $00-$02 (little endian),
-call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedFormat2</kbd> if using the [TTTTTTTT, YXPCCCTT] format), which will modify the position of where to write the digits based on how long the string are
-(loop-writes are based on the starting byte of an array, not the last) by taking the position, subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the
+is automatically right-aligned, therefore only use these routines if you are displaying X/Y. Here is how you do it: After checking if there are too many characters, you then store the RAM address of the <i>rightmost tile position</i>
+into $00-$02 (little endian), call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedFormat2</kbd> if using the [TTTTTTTT, YXPCCCTT] format), which will modify the position of where to write the digits based
+on how long the string are (loop-writes are based on the starting byte of an array, not the last) by taking the position, subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the
 routine to write to the HUD:
 <table><tr><td><pre>!RAMToMeasure = $60			;>RAM address you what to show
 !RAMToMeasure2 = $62			;>Same as above
@@ -1313,9 +1313,9 @@ code to display a percentage:
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;[2 bytes] RAM address you what to show (Quantity)
 !RAMToMeasure2 = $62			;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
 !Default_PercentagePrecision = 0
-;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
-; with !Scratchram_PercentageFixedPointPrecision.
-!CapAt100 = 1			;&gt;0 = allow percentage to display values greater than 100, 1 = cap at 100.
+ ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
+ ; with !Scratchram_PercentageFixedPointPrecision.
+!CapAt100 = 1				;&gt;0 = allow percentage to display values greater than 100, 1 = cap at 100.
 !DigitDisplayAlignment = 0		;&gt;0 = left-aligned, 1 = right-aligned.
 
 !StatusBarPosition = $7FA000	;&gt;Where to write on the status bar
