@@ -609,7 +609,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				RTL
 	SupressLeadingZerosPercentageLeaveLast3:
 		;XXX.XX%
-		print "................................$",pc
 		LDY #$00
 		
 		.Loop
