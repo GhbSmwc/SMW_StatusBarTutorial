@@ -1303,9 +1303,10 @@ arithmetic operation rounds (specifically, division) the number to an integer:
 Proper way of dividing integers:
 	Percentage = (Amount * PercentagePrecision) / TotalAmount
 	
-	Because this is multiplied before losing some precision from division, therefore minimizing the loss. This
-	is because multiplying 2 integers always have a product being the correct number (besides wrapping around),
-	whereas division, it is possible to land in between representable values.
+	Because this is multiplied (always results the correct number unless an overflow occurs) before losing some
+	precision from division, therefore minimizing the loss via having the arithmetic operations do so that the
+	last operation is the only one that rounds the result. Rounding anytime before the last operation can accumulate
+	errors.
 </pre></td></tr></table><br>
 <kbd>PercentagePrecision</kbd> is 100, 1000, or 10000. You may be wondering, why not just 100? Well, if you wanted more precise percentage display by displaying something like 50.03% this is using
 <a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point arthmetic</a>. Meaning that a value <kbd>5003</kbd> stored in memory means 50.03 when using 10000. Here is a sample template
