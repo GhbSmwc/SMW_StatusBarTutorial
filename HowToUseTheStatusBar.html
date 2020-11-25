@@ -32,7 +32,7 @@
 <p>You should know these before doing this:</p>
 <ul>
 
-<li><p>Ersanio's tutorial<sup><a href="https://www.smwcentral.net/?p=section&a=details&id=15073">[1]</a><a href="https://www.smwcentral.net/?p=section&a=details&id=14268">[2]</a></sup>
+<li><p>Ersanio's ASM tutorial<sup><a href="https://www.smwcentral.net/?p=section&a=details&id=15073">[1]</a><a href="https://www.smwcentral.net/?p=section&a=details&id=14268">[2]</a></sup>
 on something simple as how to write a value to memory. You should also know about binary and hexidecimal, since many data explained here stored in memory are bitwise (mainly the tile properties).</p></li>
 
 <li><p>Understand the mechanics of <a href="https://www.smwcentral.net/?p=section&a=details&id=19043">Asar</a>, such as defines and labels.</p></li>
@@ -300,12 +300,74 @@ and if you are tired of using branches, then an even simpler approach is to use 
 <p>To display a single digit, just store the value directly to the tile RAM. Digits are correctly displayed if the value is 0-9. Any above that will display more than just digits.</p>
 
 <p>But how do you display multi-digits on the status bar? Well, you use a subroutine that would wrap each digits just like how our real-world decimal number works
-(ones place reset every 10s, 10s increases every 100th value, and the 1000s resets every 10000s, and so on). The routine, <kbd>HexDec</kbd> converts a given number to
+(ones place reset every 10s, 10s increases every 100th value, and the 1000s resets every 10000s, and so on). The routines, <kbd>HexDec</kbd> converts a given number to
 <a href="https://en.wikipedia.org/wiki/Binary-coded_decimal">binary-coded decimal (BCD, unpacked)</a> to write each digit tiles onto the status bar. Thankfully,
 the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have to convert digit numbers to digit graphics.</p>
 
+<p>Here is a cheatsheet of all the HexDec routines in <kbd>HexDec.asm</kbd>:
+<table>
+<tr>
+<th>Subroutine</th><th>Input</th><th>Output</th>
+</tr>
+<tr>
+<td><kbd>EightBitHexDec</kbd></td>
+<td>A (8-bit/1-byte)</td>
+<td>
+<ul>
+<li>A = 1s place</li>
+<li>X = 10s place, if A is &gt;99, the tens place will start picking graphics other than numbers.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td><kbd>EightBitHexDec3Digits</kbd></td>
+<td>A (8-bit/1-byte)</td>
+<td>
+<ul>
+<li>A = 1s place</li>
+<li>X = 10s place</li>
+<li>Y = 100s place</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td><kbd>SixteenBitHexDecDivision</kbd></td>
+<td><kbd>$00</kbd>-<kbd>$01</kbd> (16-bit/2-byte)</td>
+<td>
+<ul>
+<li><kbd>!Scratchram_16bitHexDecOutput+0</kbd> = 10,000s place</li>
+<li><kbd>!Scratchram_16bitHexDecOutput+1</kbd> = 1,000s place</li>
+<li><kbd>!Scratchram_16bitHexDecOutput+2</kbd> = 100s place</li>
+<li><kbd>!Scratchram_16bitHexDecOutput+3</kbd> = 10s place</li>
+<li><kbd>!Scratchram_16bitHexDecOutput+4</kbd> = 1s place</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td><kbd>Convert32bitIntegerToDecDigits</kbd></td>
+<td><kbd>$00</kbd>-<kbd>$03</kbd> (32-bit/4-byte)</td>
+<td>
+<kbd>!Scratchram_32bitHexDecOutput</kbd> to <kbd>!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)</kbd>: Contains value 0-9 on every byte,
+in decreasing significant digits (last byte is always the 1s place). Formula to get what RAM of a given digit:<br><br><kbd>!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)-(DigitIndex)</kbd><br><br>
+Where <kbd>!MaxNumberOfDigits</kbd> indicates the largest number of digits in your entire hack, up to 10.<br>
+Where <kbd>DigitIndex</kbd>, ranging from 0 to <kbd>!MaxNumberOfDigits-1</kbd> represent which digit in positional notation:
+<ul>
+<li>DigitIndex = 0: 1s</li>
+<li>DigitIndex = 1: 10s</li>
+<li>DigitIndex = 2: 100s</li>
+<li>DigitIndex = 3: 1,000s</li>
+<li>DigitIndex = 4: 10,000s</li>
+<li>...</li>
+<li>DigitIndex = 9: 1,000,000,000s (maximum unsigned 32-bit integer is 4,294,967,295)</li>
+</ul>
+</td>
+</tr>
+
+</table>
+</p>
+<p>Lets start with something very simple with small number of digits.</p>
 <p>Do note that all subroutines here will always have leading zeroes stored (either as in the registers for 2-3 digits or as an array of digits for 4+ digit displays) when there are fewer
-digits than the maximum. If you wanted to remove leading zeroes, I will explain that in the next section.</p>
+digits than the maximum by default. If you wanted to remove leading zeroes, I will explain that in the next section.</p>
 
 <p>For the overworld border (<abbr title="So far, there isn't any other patches that lets you edit the overworld border similarly to the status bar.">assuming you're using the Overworld Border+ patch</abbr>),
 which is stored in <kbd>GFX2A</kbd>, after calling the HexDec routine, you must add each digit by #$22 (<a href="Readme_Files/OWB_Digits.png" target="_blank">digit graphics are stored as tile numbers $22-$2B</a>),
