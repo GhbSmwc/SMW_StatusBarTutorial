@@ -258,11 +258,12 @@ inserted into uberasm tool's &ldquo;<kbd>library</kbd>&rdquo; folder, and have t
 
 <p>Feel free to look into the library ASM files, since I added descriptions and comments to give a better understanding how they work.</p>
 
-<p>NOTE: most codes provided here do not modify the tile properties in any way, since very unlikely that many hacks would ever modify the tile properties. If you happen to have a display to &ldquo;overlap&rdquo; and
-is using different tile properties, upon switching back to the old display may cause the old display to use the YXPCCCTT data of the new display over it. You can simply fix that by reverting the YXPCCCTT.</p>
+<p>NOTE: most codes provided here do not modify the tile properties in any way, since very unlikely that many hacks would ever modify the tile properties. If you happen to have 2+ displays using the same tile(s) (such as
+the score gets covered by boss's heath bar that only shows up during bosses) and are using different tile properties, don't forget to switch the YXPCCCTT data back else you had whatever last written to the YXPCCCTT data.
+(even better is to make any of the counters using that same space to always write their own YXPCCCTT when their TTTTTTTT is written).</p>
 
-<p>You also need to insert the graphic file from this provided <kbd>ExGFX</kbd> folder (<kbd>ExGFX80.bin</kbd>) if you are wanting to test out the code of displaying the &ldquo;/&rdquo; symbol when displaying
-2 numbers. It should be inserted as &ldquo;LG1&rdquo; on the layer 3 GFX.</p>
+<p>You also need to insert the graphic file from this provided <kbd>ExGFX</kbd> folder (<kbd>ExGFX80.bin</kbd>) because many of the stuff here uses a graphic not provided by SMW, such as the &ldquo;/&rdquo; symbol when displaying
+2 numbers, and the &ldquo;%&rdquo; symbol representing a percentage. It should be inserted as &ldquo;LG1&rdquo; on the layer 3 GFX.</p>
 
 <p>Before we start using the subroutines, we will demonstrate how to write tiles that change based on a given info <kbd>!RAMToMeasure</kbd>. It's very easy to write a tile that is different depending on
 a condition using branches:
@@ -303,6 +304,10 @@ and if you are tired of using branches, then an even simpler approach is to use 
 (ones place reset every 10s, 10s increases every 100th value, and the 1000s resets every 10000s, and so on). The routines, <kbd>HexDec</kbd> converts a given number to
 <a href="https://en.wikipedia.org/wiki/Binary-coded_decimal">binary-coded decimal (BCD, unpacked)</a> to write each digit tiles onto the status bar. Thankfully,
 the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have to convert digit numbers to digit graphics.</p>
+
+<p>Note that all of them treats the number as unsigned (negatives don't exists, you'll
+have to &ldquo;negate&rdquo; the number by EOR $FF/$FFFF, then INC it (for 32-bit number do EOR $FFFF twice in 16-bit mode for both low and high words, increment the low word by 1, and if it overflows past $FFFF, carry
+should increment the highword), before calling the routine, and also write the minus sign (tile $27) to represent a negative number. However, this really isn't that necessary, negative numbers are RARELY used in video games).</p>
 
 <p>Here is a cheatsheet of all the HexDec routines in <kbd>HexDec.asm</kbd>:
 <table>
