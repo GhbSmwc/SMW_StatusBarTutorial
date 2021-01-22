@@ -1374,9 +1374,12 @@ Proper way of dividing integers:
 	precision from division, therefore minimizing the loss via having the arithmetic operations do so that the
 	last operation is the only one that rounds the result. Rounding anytime before the last operation can accumulate
 	errors.
+	
+	Technically, this actually treats the division as if it's a fraction while focusing on the integers on the
+	numerator and denominator.
 </pre></td></tr></table><br>
-<kbd>PercentagePrecision</kbd> is 100, 1000, or 10000. You may be wondering, why not just 100? Well, if you wanted more precise percentage display by displaying something like 50.03% this is using
-<a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point arthmetic</a>. Meaning that a value <kbd>5003</kbd> stored in memory means 50.03 when using 10000. Here is a sample template
+<kbd>PercentagePrecision</kbd> is 100, 1000, or 10000. The reason of this is to allow a more precise display by showing decimal fractions of a percentage (example: 50.03%). This works by using
+<a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point arithmetic</a>. Meaning that a value <kbd>5003</kbd> stored in memory means 50.03 when using 10000. Here is a sample template
 code to display a percentage:
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;[2 bytes] RAM address you what to show (Quantity)
 !RAMToMeasure2 = $62			;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
