@@ -1360,23 +1360,41 @@ Here are the maximums values of the frame value and their timer equivalents:
 <hr>
 <h2 id="Percentage"><a href="#PercentageBack">^</a>Display a percentage</h2>
 <p>This tutorial display a number representing a percentage of something. Because we are dealing with integers here (The SNES does not support floating point numbers), we have to multiply first before we divide, as every
-arithmetic operation rounds (specifically, division) the number to an integer:
+arithmetic operation <a href="https://en.wikipedia.org/wiki/Rounding">rounds</a> (specifically, division) the number to an integer.
 <table><tr><td><pre>Improper way of dividing integers:
 	Percentage = (Amount / TotalAmount) * PercentagePrecision
 	
-	This will round to 0 if X out of Y is less than Y, otherwise it is 100% when they equal when rounded down.
+	Result: Only values 0% and 100% are possible results, values in between are not.
+	
 	This is because when you take a number, and divide by a larger number, it will land between 0 and 1, which
-	cannot be represented in integers. So only 0 and 100 are being possible as the end result.
+	cannot be represented in integers, so it will round down or up (the division routine alone rounds downwards).
+	When multiplied afterwards, how much the value is off will scale dramatically.
 Proper way of dividing integers:
 	Percentage = (Amount * PercentagePrecision) / TotalAmount
 	
-	Because this is multiplied (always results the correct number unless an overflow occurs) before losing some
+	Result: Any (integer) values between 0% and 100%, both inclusive.
+	
+	Because this is multiplied (which always results the correct number unless an overflow occurs) before losing some
 	precision from division, therefore minimizing the loss via having the arithmetic operations do so that the
 	last operation is the only one that rounds the result. Rounding anytime before the last operation can accumulate
 	errors.
 	
 	Technically, this actually treats the division as if it's a fraction while focusing on the integers on the
 	numerator and denominator.
+Example:
+	2/3 = 66.[6]% (bracketed means repeating digits)
+		(2/3) * 100 causes this to happen:
+			1/3 would result:
+				0 = 0 * 100 when rounded down: off by 0.[6]
+				1 = 1 * 100 when rounded up: off by 0.[3]
+			and then when multiplied by 100 afterwards:
+				When rounded down: is off by a whopping 66.[6]
+				When rounded up: is off by a whopping 33.[3]
+		(2 * 100)/3 causes this to happen
+			2*100 will result exactly 200. No rounding have occurred.
+			and after division:
+				66 when rounded down, off by a meager 0.[6]
+				67 when rounded up, off by a meager 0.[3]
 </pre></td></tr></table><br>
 <kbd>PercentagePrecision</kbd> is 100, 1000, or 10000. The reason of this is to allow a more precise display by showing decimal fractions of a percentage (example: 50.03%). This works by using
 <a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point arithmetic</a>. Meaning that a value <kbd>5003</kbd> stored in memory means 50.03 when using 10000. Here is a sample template
