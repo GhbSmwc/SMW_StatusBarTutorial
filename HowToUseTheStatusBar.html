@@ -872,7 +872,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		if !StatusbarFormat == $01				;\These offset the write position based on how many
 			JSL HexDec_ConvertToRightAligned		;|characters so that it is right-aligned.
 		else
-			JSL HexDec_ConvertToRightAlignedFormat2		;|$00-$02 will now contain where is the leftmost tile.
+			JSL HexDec_ConvertToRightAlignedFormat2		;|$00-$02 will now contain the location of the leftmost tile.
 		endif							;/
 	;Write to status bar
 		if !StatusbarFormat == $01
@@ -1345,7 +1345,7 @@ in case if you need to check their values stored in memory or needed to put dire
 	LDA !RAMToMeasure		;|
 	STA $00				;|
 	LDA #$0000			;|\High words (upper 2 bytes of the 4-byte 32-bit input masked)
-	STA $02				;|/
+	STA $02				;|/Alternative, you can replace these 2 lines with STZ $02.
 	SEP #$20			;|
 	JSL HexDec_Frames2Timer		;/</pre></td></tr></table>
 Here are the maximums values of the frame value and their timer equivalents:
