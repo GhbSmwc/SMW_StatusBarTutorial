@@ -1275,9 +1275,9 @@ Minutes / 60 = Q: Hours R: Minutes		;&gt;We have hours (not wrapped 0-59), and m
 
 
 This is an entirely different format from <a href="https://www.smwcentral.net/?p=section&a=details&id=16365">Imamelia's timer</a>
-that mine have a 32-bit frame counter as a single number while Imamelia have his with each byte being stored containing each units
-and increments and decrements individually. As of the time of writing this, the rightmost number on Imamelia's timer isn't the centiseconds
-but rather jiffyseconds that display numbers 0-59.</p>
+that mine have a 32-bit frame counter as a single number while Imamelia have his with each byte being stored containing each units of time
+(one byte containing the frames, another being seconds, the final containing the minutes) and increments and decrements individually.
+As of the time of writing this, the rightmost number on Imamelia's timer isn't the centiseconds but rather jiffyseconds that display numbers 0-59.</p>
 
 <p>The biggest advantages of mine is that you can add/subtract time much more easily (an item increases the timer by 5 seconds). Remember that how
 65c816's addition and subtraction with carry (CLC/SEC/ADC/SBC) works? Well:
