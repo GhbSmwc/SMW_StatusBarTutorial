@@ -1468,9 +1468,10 @@ main:
 			STZ $02
 			SEP #$20
 		.Normal
-	;Display the number. Since it is very unlikely you display percentage greater than 100, you mostly
-	;just need to use $00 (8-bit) alone.
+	;Display the number.
 		if !Default_PercentagePrecision == 0
+			;Since it is very unlikely you display percentage greater than 100 (assuming you set !Default_PercentagePrecision to 0), you mostly
+			;likely just need to use $00 (8-bit) alone.
 			if !DigitDisplayAlignment == 1
 				LDA $00
 				JSL HexDec_EightBitHexDec3Digits
