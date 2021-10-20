@@ -54,6 +54,7 @@ on something simple as how to write a value to memory. You should also know abou
 <hr>
 <h2>Quick navigation</h2>
 <li><a href="#WarmUp" id="WarmUpBack">The warm-up: SMW's status bar.</a></li>
+<li><a href="#StuffYouMayNeed" id="StuffYouMayNeedBack">Stuff you may need</li>
 <li><a href="#TileFormat" id="TileFormatBack">Tile data format</a></li>
 <li><a href="#SBPatches" id="SBPatchesBack">Other status bar patches</a></li>
 <li><a href="#RoutineControl" id="RoutineControlBack">Adding routine-controlled display to the HUD.</a></li>
@@ -75,7 +76,27 @@ on something simple as how to write a value to memory. You should also know abou
 	<li><a href="#GraphicalBar" id="GraphicalBarBack">Display a graphical bar</a></li>
 </ul>
 <li><a href="#OverworldBorder" id="OverworldBorderBack">Displaying stuff on the overworld border</a></li>
+<li><a href="#OAMHud" id="OAMHudBack">Sprite-based HUD</a></li>
 <li><a href="#OtherNotes" id="OtherNotesBack">Other Notes</a></li>
+<hr>
+
+<h2 id="StuffYouMayNeed"><a href="#StuffYouMayNeedBack">^</a>Stuff you may need</h2>
+<p>These are resources that enhances the layer 3 HUD, usually if you need advanced stuff:</p>
+<ul>
+<li><a href="https://www.smwcentral.net/?p=section&a=details&id=19247">Super status bar</a></li>
+<li><a href="https://www.smwcentral.net/?p=section&a=details&id=21665">Overworld border +</a></li>
+<li><a href="https://www.smwcentral.net/?p=section&a=details&id=21562">Minimalist status bar(s)</a></li>
+<li><a href="https://www.smwcentral.net/?p=section&a=details&id=21573">SMB3 status bar</a></li>
+</ul>
+
+<p>Sprite OAM for HUD-related stuff</p>
+<ul>
+<li><a href="https://www.smwcentral.net/?p=section&a=details&id=26026">Pixi</a></li>
+</ul>
+<p>Other</p>
+<ul>
+<li><a href="https://www.smwcentral.net/?p=section&a=details&id=19545">Shared Subroutines</a>, strongly recommend if you are going to use them on multiple types of HUD (like one as a sprite and other is layer 3)</li>
+</ul>
 <hr>
 <p>I have provided several routines to make writing codes much user-friendly as possible. So lets begin.</p>
 <h2 id="WarmUp"><a href="#WarmUpBack">^</a>The warm-up: SMW's status bar.</h2>
@@ -597,6 +618,9 @@ displayed, while <kbd>!MaxNumberOfDigits</kbd> is the fixed number of digits (us
 (in this case, 6, not 5).">lower number to save space</abbr>).
 Having both in case if you want to only display up to n digits less than the routine can output. For example, a counter to display 6 digits, 0-999999. You wouldn't want display
 unused digits always showing 0 on the millions (1000000s) and beyond (so don't display &ldquo;0000999999&rdquo;, those first 4 digits are always 0 and therefore redundant).</p>
+
+<p>Funnily enough, I wrote this tutorial before
+<a href="https://www.youtube.com/watch?v=v3-a-zqKfgA">this video</a> came out on how to convert binary to decimal for display.</p>
 
 <h4 id="RemoveLeadingZeroes"><a href="#RemoveLeadingZeroesBack">^</a>Removing leading zeroes (leading spaces)</h4>
 	<p>I've also provided routines that removes leading zeroes by simply replacing the first n digits with tile $FC in the digits table (I call this &ldquo;leading spaces&rdquo;). After calling the the JSL routines to convert them into decimal
@@ -1946,6 +1970,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	..TooMuchDigits
 	RTL</pre></td></tr></table>
 </p>
+<hr>
+<h2 id="OAMHud"><a href="#OAMHudBack">^</a>Sprite-based HUD</h2>
+<p>This part covers on how to display information in the form of sprite tiles. This means we will be dealing with OAM.</p>
 <hr>
 <h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
 <ul>
