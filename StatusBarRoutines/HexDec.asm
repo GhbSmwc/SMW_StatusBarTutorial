@@ -509,12 +509,10 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Leading zeroes remover, to convert numbers to left/right-aligned display.
-;Before using these routines, make sure you manually write all the tiles to tile $FC on where you are going to
-;place your display space, as these routines alone DO NOT clear any tiles, else you'll left with duplicate or
-;"ghost" tiles that are meant to disappear when the digits shifts.
-;
-;An example with left-aligned is "10", when changed into a 9, it ends up displaying "90" because the 1s wasn't
-;cleared.
+;Every time you use these subroutines, make sure you blank out the tiles manually (such as setting them to $FC)
+;beforehand on where you are going to place your display, as these routines alone DO NOT clear any tiles.
+;This means you'll end up with leftover "ghost" tiles that are meant to disappear when the string shortens: An
+;example with left-aligned is "10", when changed into a 9, it ends up displaying "90".
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
