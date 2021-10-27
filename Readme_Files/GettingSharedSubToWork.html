@@ -1,0 +1,50 @@
+<html>
+	<head>
+		<style>
+			html {
+			background-color: #000207;
+			color: white;
+			font-family: sans-serif;
+			}
+			
+			table, th, td {
+			border: 1px solid white;
+			border-collapse: collapse;
+			}
+			
+			span.NoLineBreak {
+				white-space: nowrap;
+			}
+			
+			input[type='text'] { font-family: monospace;}
+			input[type='number'] { font-family: monospace;}
+			abbr{cursor: help;}
+		</style>
+	</head>
+	<h1><div style="text-align: center">Getting your routines to work on Shared Subroutines</div></h1>
+	
+	<p>This tutorial is about migrating subroutines to the shared subroutines, assuming you wanted such code to be accessible on multiple types of ASM resources (such as uberasm tool and pixi).</p>
+	<p>Make sure you follow the instructions on the shared subroutines itself to ensure you know what you're doing. This tutorial only covers migrating, not how to use the shared subroutines.</p>
+	<ol>
+		<li>Defines</li>
+		<ol>
+			<li>Copy the folder <kbd>StatusBarRoutinesDefines</kbd> (not individually or these items themselves, the folder containing it), and have it be placed at Shared Subroutine's parent directory (the directory you see <kbd>sharedsub.asm</kbd>)</li>
+			<li>
+				Open <kbd>sharedsub.asm</kbd>, and add this:
+<table><tr><td><pre>
+incsrc "SharedSub_Defines/OtherDefines.asm"
+incsrc "SharedSub_Defines/SubroutineDefs.asm"
+<span style="text-decoration: underline;">incsrc "StatusBarRoutinesDefines/Defines.asm"</span> ;&gt;This one!
+
+</pre></td></tr></table>
+			
+			</li>
+		</ol>
+		<li>Copy and pasting the code</li>
+		<ol>
+			<li>Copy the codes, as text, <b>inside</b> the ASM files in <kbd>StatusBarTutorial/StatusBarRoutines</kbd>.</li>
+			<li>Get rid of the <kbd>incsrc "../StatusBarRoutinesDefines/Defines.asm"</kbd> in those pasted code, since it is now referenced in <kbd>sharedsub.asm</kbd>.</li>
+		</ol>
+		<li>Now run asar.exe to insert the patch to insert the subroutines.</li>
+		<li>If you get labels being redefined, make sure you rename it on both in <kbd>SubroutineDefs.asm</kbd> and in <kbd>sharedsub.asm</kbd>.</li>
+	</ol>
