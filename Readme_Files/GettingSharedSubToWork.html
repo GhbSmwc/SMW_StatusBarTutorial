@@ -44,6 +44,56 @@ incsrc "SharedSub_Defines/SubroutineDefs.asm"
 		<ol>
 			<li>Copy the codes, as text, <b>inside</b> the ASM files in <kbd>StatusBarTutorial/StatusBarRoutines</kbd>.</li>
 			<li>Get rid of the <kbd>incsrc "../StatusBarRoutinesDefines/Defines.asm"</kbd> in those pasted code, since it is now referenced in <kbd>sharedsub.asm</kbd>.</li>
+			<li>Add the subroutines into the JML list:
+<table><tr><td><pre>autoclean JML MathDiv
+autoclean JML MathDiv32_16
+autoclean JML MathMul16_16
+autoclean JML EightBitHexDec
+autoclean JML EightBitHexDec3Digits
+autoclean JML SixteenBitHexDecDivision
+autoclean JML Convert32bitIntegerToDecDigits
+autoclean JML RemoveLeadingZeroes16Bit
+autoclean JML RemoveLeadingZeroes32Bit
+autoclean JML RemoveLeadingZeroes16BitLeaveLast2
+autoclean JML RemoveLeadingZeroes16BitLeaveLast3
+autoclean JML SixteenBitHexDecDivisionToOWB
+autoclean JML ThirtyTwoBitHexDecDivisionToOWB
+autoclean JML SupressLeadingZeros
+autoclean JML SupressLeadingZerosPercentageLeaveLast2
+autoclean JML ConvertToRightAligned
+autoclean JML ConvertToRightAlignedFormat2
+autoclean JML Convert16BitAlignedDigitToOWB
+autoclean JML WriteStringDigitsToHUD
+autoclean JML WriteStringDigitsToHUDFormat2
+autoclean JML Frames2Timer
+autoclean JML ConvertToPercentage</pre></td></tr></table>
+			</li>
+			<li>
+			And defined them (and don't forget to copy and paste <kbd>SharedSub_Defines</kbd> in places like pixi and anything else that are using sharedsub, and reference it via <kbd>incsrc &lt;file_path_to_defines_asm&gt;</kbd> on
+			those ASM files using its routines):
+<table><tr><td><pre>%SetDefine(MathDiv)
+%SetDefine(MathDiv32_16)
+%SetDefine(MathMul16_16)
+%SetDefine(EightBitHexDec)
+%SetDefine(EightBitHexDec3Digits)
+%SetDefine(SixteenBitHexDecDivision)
+%SetDefine(Convert32bitIntegerToDecDigits)
+%SetDefine(RemoveLeadingZeroes16Bit)
+%SetDefine(RemoveLeadingZeroes32Bit)
+%SetDefine(RemoveLeadingZeroes16BitLeaveLast2)
+%SetDefine(RemoveLeadingZeroes16BitLeaveLast3)
+%SetDefine(SixteenBitHexDecDivisionToOWB)
+%SetDefine(ThirtyTwoBitHexDecDivisionToOWB)
+%SetDefine(SupressLeadingZeros)
+%SetDefine(SupressLeadingZerosPercentageLeaveLast2)
+%SetDefine(ConvertToRightAligned)
+%SetDefine(ConvertToRightAlignedFormat2)
+%SetDefine(Convert16BitAlignedDigitToOWB)
+%SetDefine(WriteStringDigitsToHUD)
+%SetDefine(WriteStringDigitsToHUDFormat2)
+%SetDefine(Frames2Timer)
+%SetDefine(ConvertToPercentage)</pre></td></tr></table>
+			</li>
 		</ol>
 		<li>Now run asar.exe to insert the patch to insert the subroutines.</li>
 		<li>If you get labels being redefined, make sure you rename it on both in <kbd>SubroutineDefs.asm</kbd> and in <kbd>sharedsub.asm</kbd>.</li>
