@@ -15,9 +15,10 @@
 ;-$03: Y position
 ;-$04: Number of tiles to write, minus 1 ("100" is 3 characters, so this RAM should be #$02).
 ;-$05: Properties
+;-$06 to $09 (3 bytes): 24-bit address location of the table for converting numbers to number graphics
 ;Output:
 ;-Y index: The OAM index after writing the last tile character.
-;-$06: Used for displacement (in pixels) to write each character. When this routine is finished,
+;-$0A: Used for displacement (in pixels) to write each character. When this routine is finished,
 ; it represent the length of the string from the start (not in how many characters, how many pixels)
 ;
 ;Here's is how it works: It simply takes each byte in !Scratchram_CharacterTileTable
@@ -28,13 +29,26 @@
 ;This routine is mainly useful for displaying numbers.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WriteStringAsSpriteOAM:
+	PHY
+	LDX $04
+	.LoopConvert
+		LDA !Scratchram_CharacterTileTable,x
+		TAY
+		LDA [$06],y
+		STA !Scratchram_CharacterTileTable,x
+		
+		..Next
+		DEX
+		BPL .LoopConvert
+	PLY
+	
 	LDA $02		;\Initialize displacement
-	STA $06		;/
+	STA $0A		;/
 	LDX #$00	;>Initialize loop count
-	.Loop
+	.LoopWrite
 			
 		..Write
-			LDA $06					;\X position, plus displacement
+			LDA $0A					;\X position, plus displacement
 			STA $0300|!addr,y			;/
 			LDA $03					;\Y position
 			STA $0301|!addr,y			;/
@@ -52,10 +66,10 @@ WriteStringAsSpriteOAM:
 				STA $0460|!addr,y	;|
 				PLY			;/
 		..CharacterPosition
-			LDA $06					;\Next character is 8 pixels foward.
+			LDA $0A					;\Next character is 8 pixels foward.
 			CLC					;|
 			ADC #$08				;|
-			STA $06					;/
+			STA $0A					;/
 		..Next
 			INY
 			INY
@@ -63,5 +77,6 @@ WriteStringAsSpriteOAM:
 			INY
 			INX
 			CPX $04
-			BCC .Loop
+			BEQ .LoopWrite
+			BCC .LoopWrite
 	RTL
