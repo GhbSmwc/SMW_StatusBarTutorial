@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;This routine writes a string (sequence of tile numbers in this sense)
-;to OAM (horizontally).
+;to OAM (horizontally). Note that this only writes 8x8s.
 ;
 ;To be used for “normal sprites” only, as in sprites part of the 12/22
 ;sprite slots, not the code that just write to OAM directly like
@@ -9,12 +9,12 @@
 ;
 ;Input:
 ;-!Scratchram_CharacterTileTable to !Scratchram_CharacterTileTable+(NumberOfChar-1):
-; The string to display.
+; The string to display. Will be written directly to $0302,y
 ;-Y index: The OAM index (increments of 4)
-; -$02: X position
-; -$03: Y position
-; -$04: Number of tiles to write
-; -$05: Properties
+;-$02: X position
+;-$03: Y position
+;-$04: Number of tiles to write, minus 1 ("100" is 3 characters, so this RAM should be #$02).
+;-$05: Properties
 ;Output:
 ;-Y index: The OAM index after writing the last tile character.
 ;-$06: Used for displacement (in pixels) to write each character. When this routine is finished,
@@ -28,4 +28,40 @@
 ;This routine is mainly useful for displaying numbers.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WriteStringAsSpriteOAM:
+	LDA $02		;\Initialize displacement
+	STA $06		;/
+	LDX #$00	;>Initialize loop count
+	.Loop
+			
+		..Write
+			LDA $06					;\X position, plus displacement
+			STA $0300|!addr,y			;/
+			LDA $03					;\Y position
+			STA $0301|!addr,y			;/
+			LDA !Scratchram_CharacterTileTable,x	;\Tile number
+			STA $0302|!addr,y			;/
+			LDA $05					;\Properties
+			STA $0303|!addr,y			;/
+			...OAMExtendedBits
+				PHY			;\Set tile size to 8x8.
+				TYA			;|
+				LSR #2			;|
+				TAY			;|
+				LDA $0460|!addr,y	;|
+				AND.b #%11111101	;|
+				STA $0460|!addr,y	;|
+				PLY			;/
+		..CharacterPosition
+			LDA $06					;\Next character is 8 pixels foward.
+			CLC					;|
+			ADC #$08				;|
+			STA $06					;/
+		..Next
+			INY
+			INY
+			INY
+			INY
+			INX
+			CPX $04
+			BCC .Loop
 	RTL
