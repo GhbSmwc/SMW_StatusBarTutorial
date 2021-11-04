@@ -11,8 +11,8 @@
 ;-!Scratchram_CharacterTileTable to !Scratchram_CharacterTileTable+(NumberOfChar-1):
 ; The string to display. Will be written directly to $0302,y
 ;-Y index: The OAM index (increments of 4)
-;-$02: X position
-;-$03: Y position
+;-$02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
+;-$03: Y position, same as above.
 ;-$04: Number of tiles to write, minus 1 ("100" is 3 characters, so this RAM should be #$02).
 ;-$05: Properties
 ;-$06 to $09 (3 bytes): 24-bit address location of the table for converting numbers to number graphics
