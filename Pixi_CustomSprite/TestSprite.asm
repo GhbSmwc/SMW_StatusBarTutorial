@@ -34,6 +34,8 @@ print "MAIN ",pc
 
 SpriteCode:
 	PHB : PHK : PLB
+	LDA $9D
+	BNE +
 	
 	.ControllerChangeNumber
 	LDA $15
@@ -46,15 +48,20 @@ SpriteCode:
 		..Up
 			REP #$20
 			LDA !Default_RAMToDisplay
+			CMP #$FFFF
+			BEQ ++
 			INC A
 			STA !Default_RAMToDisplay
+			++
 			SEP #$20
 			BRA +
 		..Down
 			REP #$20
 			LDA !Default_RAMToDisplay
+			BEQ ++
 			DEC A
 			STA !Default_RAMToDisplay
+			++
 			SEP #$20
 	+
 	JSR DrawSprite
