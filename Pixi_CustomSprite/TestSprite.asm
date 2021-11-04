@@ -86,38 +86,9 @@ Graphics:
 		STA $00				;/
 		JSL !SupressLeadingZeros	;We have the string at !Scratchram_CharacterTileTable and we have X acting as how many characters/sprite tiles so far written.
 		PLY				;We need the Y index for OAM indexing
-		;Handle X position. We can find the position of the string should be at:
-		;StringXPos = (SpriteXPos + OffsetToCenter) - ((NumbOfChar*8)/2)
-		;
-		;With math trickery, we can make it easy to handle in 65c816 assembly in this order:
-		;
-		;(((NumbOfChar*8)/2) * -1) + (SpriteXPos + OffsetToCenter)
-		;
-		;Also, we can reduce the fraction: 8/2 -> 4/1, or just simply multiply by 4:
-		;
-		;((NumbOfChar*4) * -1) + (SpriteXPos + OffsetToCenter)
-		;
-		;-$00 = SpriteXPos (sprite's OAM tile X position, relative to screen border)
-		;-OffsetToCenter = (signed) how many pixels to the "apparent" center of sprite.
-		; Most things have their origin XY position at the top and left edge of their "bounding box". In this case
-		; SpriteXPos is the leftmost pixel of the sprite. Since the body of this sprite is 16x16, we need to go right
-		; 8 pixels, which is halfway between X=0 and X=16.
-		;-NumbOfChar = X index
-		;
-			TXA
-			;ASL #3			;>Multiply by 2^3 (which is 8)
-			;LSR			;\Divide by 2... Wait a minute! Code optimization! Multiplying by 8/2 can be reduced to 4/1. This means we only need to ASL 2 times (2^2 = 4) since a leftshift then a rightshift will cancel each other out.
-			ASL #2			;/
-			EOR #$FF		;\Multiply by -1, which inverts the sign
-			INC A			;/
-			CLC			;\Add with the sprite's X position
-			ADC $00			;/
-			CLC			;\Plus OffsetToCenter
-			ADC #08			;/
-			STA $02			;>X position of string
-			
-			;LDA $00				;\X position
-			;STA $02				;/
+		LDA #$08			;\Center position of sprite from its origin (top-left corner to center on the X-axis)
+		STA $03				;/
+		JSL !GetStringXPositionCentered	;>$02 is now the X position of the string centered.
 		LDA $01				;\Y position
 		CLC				;|
 		ADC #$10			;|
