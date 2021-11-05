@@ -16,132 +16,186 @@
 				white-space: nowrap;
 			}
 			
+			abbr{cursor: help;}
 			input[type='text'] { font-family: monospace;}
 			input[type='number'] { font-family: monospace;}
-			abbr{cursor: help;}
 		</style>
 	</head>
-<a href="../HowToUseTheStatusBar.html#QuickJSTools_JS_YXPCCCTT">Back (table of JS links)</a><br>
-<a href="../HowToUseTheStatusBar.html#JS_YXPCCCTT">Back to info mentioning YXPCCCTT</a><br><br>
-
-<center><h1>Hex and binary converter</h1></center>
-<p>You may be wondering, why did I include this rather simple tool? Well I made this because normally, if a user wants to edit tiles, they have to use a hex editor or a debugger (most debuggers's memory editors don't have a feature to display the memory values other than hex),
-convert the number to binary (to know what each flags are), tweak some bits, convert back to hex, and write it to ROM/RAM to edit the tile properties. This tool will immediately convert it for you.</p>
-
-Hex: $<input type="text" onchange="Calculate()" id="HexInput" value="00"><button onclick="BigintIncreaseDecreaseHexInput(1n, 'HexInput', 0n, 255n)">+</button><button onclick="BigintIncreaseDecreaseHexInput(-1n, 'HexInput', 0n, 255n)">-</button> =
-Binary: %<input type="text" onchange="Calculate2()" id="BinaryInput" value="00000000"><br><br>
-
-<h2>Properties states</h2>
-Page number (0-3): <input type="number" id="PageNumber" min="0" max="3" value="0" onchange="Calculate3()"><br>
-Palette number (0-7): <input type="number" id="PaletteNumber" min="0" max="7" value="0" onchange="Calculate3()"><br>
-<input type="checkbox" id="Priority" name="Priority" onchange="Calculate3()"><label for="Priority">Priority</label><br>
-<input type="checkbox" id="XFlip" name="XFlip" onchange="Calculate3()"><label for="XFlip">X-flip</label><br>
-<input type="checkbox" id="YFlip" name="YFlip" onchange="Calculate3()"><label for="YFlip">Y-flip</label>
-
-
+	<a href="../HowToUseTheStatusBar.html#QuickJSTools_JS_YXPCCCTT">Back (JS tools)</a>
+<h1>YXPCCCTT converter</h1>
+<p>I made this in case if you needed to debug should there be problems with the YXPCCCTT data of layer 3. Reason of making this is because most debuggers never show data in a memory as binary but only hex, and this tool will
+automatically convert the data into binary and also splitting them into individual parts (X flip, Y flip, priority, palette, and page)</p>
+<table>
+<tr>
+<td>Hex: <kbd>$</kbd><input type="text" onchange="UserInputHex()" class="HexNumberInput" id="PropertiesHexInput"> (use only <kbd>$00-$FF</kbd>)</td>
+<td>
+Binary: <kbd>%</kbd><input type="text" onchange="UserInputBin()" class="BinNumberInput" id="PropertiesBinInput">
+<ul>
+<li><label for="InputPageNumber">Page (0-3): </label><input type="number" id="InputPageNumber" min="0" max="3" onchange="InputPropertiesData()"></li>
+<li><label for="InputPaletteNumber">Palette (0-7): </label><input type="number" id="InputPaletteNumber" min="0" max="7" onchange="InputPropertiesData()"></li>
+<li><label for="InputPriorityNumber">Priority: </label><input type="checkbox" id="InputPriorityNumber" onchange="InputPropertiesData()"></li>
+<li><label for="InputXFlipNumber">X Flip: </label><input type="checkbox" id="InputXFlipNumber" onchange="InputPropertiesData()"></li>
+<li><label for="InputYFlipNumber">Y Flip: </label><input type="checkbox" id="InputYFlipNumber" onchange="InputPropertiesData()"></li>
+</ul>
+</td>
+</tr>
+</table>
+<button onclick="Reset()">Reset</button>
 
 <script>
-	function Calculate() {
-		//Entered hex, modify all other inputs
-			var HexInput = BigintClamp(CorrectHexBigIntValue(document.getElementById("HexInput").value), 0n, 255n)
-			document.getElementById("HexInput").value = pad(HexInput.toString(16).toUpperCase(), 2)
-			document.getElementById("BinaryInput").value = pad(HexInput.toString(2), 8)
-			ModifyIndividualStates(HexInput)
-	}
-	function Calculate2() {
-		//Entered binary, modify all other inputs
-			var BinaryInput = BigintClamp(CorrectBinaryBigIntValue(document.getElementById("BinaryInput").value), 0n, 255n)
-			document.getElementById("BinaryInput").value = pad(BinaryInput.toString(2), 8)
-			document.getElementById("HexInput").value = pad(BinaryInput.toString(16).toUpperCase(), 2)
-			ModifyIndividualStates(BinaryInput)
-	}
-	function Calculate3() {
-		//Entered as individual states, modify all other inputs
-			var PageNumber = BigintClamp(CorrectDecimalBigIntValue(document.getElementById("PageNumber").value), 0n, 3n)
-			document.getElementById("PageNumber").value = PageNumber.toString(10)
-			var PaletteNumber = BigintClamp(CorrectDecimalBigIntValue(document.getElementById("PaletteNumber").value), 0n, 7n)
-			document.getElementById("PaletteNumber").value = PaletteNumber.toString(10)
-			var Priority = 0n
-			if (document.getElementById("Priority").checked == true) {
-				Priority = 1n
+	window.onload = Reset()
+	//These makes hex input texts behave like a number input, pressing UP/DOWN on the arrow keys to increment/decrement a hex input.
+		window.onload = function(){
+			var FocusedElement = document.activeElement;
+			if(FocusedElement.addEventListener ) {
+				FocusedElement.addEventListener('keydown',this.keyHandler,false);
+			} else if(FocusedElement.attachEvent ) {
+				FocusedElement.attachEvent('onkeydown',this.keyHandler);
 			}
-			var XFlip = 0n
-			if (document.getElementById("XFlip").checked == true) {
-				XFlip = 1n
+		}
+		function keyHandler(e) {
+			if (((e.code == "ArrowUp")||e.code == "ArrowDown")&&((/(^|\s.*?)HexNumberInput($|\s.*?)/).test(document.activeElement.className))) {
+				var target;
+				var InputNumber = BigInt(CorrectHexBigIntValue(document.activeElement.value))
+				if (!e) var e = window.event;
+				if (e.target) target = e.target;
+				else if (e.srcElement) target = e.srcElement;
+				
+				if(e.code == "ArrowUp") {
+					InputNumber++
+					e.preventDefault()	//Prevents the caret (blinking text cursor) from being placed at the beginning of the line.
+				} else if(e.code == "ArrowDown") {
+					if (InputNumber > 0n) {
+						InputNumber--
+					}
+				}
+				document.activeElement.value = InputNumber.toString(16).toUpperCase()
+				document.activeElement.setSelectionRange(document.activeElement.value.length, document.activeElement.value.length)
+				//Trigger user corrections
+					if (document.activeElement.id == "PropertiesHexInput") {
+						UserInputHex()
+					}
 			}
-			var YFlip = 0n
-			if (document.getElementById("YFlip").checked == true) {
-				YFlip = 1n
+			
+		}
+	//Clamp
+		function BigintClamp(num, min, max) {
+			//Restrict a number within a specified range, bigInt edition.
+			return num <= min ? min : num >= max ? max : num;
+		}
+	//Initialize or reset
+		function Reset() {
+			document.getElementById("PropertiesHexInput").value = "00"
+			document.getElementById("PropertiesBinInput").value = "00000000"
+			document.getElementById("InputPageNumber").value = "0"
+			document.getElementById("InputPaletteNumber").value = "0"
+			document.getElementById("InputPriorityNumber").checked = false
+			document.getElementById("InputXFlipNumber").checked = false
+			document.getElementById("InputYFlipNumber").checked = false
+		}
+	//Correct user's hex input
+		function CorrectHexBigIntValue(String) {
+			//This converts the user's input hex string (negative numbers not allowed)
+			//to BigInt.
+			if ((/^([0-9]|[A-F]|[a-f])+$/).test(String) == false) {
+				String = 0n
 			}
-			var ByteValue = (YFlip*128n) + (XFlip*64n) + (Priority*32n) + (PaletteNumber*4n) + (PageNumber)
-			//Modify all others
-				document.getElementById("HexInput").value = pad(ByteValue.toString(16).toUpperCase(), 2)
-			Calculate()
+			return CanConvertHexStringToBigInt = BigInt("0x" + String)
 	}
-	function ModifyIndividualStates(Input) {
-		var PageNumber = (Input % 4n)
-		document.getElementById("PageNumber").value = PageNumber.toString(10)
-		var PaletteNumber = ((Input/4n) % 8n)
-		document.getElementById("PaletteNumber").value = PaletteNumber.toString(10)
-		var Priority = ((Input/32n) % 2n)
-		if (Priority == 0n) {
-			document.getElementById("Priority").checked = false
-		} else {
-			document.getElementById("Priority").checked = true
+	//Correct user's binary input
+		function CorrectBinBigIntValue(String) {
+			//This converts the user's input binary string (negative numbers not allowed)
+			//to BigInt.
+				if ((/^([0]|[1])+$/).test(String) == false) {
+					String = 0n
+				}
+				return CanConvertHexStringToBigInt = BigInt("0b" + String)
 		}
-		var XFlip = ((Input/64n) % 2n)
-		if (XFlip == 0n) {
-			document.getElementById("XFlip").checked = false
-		} else {
-			document.getElementById("XFlip").checked = true
+	//Correct user's decimal input
+		function CorrectDecBigIntValue(String) {
+			//This converts the user's input decimal string (negative numbers not allowed)
+			//to BigInt.
+			if ((/^([0-9])+$/).test(String) == false) {
+				String = 0n
+			}
+			return CanConvertHexStringToBigInt = BigInt(String)
 		}
-		var YFlip = ((Input/128n) % 2n)
-		if (YFlip == 0n) {
-			document.getElementById("YFlip").checked = false
-		} else {
-			document.getElementById("YFlip").checked = true
+	//Pad zeroes if fewer digits
+		function pad(num, size) {
+			//This adds leading zeroes. [size] is the number of digits at minimum to show (less than that will fill this with 0s).
+			var s = num+"";
+			while (s.length < size) s = "0" + s;
+			return s;
 		}
-	}
-	function BigintClamp(num, min, max) {
-		//Restrict a number within a specified range, bigInt edition.
-		return num <= min ? min : num >= max ? max : num;
-	}
-	function BigintIncreaseDecreaseHexInput(ChangeBy, WhatInput, Min, Max) {
-		//To be used along with a hex input the user enters.
-		//This function is for the increment/decrement buttons since
-		//only the "number" input (only allows characters 0-9) allows
-		//the increment/decrement action (up/down button when selected,
-		//and pressing up and down)
-		document.getElementById(WhatInput).value = BigintClamp((CorrectHexBigIntValue(document.getElementById(WhatInput).value) + ChangeBy), Min, Max).toString(16).toUpperCase()
-		Calculate()
-	}
-	function CorrectHexBigIntValue(String) {
-		//This converts the user's input hex string (negative numbers not allowed)
-		//to BigInt.
-		if ((/^([0-9]|[A-F]|[a-f])+$/).test(String) == false) {
-			String = 0n
+	//Main functions
+		function UserInputHex() {
+			var InputProp = BigintClamp(CorrectHexBigIntValue(document.getElementById("PropertiesHexInput").value), 0n, 255n)
+			document.getElementById("PropertiesHexInput").value = pad(InputProp.toString(16).toUpperCase(), 2)
+			document.getElementById("PropertiesBinInput").value = pad(InputProp.toString(2).toUpperCase(), 8)
+			PropertiesData(InputProp)
 		}
-		return CanConvertHexStringToBigInt = BigInt("0x" + String)
-	}
-	function CorrectBinaryBigIntValue(String) {
-		//This converts the user's input binary string (negative numbers not allowed)
-		//to BigInt.
-		if ((/^([0]|[1])+$/).test(String) == false) {
-			String = 0n
+		function UserInputBin() {
+			var InputProp = BigintClamp(CorrectBinBigIntValue(document.getElementById("PropertiesBinInput").value), 0n, 255n)
+			document.getElementById("PropertiesBinInput").value = pad(InputProp.toString(2).toUpperCase(), 8)
+			document.getElementById("PropertiesHexInput").value = pad(InputProp.toString(16).toUpperCase(), 2)
+			PropertiesData(InputProp)
 		}
-		return CanConvertHexStringToBigInt = BigInt("0b" + String)
-	}
-	function CorrectDecimalBigIntValue(String) {
-		//This converts the user's input decimal string (negative numbers not allowed)
-		//to BigInt.
-		if ((/^([0-9])+$/).test(String) == false) {
-			String = 0n
+		function InputPropertiesData() { //Individual data
+			//Page number
+				var PageNumb = BigintClamp(CorrectDecBigIntValue(document.getElementById("InputPageNumber").value), 0n, 3n)
+				document.getElementById("InputPageNumber").value = PageNumb.toString(10)
+			//Palette
+				var PaletteNumb = BigintClamp(CorrectDecBigIntValue(document.getElementById("InputPaletteNumber").value), 0n, 7n)
+				document.getElementById("InputPaletteNumber").value = PaletteNumb.toString(10)
+			//Priority
+				var PriorityNumb = 0n
+				if (document.getElementById("InputPriorityNumber").checked == true) {
+					PriorityNumb = 1n
+				}
+			//XFlip
+				var XFlipNumb = 0n
+				if (document.getElementById("InputXFlipNumber").checked == true) {
+					XFlipNumb = 1n
+				}
+			//YFlip
+				var YFlipNumb = 0n
+				if (document.getElementById("InputYFlipNumber").checked == true) {
+					YFlipNumb = 1n
+				}
+			//Assemble byte
+				var PropByte = (YFlipNumb << 7n) + (XFlipNumb << 6n) + (PriorityNumb << 5n) + (PaletteNumb << 2n) + PageNumb
+				document.getElementById("PropertiesHexInput").value = pad(PropByte.toString(16).toUpperCase(), 2)
+				document.getElementById("PropertiesBinInput").value = pad(PropByte.toString(2).toUpperCase(), 8)
 		}
-		return CanConvertHexStringToBigInt = BigInt(String)
-	}
-	function pad(num, size) {
-		var s = num+"";
-		while (s.length < size) s = "0" + s;
-		return s;
-	}
+	//Update the properties data
+		function PropertiesData(InputProp) {
+			var PageNumb = InputProp & 3n //the TT in YXPCCCTT
+			var PaletteNumb = ((InputProp >> 2n) & 7n) //The CCC
+			var PriorityNumb = ((InputProp >> 5n) & 1n) //P
+			var XFlipNumb = ((InputProp >> 6n) & 1n) //X
+			var YFlipNumb = ((InputProp >> 7n) & 1n) //Y
+			
+			//Page number
+				document.getElementById("InputPageNumber").value = PageNumb.toString(10)
+			//Palette
+				document.getElementById("InputPaletteNumber").value = PaletteNumb.toString(10)
+			//Priority
+				if (PriorityNumb == 0n) {
+					document.getElementById("InputPriorityNumber").checked = false
+				} else {
+					document.getElementById("InputPriorityNumber").checked = true
+				}
+			//Xflip
+				if (XFlipNumb == 0n) {
+					document.getElementById("InputXFlipNumber").checked = false
+				} else {
+					document.getElementById("InputXFlipNumber").checked = true
+				}
+			//Yflip
+				if (YFlipNumb == 0n) {
+					document.getElementById("InputYFlipNumber").checked = false
+				} else {
+					document.getElementById("InputYFlipNumber").checked = true
+				}
+		}
 </script>
