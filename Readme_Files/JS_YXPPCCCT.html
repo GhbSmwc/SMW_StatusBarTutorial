@@ -1,0 +1,215 @@
+<html>
+	<head>
+		<style>
+			html {
+			background-color: #000207;
+			color: white;
+			font-family: sans-serif;
+			}
+			
+			table, th, td {
+			border: 1px solid white;
+			border-collapse: collapse;
+			}
+			
+			span.NoLineBreak {
+				white-space: nowrap;
+			}
+			
+			abbr{cursor: help;}
+			input[type='text'] { font-family: monospace;}
+			input[type='number'] { font-family: monospace;}
+		</style>
+	</head>
+	<a href="../HowToUseTheStatusBar.html#QuickJSTools_JS_YXPPCCCT">Back (JS links)</a>
+<h1>YXPPCCCT converter</h1>
+<p>I made this in case if you needed to debug should there be problems with the YXPPCCCT data of the sprite OAM. Reason of making this is because most debuggers never show data in a memory as binary but only hex, and this tool will
+automatically convert the data into binary and also splitting them into individual parts (X flip, Y flip, priority, palette, and page)</p>
+<table>
+<tr>
+<td>Hex: <kbd>$</kbd><input type="text" onchange="UserInputHex()" class="HexNumberInput" id="PropertiesHexInput"> (use only <kbd>$00-$FF</kbd>)</td>
+<td>
+Binary: <kbd>%</kbd><input type="text" onchange="UserInputBin()" class="BinNumberInput" id="PropertiesBinInput">
+<ul>
+<li><label for="InputPageNumber">Page: </label><input type="checkbox" id="InputPageNumber" onchange="InputPropertiesData()"></li>
+<li><label for="InputPaletteNumber">Palette (0-7): </label><input type="number" id="InputPaletteNumber" min="0" max="7" onchange="InputPropertiesData()"><label for="InputLunarMagicPaletteNumber">(Lunar magic palette numbering ($08-$0F):</label> <kbd>$</kbd><input type="text" class="HexNumberInput" id="InputLunarMagicPaletteNumber" onchange="InputLunarMagicPaletteNumber()">)</li>
+<li><label for="InputPriorityNumber">Priority (0-3): </label><input type="number" id="InputPriorityNumber" min="0" max="3" onchange="InputPropertiesData()"></li>
+<li><label for="InputXFlipNumber">X Flip: </label><input type="checkbox" id="InputXFlipNumber" onchange="InputPropertiesData()"></li>
+<li><label for="InputYFlipNumber">Y Flip: </label><input type="checkbox" id="InputYFlipNumber" onchange="InputPropertiesData()"></li>
+</ul>
+</td>
+</tr>
+</table>
+<button onclick="Reset()">Reset</button>
+
+<script>
+	window.onload = Reset()
+	//These makes hex input texts behave like a number input, pressing UP/DOWN on the arrow keys to increment/decrement a hex input.
+		window.onload = function(){
+			var FocusedElement = document.activeElement;
+			if(FocusedElement.addEventListener ) {
+				FocusedElement.addEventListener('keydown',this.keyHandler,false);
+			} else if(FocusedElement.attachEvent ) {
+				FocusedElement.attachEvent('onkeydown',this.keyHandler);
+			}
+		}
+		function keyHandler(e) {
+			if (((e.code == "ArrowUp")||e.code == "ArrowDown")&&((/(^|\s.*?)HexNumberInput($|\s.*?)/).test(document.activeElement.className))) {
+				var target;
+				var InputNumber = BigInt(CorrectHexBigIntValue(document.activeElement.value))
+				if (!e) var e = window.event;
+				if (e.target) target = e.target;
+				else if (e.srcElement) target = e.srcElement;
+				
+				if(e.code == "ArrowUp") {
+					InputNumber++
+					e.preventDefault()	//Prevents the caret (blinking text cursor) from being placed at the beginning of the line.
+				} else if(e.code == "ArrowDown") {
+					if (InputNumber > 0n) {
+						InputNumber--
+					}
+				}
+				document.activeElement.value = InputNumber.toString(16).toUpperCase()
+				document.activeElement.setSelectionRange(document.activeElement.value.length, document.activeElement.value.length)
+				//Trigger user corrections
+					if (document.activeElement.id == "PropertiesHexInput") {
+						UserInputHex()
+					}
+					if (document.activeElement.id == "InputLunarMagicPaletteNumber") {
+						InputLunarMagicPaletteNumber()
+					}
+			}
+			
+		}
+	//Clamp
+		function BigintClamp(num, min, max) {
+			//Restrict a number within a specified range, bigInt edition.
+			return num <= min ? min : num >= max ? max : num;
+		}
+	//Initialize or reset
+		function Reset() {
+			document.getElementById("PropertiesHexInput").value = "00"
+			document.getElementById("PropertiesBinInput").value = "00000000"
+			document.getElementById("InputPageNumber").checked = false
+			document.getElementById("InputPaletteNumber").value = "0"
+			document.getElementById("InputLunarMagicPaletteNumber").value = "8"
+			document.getElementById("InputPriorityNumber").value = "0"
+			document.getElementById("InputXFlipNumber").checked = false
+			document.getElementById("InputYFlipNumber").checked = false
+		}
+	//Correct user's hex input
+		function CorrectHexBigIntValue(String) {
+			//This converts the user's input hex string (negative numbers not allowed)
+			//to BigInt.
+			if ((/^([0-9]|[A-F]|[a-f])+$/).test(String) == false) {
+				String = 0n
+			}
+			return CanConvertHexStringToBigInt = BigInt("0x" + String)
+	}
+	//Correct user's binary input
+		function CorrectBinBigIntValue(String) {
+			//This converts the user's input binary string (negative numbers not allowed)
+			//to BigInt.
+				if ((/^([0]|[1])+$/).test(String) == false) {
+					String = 0n
+				}
+				return CanConvertHexStringToBigInt = BigInt("0b" + String)
+		}
+	//Correct user's decimal input
+		function CorrectDecBigIntValue(String) {
+			//This converts the user's input decimal string (negative numbers not allowed)
+			//to BigInt.
+			if ((/^([0-9])+$/).test(String) == false) {
+				String = 0n
+			}
+			return CanConvertHexStringToBigInt = BigInt(String)
+		}
+	//Pad zeroes if fewer digits
+		function pad(num, size) {
+			//This adds leading zeroes. [size] is the number of digits at minimum to show (less than that will fill this with 0s).
+			var s = num+"";
+			while (s.length < size) s = "0" + s;
+			return s;
+		}
+	//Main functions
+		function UserInputHex() {
+			var InputProp = BigintClamp(CorrectHexBigIntValue(document.getElementById("PropertiesHexInput").value), 0n, 255n)
+			document.getElementById("PropertiesHexInput").value = pad(InputProp.toString(16).toUpperCase(), 2)
+			document.getElementById("PropertiesBinInput").value = pad(InputProp.toString(2).toUpperCase(), 8)
+			PropertiesData(InputProp)
+		}
+		function UserInputBin() {
+			var InputProp = BigintClamp(CorrectBinBigIntValue(document.getElementById("PropertiesBinInput").value), 0n, 255n)
+			document.getElementById("PropertiesBinInput").value = pad(InputProp.toString(2).toUpperCase(), 8)
+			document.getElementById("PropertiesHexInput").value = pad(InputProp.toString(16).toUpperCase(), 2)
+			PropertiesData(InputProp)
+		}
+		function InputLunarMagicPaletteNumber() {
+			//Convert offset +8 to 0-based palette numbering
+				var PaletteLunarMagicNumb = BigintClamp(CorrectHexBigIntValue(document.getElementById("InputLunarMagicPaletteNumber").value), 8n, 15n)
+				document.getElementById("InputLunarMagicPaletteNumber").value = PaletteLunarMagicNumb.toString(16).toUpperCase()
+				document.getElementById("InputPaletteNumber").value = (PaletteLunarMagicNumb - 8n).toString(10)
+			//Update info
+				InputPropertiesData()
+		}
+		function InputPropertiesData() { //Individual data
+			//Page number
+				var PageNumb = 0n
+				if (document.getElementById("InputPageNumber").checked == true) {
+					PageNumb = 1n
+				}
+			//Palette
+				var PaletteNumb = BigintClamp(CorrectDecBigIntValue(document.getElementById("InputPaletteNumber").value), 0n, 7n)
+				document.getElementById("InputLunarMagicPaletteNumber").value = (PaletteNumb + 8n).toString(16).toUpperCase()
+				document.getElementById("InputPaletteNumber").value = PaletteNumb.toString(10)
+			//Priority
+				var PriorityNumb = BigintClamp(CorrectDecBigIntValue(document.getElementById("InputPriorityNumber").value), 0n, 3n)
+				document.getElementById("InputPriorityNumber").value = PriorityNumb.toString(10)
+			//XFlip
+				var XFlipNumb = 0n
+				if (document.getElementById("InputXFlipNumber").checked == true) {
+					XFlipNumb = 1n
+				}
+			//YFlip
+				var YFlipNumb = 0n
+				if (document.getElementById("InputYFlipNumber").checked == true) {
+					YFlipNumb = 1n
+				}
+			//Assemble byte
+				var PropByte = (YFlipNumb << 7n) + (XFlipNumb << 6n) + (PriorityNumb << 4n) + (PaletteNumb << 1n) + PageNumb
+				document.getElementById("PropertiesHexInput").value = pad(PropByte.toString(16).toUpperCase(), 2)
+				document.getElementById("PropertiesBinInput").value = pad(PropByte.toString(2).toUpperCase(), 8)
+		}
+	//Update the properties data
+		function PropertiesData(InputProp) {
+			var PageNumb = InputProp & 1n //the T in YXPPCCCT
+			var PaletteNumb = ((InputProp >> 1n) & 7n) //The CCC
+			var PriorityNumb = ((InputProp >> 4n) & 3n) //PP
+			var XFlipNumb = ((InputProp >> 6n) & 1n) //X
+			var YFlipNumb = ((InputProp >> 7n) & 1n) //Y
+			
+			//Page number
+				if (PageNumb == 0n) {
+					document.getElementById("InputPageNumber").checked = false
+				} else {
+					document.getElementById("InputPageNumber").checked = true
+				}
+			//Palette
+				document.getElementById("InputPaletteNumber").value = PaletteNumb.toString(10)
+				document.getElementById("InputLunarMagicPaletteNumber").value = (PaletteNumb + 8n).toString(16).toUpperCase()
+			//Priority
+				document.getElementById("InputPriorityNumber").value = PriorityNumb.toString(10)
+			//Xflip
+				if (XFlipNumb == 0n) {
+					document.getElementById("InputXFlipNumber").checked = false
+				} else {
+					document.getElementById("InputXFlipNumber").checked = true
+				}
+			//Yflip
+				if (YFlipNumb == 0n) {
+					document.getElementById("InputYFlipNumber").checked = false
+				} else {
+					document.getElementById("InputYFlipNumber").checked = true
+				}
+		}
+</script>
