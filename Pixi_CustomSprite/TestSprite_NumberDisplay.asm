@@ -7,11 +7,22 @@
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../SharedSub_Defines/SubroutineDefs.asm"
 
+!TwoNumbers = 1
+;^0 = 1 number
+; 1 = 2 numbers (X/Y)
+
 !Default_RAMToDisplay = $60
 ;^[2 bytes] Displays the decimal number of this RAM.
+!Default_RAMToDisplay2 = $62
+;^[2 bytes] Second number to display, if enabled by !TwoNumbers
 
-!DigitProperties = %00110001
-;^YXPPCCCT
+;Digit tiles. See GraphicTable for each digit tile number.
+ !DigitProperties = %00110001
+ ;^YXPPCCCT
+
+;Slash symbol
+ !TileNumber_SlashSymbol = $8A		;>Tile number
+ !TileProp_SlashSymbol = %00110001	;>YXPPCCCT
 
 ;NOTE: work-in-progress.
 
@@ -37,13 +48,13 @@ SpriteCode:
 	LDA $9D
 	BNE +
 	
-	.ControllerChangeNumber
-	LDA $15
-	BIT.b #%00001000
-	BNE ..Up
-	BIT.b #%00000100
-	BNE ..Down
-	BRA +
+	.ControllerChangeNumberVert
+		LDA $15
+		BIT.b #%00001000
+		BNE ..Up
+		BIT.b #%00000100
+		BNE ..Down
+		BRA +
 	
 		..Up
 			REP #$20
@@ -61,6 +72,33 @@ SpriteCode:
 			BEQ ++
 			DEC A
 			STA !Default_RAMToDisplay
+			++
+			SEP #$20
+	+
+	.ControllerChangeNumberHoriz
+		LDA $15
+		BIT.b #%00000001
+		BNE ..Right
+		BIT.b #%00000010
+		BNE ..Left
+		BRA +
+		
+		..Right
+			REP #$20
+			LDA !Default_RAMToDisplay2
+			CMP #$FFFF
+			BEQ ++
+			INC A
+			STA !Default_RAMToDisplay2
+			++
+			SEP #$20
+			BRA +
+		..Left
+			REP #$20
+			LDA !Default_RAMToDisplay2
+			BEQ ++
+			DEC A
+			STA !Default_RAMToDisplay2
 			++
 			SEP #$20
 	+
@@ -87,11 +125,27 @@ Graphics:
 		SEP #$20			;/
 		JSL !SixteenBitHexDecDivision	
 		LDX #$00			;>Start the string at position 0 for suppressing leading zeroes in string
+		JSL !SupressLeadingZeros	;We have the string at !Scratchram_CharacterTileTable and we have X acting as how many characters/sprite tiles so far written.
+		if !TwoNumbers != 0
+			;Draw the second number "X/Y", the "/Y" part.
+			;"/" symbol
+				LDA #$0A
+				STA !Scratchram_CharacterTileTable,x
+				INX
+			;Second number
+				PHX					;>Preserve string character position
+				REP #$20
+				LDA !Default_RAMToDisplay2
+				STA $00
+				SEP #$20
+				JSL !SixteenBitHexDecDivision
+				PLX					;>Restore string character position
+				JSL !SupressLeadingZeros
+		endif
 		PLA				;\Restore XY position
 		STA $01				;|
 		PLA				;|
 		STA $00				;/
-		JSL !SupressLeadingZeros	;We have the string at !Scratchram_CharacterTileTable and we have X acting as how many characters/sprite tiles so far written.
 		PLY				;We need the Y index for OAM indexing
 		LDA #$08			;\Center position of sprite from its origin (top-left corner to center on the X-axis)
 		STA $03				;/
@@ -150,3 +204,4 @@ GraphicTable:
 	db $87				;>Index $07 = for the "7" graphic
 	db $88				;>Index $08 = for the "8" graphic
 	db $89				;>Index $09 = for the "9" graphic
+	db $8A				;>Index $0A = for the "/" graphic

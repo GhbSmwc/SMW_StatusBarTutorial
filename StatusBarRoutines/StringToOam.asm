@@ -18,7 +18,10 @@
 ;-$03: Y position, same as above.
 ;-$04: Number of tiles to write, minus 1 ("100" is 3 characters, so this RAM should be #$02).
 ;-$05: Properties
-;-$06 to $09 (3 bytes): 24-bit address location of the table for converting numbers to number graphics
+;-$06 to $09 (3 bytes): 24-bit address location of the table for converting characters to number graphics. Each byte in table lays out as follows:
+;--$00 to $09 are number tiles, which are for 0-9 digit graphics.
+;--$0A = "/"
+; Note that all characters must be on the same page!
 ;Output:
 ;-Y index: The OAM index after writing the last tile character.
 ;-$0A: Used for displacement (in pixels) to write each character. When this routine is finished,
@@ -35,6 +38,7 @@ WriteStringAsSpriteOAM:
 	PHY
 	LDX $04
 	.LoopConvert
+		;this converts string to graphic tile numbers. NOTE: does not work if graphics are in different GFX pages.
 		LDA !Scratchram_CharacterTileTable,x
 		TAY
 		LDA [$06],y
