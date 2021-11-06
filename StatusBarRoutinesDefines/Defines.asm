@@ -54,7 +54,7 @@
 			!OverWorldBorderBlankTile = $1F
 	;For [Convert32bitIntegerToDecDigits]
 		!MaxNumberOfDigits = 9
-		;^Number of digits to be stored (fixed). Up to 10 because maximum
+		;^Number of digits to be stored (fixed). Use values 1-10 because maximum
 		; 32-bit unsigned integer is 4,294,967,295.
 	
 		if !sa1 == 0

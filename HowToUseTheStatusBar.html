@@ -333,13 +333,16 @@ the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have t
 have to &ldquo;negate&rdquo; the number by EOR $FF/$FFFF, then INC it (for 32-bit number do EOR $FFFF twice in 16-bit mode for both low and high words, increment the low word by 1, and if it overflows past $FFFF, carry
 should increment the highword), before calling the routine, and also write the minus sign (tile $27) to represent a negative number. However, this really isn't that necessary, negative numbers are RARELY used in video games).</p>
 
+<p>Another note is that leading zeroes do exist, if there are fewer digits than the maximum number of digits of a given subroutine.</p>
+
 <p>Here is a cheatsheet of all the HexDec routines in <kbd>HexDec.asm</kbd>:
 <table>
 <tr>
-<th>Subroutine</th><th>Input</th><th>Output</th>
+<th>Subroutine</th><th>Maximum number of digits</th><th>Input</th><th>Output</th>
 </tr>
 <tr>
 <td><kbd>EightBitHexDec</kbd></td>
+<td><kbd>2</kbd> (or <kbd>3</kbd> when called again for the hundreds)</td>
 <td>A (8-bit/1-byte)</td>
 <td>
 <ul>
@@ -350,6 +353,7 @@ should increment the highword), before calling the routine, and also write the m
 </tr>
 <tr>
 <td><kbd>EightBitHexDec3Digits</kbd></td>
+<td><kbd>3</kbd></td>
 <td>A (8-bit/1-byte)</td>
 <td>
 <ul>
@@ -361,19 +365,22 @@ should increment the highword), before calling the routine, and also write the m
 </tr>
 <tr>
 <td><kbd>SixteenBitHexDecDivision</kbd></td>
+<td><kbd>5</kbd></td>
 <td><kbd>$00</kbd>-<kbd>$01</kbd> (16-bit/2-byte)</td>
 <td>
-<ul>
-<li><kbd>!Scratchram_16bitHexDecOutput+0</kbd> = 10,000s place</li>
-<li><kbd>!Scratchram_16bitHexDecOutput+1</kbd> = 1,000s place</li>
-<li><kbd>!Scratchram_16bitHexDecOutput+2</kbd> = 100s place</li>
-<li><kbd>!Scratchram_16bitHexDecOutput+3</kbd> = 10s place</li>
-<li><kbd>!Scratchram_16bitHexDecOutput+4</kbd> = 1s place</li>
-</ul>
+<table>
+<tr><th>Relative to RAM being defined</th><th>RAM used in normal hack</th><th>RAM used under SA-1</th><th>Place value</th></tr>
+<tr><td><kbd>!Scratchram_16bitHexDecOutput+0</kbd></td><td><kbd>$02</kbd></td><td><kbd>$04</kbd></td><td>10,000s place</td></tr>
+<tr><td><kbd>!Scratchram_16bitHexDecOutput+1</kbd></td><td><kbd>$03</kbd></td><td><kbd>$05</kbd></td><td>1,000s place</td></tr>
+<tr><td><kbd>!Scratchram_16bitHexDecOutput+2</kbd></td><td><kbd>$04</kbd></td><td><kbd>$06</kbd></td><td>100s place</td></tr>
+<tr><td><kbd>!Scratchram_16bitHexDecOutput+3</kbd></td><td><kbd>$05</kbd></td><td><kbd>$07</kbd></td><td>10s place</td></tr>
+<tr><td><kbd>!Scratchram_16bitHexDecOutput+4</kbd></td><td><kbd>$06</kbd></td><td><kbd>$08</kbd></td><td>1s place</td></tr>
+</table>
 </td>
 </tr>
 <tr>
 <td><kbd>Convert32bitIntegerToDecDigits</kbd></td>
+<td><kbd>1</kbd>-<kbd>10</kbd> digits, defined as <kbd>!MaxNumberOfDigits</kbd></td>
 <td><kbd>$00</kbd>-<kbd>$03</kbd> (32-bit/4-byte)</td>
 <td>
 <kbd>!Scratchram_32bitHexDecOutput</kbd> to <kbd>!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)</kbd>: Contains value 0-9 on every byte,
@@ -540,7 +547,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	RTL</pre></td></tr></table><br>
 	
 	<p>Greater than 65535? (unlikely for other stuff besides a huge currency counter or custom score). This one is a 32-bit HexDec, up to
-	4,294,967,295 ($FFFFFFFF) can be properly displayed. Remember, this is little endian, for example: a number
+	4,294,967,295 (<kbd>$FFFFFFFF</kbd>) can be properly displayed. Remember, this is little endian, for example: a number
 	<abbr title="287454020 in decimal">$11223344</abbr> must be inputted as
 	<kbd>[$44, $33, $22, $11]</kbd> into <kbd>$00-$03</kbd> and should output as <kbd>[$02, $08, $07, $04, $05, $04, $00, $02, $00]</kbd> in
 	<kbd>!Scratchram_32bitHexDecOutput</kbd>.<br>
@@ -1976,6 +1983,11 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 <hr>
 <h2 id="OAMHud"><a href="#OAMHudBack">^</a>Sprite-based HUD</h2>
 <p>This part covers on how to display information in the form of sprite tiles. This means we will be dealing with OAM.</p>
+
+<p>Before we get started, I highly recommend reading <a href="https://www.smwcentral.net/?p=viewthread&t=92218">this tutorial on coding sprites</a>. This document covers just the OAM handling.</p>
+
+
+<h3>Pixi custom sprites</h3>
 <hr>
 <h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
 <ul>

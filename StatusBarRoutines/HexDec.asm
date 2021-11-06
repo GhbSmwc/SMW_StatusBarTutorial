@@ -323,7 +323,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;input:
 	;-$00-$03 = the 32-bit number, in little endian, example:
 	; $11223344 ([$44,$33,$22,$11]) should output 287454020.
-	;
+	; Maximum value is 4,294,967,295.
 	;output:
 	;-[!Scratchram_32bitHexDecOutput] to [!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)]:
 	; Contains value 0-9 on every byte, in decreasing significant digits (last byte is always

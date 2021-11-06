@@ -21,7 +21,7 @@
 			abbr{cursor: help;}
 		</style>
 	</head>
-	<body onload="Calculate()">
+	<body>
 	<a href="../HowToUseTheStatusBar.html#QuickJSTools_TileDataAddr">Back (table of JS links)</a><br>
 	<a href="../HowToUseTheStatusBar.html#TileDataAddr">Back to info reguarding tile numbering.</a><br>
 	
@@ -51,7 +51,7 @@
 	<kbd>$0001-$0010</kbd>), so I designed a javascript tool in the case of this misalignment
 	occurs.</p>
 	
-	Tile address start: $<input type="text" onchange="Calculate()" value="8000" id="TileAddressStart"><button onclick="BigintIncreaseDecreaseHexInput(1n, 'TileAddressStart', 0n, 65535n)">+</button><button onclick="BigintIncreaseDecreaseHexInput(-1n, 'TileAddressStart', 0n, 65535n)">-</button>
+	Tile address start: $<input type="text" onchange="Calculate()" value="8000" id="TileAddressStart" class="AnyRadixNumberInput" data-input_number_radix="16"><button onclick="BigintIncreaseDecreaseHexInput(1n, 'TileAddressStart', 0n, 65535n)">+</button><button onclick="BigintIncreaseDecreaseHexInput(-1n, 'TileAddressStart', 0n, 65535n)">-</button>
 	<button onclick="reset()">Reset</button>
 	<hr>
 	<span id="Output"></span>
@@ -59,6 +59,54 @@
 
 
 <script>
+	 window.onload = function(){ //Upon loading, apply the function to execute when the up/down arrow keys are pressed.
+	  UpDownArrowKeysIncrement()
+	  Calculate()
+	 }
+
+	//These makes input text act like a number input, pressing UP/DOWN on the arrow keys to increment/decrement it, but with any radixes.
+	//In order for this to apply, have these on the number input:
+	//- Make sure the class contains "AnyRadixNumberInput"
+	//- Specify what radix it is, have the custom attribute [data-input_number_radix="x"] where x
+	//  is a radix number that can be any number 2-36. Examples include: 2 = binary, 10 = decimal (default), 16 = hexadecimal.
+	//To get this to apply, use this:
+	// window.onload = function(){ //Upon loading, apply the function to execute when the up/down arrow keys are pressed.
+	//  UpDownArrowKeysIncrement()
+	// }
+		function UpDownArrowKeysIncrement() {
+			let FocusedElement = document.activeElement;
+			if(FocusedElement.addEventListener ) {
+				FocusedElement.addEventListener('keydown',this.keyHandler,false);
+			} else if(FocusedElement.attachEvent ) {
+				FocusedElement.attachEvent('onkeydown',this.keyHandler);
+			}
+		}
+	
+		function keyHandler(e) {
+			if (((e.code == "ArrowUp")||e.code == "ArrowDown")&&((/(^|\s.*?)AnyRadixNumberInput($|\s.*?)/).test(document.activeElement.className))) {
+				let target;
+				//Handle radix.
+					let Radix = 10
+					if ((/^\d+$/).test(document.activeElement.dataset.input_number_radix)) {
+						Radix = parseInt(document.activeElement.dataset.input_number_radix)
+					}
+				let InputNumber = ParseBigIntValue(document.activeElement.value, Radix) //This gets the number
+				if (!e) var e = window.event;
+				if (e.target) target = e.target;
+				else if (e.srcElement) target = e.srcElement;
+				
+				if(e.code == "ArrowUp") {
+					InputNumber++
+					e.preventDefault()	//Prevents the caret (blinking text cursor) from being placed at the beginning of the line.
+				} else if(e.code == "ArrowDown") {
+					InputNumber--
+				}
+				document.activeElement.value = InputNumber.toString(Radix).toUpperCase()
+				document.activeElement.setSelectionRange(document.activeElement.value.length, document.activeElement.value.length)
+				document.activeElement.onchange()
+			}
+		}
+
 	function reset() {
 		document.getElementById("TileAddressStart").value = "8000"
 		Calculate()
@@ -110,5 +158,40 @@
 		var s = num+"";
 		while (s.length < size) s = "0" + s;
 		return s;
+	}
+	function ParseBigIntValue(string, radix) {
+		//Acts more closely to parseInt, unlike other methods (other functions, like CorrectBinBigIntValue)
+		//this works with bigInt.
+		let Output = 0n
+		let NegativeNumber = 1n
+		if ((/^-/).test(string)) {
+			NegativeNumber = -1n
+		}
+		let DigitPart = string.substring((string.search(/[0-9a-zA-Z]/)))
+		switch (radix) {
+			//decimal
+				default:
+				if ((/^-?\d+$/).test(string)) {
+					Output = BigInt(string)
+				}
+				break
+			//Hexadecimal
+				case 16:
+				case "0x":
+				case "0X":
+				if ((/^-?[0-9A-Fa-f]+$/).test(string)) {
+					Output = BigInt("0x" + DigitPart) * NegativeNumber
+				}
+				break
+			//Binary
+				case 2:
+				case "0b":
+				case "0B":
+				if ((/^-?[01]+$/).test(string)) {
+					Output = BigInt("0b" + DigitPart) * NegativeNumber
+				}
+		
+		}
+		return Output
 	}
 </script>
