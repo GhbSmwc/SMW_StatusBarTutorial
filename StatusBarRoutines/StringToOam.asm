@@ -17,7 +17,7 @@
 ;-$02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
 ;-$03: Y position, same as above.
 ;-$04: Number of tiles to write, minus 1 ("100" is 3 characters, so this RAM should be #$02).
-;-$05: Properties
+;-$05: Properties (YXPPCCCT)
 ;-$06 to $09 (3 bytes): 24-bit address location of the table for converting characters to number graphics. Each byte in table lays out as follows:
 ;--$00 to $09 are number tiles, which are for 0-9 digit graphics.
 ;--$0A = "/"
@@ -128,3 +128,88 @@ GetStringXPositionCentered:
 	ADC #08			;/
 	STA $02			;>X position of string
 	RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;This routine draws repeated icons (like this: ■ ■ ■ □ □ □, which
+;represents 3/6)
+;
+;Input:
+;-Y index: The OAM index
+;-$02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
+;-$03: Y position, same as above.
+;-$04: "Empty" icon
+;-$05: "Full" icon
+;-$06: Properties (YXPPCCCT)
+;
+;-Displacement of each icon, in pixels. Both of these are signed and also represents the
+; direction of the line of repeated icons. As a side note, you can even have diagonal repeated icons.
+;--$07: Horizontal. Positive ($00 to $7F) would extend to the right, negative ($80 to $FF)
+;  extends to the left.
+;--$08: Vertical. Positive ($00 to $7F) would extend downwards, negative ($80 to $FF)
+;  extend upwards.
+;-$09: How many tiles are filled
+;-$0A: How many total tiles are filled.
+;
+;
+;Output:
+;-Y index: The OAM index after writing all the icons
+;Destroyed:
+;-$02: Gets displaced for each icon written.
+;-$03: Gets displaced for each icon written.
+;-$09: Will be [max(0, Total-NumberOfFilledIcons)] when routine is finished, used as a countdown on how many to write.
+;-$0A: Will be #$00 when routine is finished, used as a countdown on how many left to write.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+WriteRepeatedIconsAsOAM:
+	
+	.Loop
+		LDA $0A
+		BEQ .Done
+		
+		LDA $02			;\Write each icon displaced
+		STA $0300|!addr,y	;|
+		LDA $03			;|
+		STA $0301|!addr,y	;/
+		
+		.FullOrEmpty
+			LDA $09
+			BEQ ..Empty
+			..Full
+				DEC $09
+				LDA $05
+				BRA ..WriteTileNumber
+			..Empty
+				LDA $04
+			..WriteTileNumber
+				STA $0302|!addr,y
+		
+		LDA $06			;\Properties
+		STA $0303|!addr,y	;/
+		.OAMExtendedBits
+			PHY			;\Set tile size to 8x8.
+			TYA			;|
+			LSR #2			;|
+			TAY			;|
+			LDA $0460|!addr,y	;|
+			AND.b #%11111101	;|
+			STA $0460|!addr,y	;|
+			PLY			;/
+		
+		..Next
+			LDA $02			;\Displacement for next tile.
+			CLC			;|
+			ADC $07			;|
+			STA $02			;|
+			LDA $03			;|
+			CLC			;|
+			ADC $08			;|
+			STA $03			;/
+			
+			INY			;\Next OAM index
+			INY			;|
+			INY			;|
+			INY			;/
+			
+			DEC $0A
+			BRA .Loop
+		
+		.Done
+		RTL

@@ -18,7 +18,7 @@ incsrc "../SharedSub_Defines/SubroutineDefs.asm"
 
 ;Digit tiles. See GraphicTable for each digit tile number.
  !DigitProperties = %00110001
- ;^YXPPCCCT
+  ;^YXPPCCCT
 
 ;Slash symbol
  !TileNumber_SlashSymbol = $8A		;>Tile number
@@ -46,7 +46,7 @@ print "MAIN ",pc
 SpriteCode:
 	PHB : PHK : PLB
 	LDA $9D
-	BNE +
+	BNE .SkipFreeze
 	
 	.ControllerChangeNumberVert
 		LDA $15
@@ -102,6 +102,7 @@ SpriteCode:
 			++
 			SEP #$20
 	+
+	.SkipFreeze
 	JSR DrawSprite
 	PLB
 	RTS
