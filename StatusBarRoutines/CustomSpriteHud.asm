@@ -48,14 +48,11 @@ WriteStringAsSpriteOAM:
 		DEX
 		BPL .LoopConvert
 	PLY
-	
-	LDA $02		;\Initialize displacement
-	STA $0A		;/
 	LDX #$00	;>Initialize loop count
 	.LoopWrite
 			
 		..Write
-			LDA $0A					;\X position, plus displacement
+			LDA $02					;\X position, plus displacement
 			STA $0300|!addr,y			;/
 			LDA $03					;\Y position
 			STA $0301|!addr,y			;/
@@ -73,10 +70,10 @@ WriteStringAsSpriteOAM:
 				STA $0460|!addr,y	;|
 				PLY			;/
 		..CharacterPosition
-			LDA $0A					;\Next character is 8 pixels foward.
+			LDA $02					;\Next character is 8 pixels foward.
 			CLC					;|
 			ADC #$08				;|
-			STA $0A					;/
+			STA $02					;/
 		..Next
 			INY
 			INY
@@ -142,9 +139,9 @@ GetStringXPositionCentered:
 ;
 ;-Displacement of each icon, in pixels. Both of these are signed and also represents the
 ; direction of the line of repeated icons. As a side note, you can even have diagonal repeated icons.
-;--$07: Horizontal. Positive ($00 to $7F) would extend to the right, negative ($80 to $FF)
+;--$07: Horizontal. Positive ($00 to $7F) would extend and fill to the right, negative ($80 to $FF)
 ;  extends to the left.
-;--$08: Vertical. Positive ($00 to $7F) would extend downwards, negative ($80 to $FF)
+;--$08: Vertical. Positive ($00 to $7F) would extend and fill downwards, negative ($80 to $FF)
 ;  extend upwards.
 ;-$09: How many tiles are filled
 ;-$0A: How many total tiles are filled.
@@ -152,13 +149,13 @@ GetStringXPositionCentered:
 ;
 ;Output:
 ;-Y index: The OAM index after writing all the icons
+;-$02: Gets displaced by $07 for each icon written.
+;-$03: Gets displaced by $08 for each icon written.
 ;Destroyed:
-;-$02: Gets displaced for each icon written.
-;-$03: Gets displaced for each icon written.
 ;-$09: Will be [max(0, Total-NumberOfFilledIcons)] when routine is finished, used as a countdown on how many to write.
 ;-$0A: Will be #$00 when routine is finished, used as a countdown on how many left to write.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-WriteRepeatedIconsAsOAM:
+	WriteRepeatedIconsAsOAM:
 	
 	.Loop
 		LDA $0A
@@ -213,3 +210,79 @@ WriteRepeatedIconsAsOAM:
 		
 		.Done
 		RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Center repeating icons. This is for "WriteRepeatedIconsAsOAM" To
+;find the midpoint between the XY position of the first and last
+;icon. This is needed to center this around a given point.
+;
+;Formula:
+;
+;XOrYPositionOfFirstIcon = InputCenter - (((TotalIcons-1)*Displacement)/2)
+;
+;Which is processed in this order:
+;
+;((((TotalIcons-1)*Displacement)/2) * -1) + InputCenter
+;
+;InputCenter = Given center point as the input.
+;TotalIcons = Total number of icons (max).
+;Displacement = (signed) displacement between each icon.
+;
+;Input:
+;-$02: X position relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
+;-$03: Same as above but Y position
+;-$04: X Displacement for each icon (signed)
+;-$05: Y Displacement for each icon (signed)
+;-$06: Max/total number of icons.
+;Output:
+;-$02: X position for the repeated icons to be centered
+;-$03: same as above but for Y.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CenterRepeatingIcons:
+	PHY
+	LDY #$01
+	.Loop
+		LDA $06				;\No icons = no using this formula
+		BEQ .Done			;/
+		DEC A				;>(TotalIcons-1)
+		..Multiplying			;>...Multiply by displacement
+		if !sa1 == 0
+			STA $4202		;>Multiplicand A
+			LDA $0004|!dp,y		;>Displacement
+			BPL ...Positive
+			...Negative	;>TotalIcons (positive) * Displacement (negative)
+				EOR #$FF
+				INC A
+				STA $4203
+				JSR .WaitCalculation
+				REP #$20
+				LDA $4216		;>Product
+				LSR			;
+				SEP #$20		;
+				;We skip EOR INC since double-negative cancels out
+				BRA ..WriteOutput
+			...Positive	;>TotalIcons (positive) * Displacement (positive)
+				STA $4203
+				JSR .WaitCalculation
+				REP #$20
+				LDA $4216		;>Product
+				LSR			;>/2
+				SEP #$20		;\*-1
+				EOR #$FF		;|
+				INC A			;/
+		..WriteOutput
+			CLC			;\+InputCenter
+			ADC $02|!dp,y		;/
+			STA $02|!dp,y		;>Output
+			DEY
+			BPL .Loop
+	else
+	
+	endif
+	
+	.Done
+	PLY
+	RTL
+	if !sa1 == 0
+		.WaitCalculation:	;>The register to perform multiplication and division takes 8/16 cycles to complete.
+		RTS
+	endif

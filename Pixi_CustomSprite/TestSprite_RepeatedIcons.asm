@@ -14,7 +14,10 @@ incsrc "../SharedSub_Defines/SubroutineDefs.asm"
  !RepeatIconFull = $91
  !RepeatIconProperties = %00110001
   ;^YXPPCCCT
-
+;Other settings
+ !IconDisplacementX = $08
+ !IconDisplacementY = $00
+  ;^Displacement for each icon (8-bit signed), in pixels. Negative is going (filling) left or up, positive is right or down.
 print "INIT ",pc
 	RTL
 
@@ -90,26 +93,36 @@ Graphics:
 		BEQ .NoRepeatingIcons
 	;Draw repeated icons
 		PHX
-		JSL !GetStringXPositionCentered
-		LDA $00
-		STA $02
-		LDA $01
-		CLC
-		ADC #$10
-		STA $03
-		LDA #!RepeatIconEmpty
-		STA $04
-		LDA #!RepeatIconFull
-		STA $05
-		LDA #!RepeatIconProperties
-		STA $06
-		LDA #$08
-		STA $07
-		STZ $08
-		LDA !Default_RAMToDisplay
-		STA $09
-		LDA !Default_RAMToDisplay2
-		STA $0A
+		;Center repeating icons
+			LDA $00
+			CLC
+			ADC #$04
+			STA $02
+			LDA $01				;\Y position
+			CLC				;|
+			ADC #$10			;|
+			STA $03				;/
+			LDA #!IconDisplacementX		;\Displacement between each icon
+			STA $04				;|
+			LDA #!IconDisplacementY		;|
+			STA $05				;/
+			LDA !Default_RAMToDisplay2	;\max number of icons
+			STA $06				;/
+			JSL !CenterRepeatingIcons	;>Center
+		LDA #!RepeatIconEmpty		;\Empty and full tile numbers
+		STA $04				;|
+		LDA #!RepeatIconFull		;|
+		STA $05				;/
+		LDA #!RepeatIconProperties	;\YXPPCCCT
+		STA $06				;/
+		LDA #!IconDisplacementX		;\Displacement
+		STA $07				;|
+		LDA #!IconDisplacementY		;|
+		STA $08				;/
+		LDA !Default_RAMToDisplay	;\How many filled
+		STA $09				;/
+		LDA !Default_RAMToDisplay2	;\How much maxed
+		STA $0A				;/
 		JSL !WriteRepeatedIconsAsOAM
 		PLX
 		.NoRepeatingIcons
