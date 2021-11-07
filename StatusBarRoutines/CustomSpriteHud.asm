@@ -133,18 +133,17 @@ GetStringXPositionCentered:
 ;-Y index: The OAM index
 ;-$02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
 ;-$03: Y position, same as above.
-;-$04: "Empty" icon
-;-$05: "Full" icon
-;-$06: Properties (YXPPCCCT)
-;
 ;-Displacement of each icon, in pixels. Both of these are signed and also represents the
 ; direction of the line of repeated icons. As a side note, you can even have diagonal repeated icons.
-;--$07: Horizontal. Positive ($00 to $7F) would extend and fill to the right, negative ($80 to $FF)
+;--$04: Horizontal. Positive ($00 to $7F) would extend and fill to the right, negative ($80 to $FF)
 ;  extends to the left.
-;--$08: Vertical. Positive ($00 to $7F) would extend and fill downwards, negative ($80 to $FF)
+;--$05: Vertical. Positive ($00 to $7F) would extend and fill downwards, negative ($80 to $FF)
 ;  extend upwards.
+;-$06: "Empty" icon
+;-$07: "Full" icon
+;-$08: Properties (YXPPCCCT)
 ;-$09: How many tiles are filled
-;-$0A: How many total tiles are filled.
+;-$0A: How many total tiles are filled (max total).
 ;
 ;
 ;Output:
@@ -158,8 +157,8 @@ GetStringXPositionCentered:
 	WriteRepeatedIconsAsOAM:
 	
 	.Loop
-		LDA $0A
-		BEQ .Done
+		LDA $0A			;\If no more total tiles left, we are done.
+		BEQ .Done		;/
 		
 		LDA $02			;\Write each icon displaced
 		STA $0300|!addr,y	;|
@@ -167,18 +166,18 @@ GetStringXPositionCentered:
 		STA $0301|!addr,y	;/
 		
 		.FullOrEmpty
-			LDA $09
-			BEQ ..Empty
+			LDA $09				;\No more full tiles left, write empty
+			BEQ ..Empty			;/
 			..Full
-				DEC $09
-				LDA $05
+				DEC $09			;>Deduct number of full tiles
+				LDA $07			;>Full
 				BRA ..WriteTileNumber
 			..Empty
-				LDA $04
+				LDA $06			;>Empty
 			..WriteTileNumber
-				STA $0302|!addr,y
+				STA $0302|!addr,y	;>Tile number to use
 		
-		LDA $06			;\Properties
+		LDA $08			;\Properties
 		STA $0303|!addr,y	;/
 		.OAMExtendedBits
 			PHY			;\Set tile size to 8x8.
@@ -193,11 +192,11 @@ GetStringXPositionCentered:
 		..Next
 			LDA $02			;\Displacement for next tile.
 			CLC			;|
-			ADC $07			;|
+			ADC $04			;|
 			STA $02			;|
 			LDA $03			;|
 			CLC			;|
-			ADC $08			;|
+			ADC $05			;|
 			STA $03			;/
 			
 			INY			;\Next OAM index

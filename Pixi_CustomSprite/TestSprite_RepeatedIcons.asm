@@ -94,10 +94,10 @@ Graphics:
 	;Draw repeated icons
 		PHX
 		;Center repeating icons
-			LDA $00
-			CLC
-			ADC #$04
-			STA $02
+			LDA $00				;\X position
+			CLC				;|
+			ADC #$04			;|
+			STA $02				;/
 			LDA $01				;\Y position
 			CLC				;|
 			ADC #$10			;|
@@ -109,22 +109,23 @@ Graphics:
 			LDA !Default_RAMToDisplay2	;\max number of icons
 			STA $06				;/
 			JSL !CenterRepeatingIcons	;>Center
-		LDA #!RepeatIconEmpty		;\Empty and full tile numbers
-		STA $04				;|
-		LDA #!RepeatIconFull		;|
-		STA $05				;/
-		LDA #!RepeatIconProperties	;\YXPPCCCT
-		STA $06				;/
-		LDA #!IconDisplacementX		;\Displacement
-		STA $07				;|
-		LDA #!IconDisplacementY		;|
-		STA $08				;/
-		LDA !Default_RAMToDisplay	;\How many filled
-		STA $09				;/
-		LDA !Default_RAMToDisplay2	;\How much maxed
-		STA $0A				;/
-		JSL !WriteRepeatedIconsAsOAM
-		PLX
+		;Draw repeating icons
+			LDA #!RepeatIconEmpty		;\Empty and full tile numbers
+			STA $06				;|
+			LDA #!RepeatIconFull		;|
+			STA $07				;/
+			LDA #!RepeatIconProperties	;\YXPPCCCT
+			STA $08				;/
+			;LDA #!IconDisplacementX		;\Displacement between each icon
+			;STA $04				;|
+			;LDA #!IconDisplacementY		;|
+			;STA $05				;/
+			LDA !Default_RAMToDisplay	;\How many filled
+			STA $09				;/
+			LDA !Default_RAMToDisplay2	;\How much maxed
+			STA $0A				;/
+			JSL !WriteRepeatedIconsAsOAM
+			PLX
 		.NoRepeatingIcons
 	;Draw the body of sprite
 		LDA $00			;\X position
