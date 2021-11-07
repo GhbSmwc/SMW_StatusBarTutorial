@@ -1,4 +1,9 @@
 ;This is a test sprite to display a number of things as repeated icons.
+;
+;NOTE! If too many tiles are drawn, exceeding the maximum set by the
+;sprite memory header (in "Change Properties in Sprite Header (in hex)"),
+;tile wraparound can occur, starting with the last tile written (any tile
+;that has the highest Y OAM index).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../SharedSub_Defines/SubroutineDefs.asm"

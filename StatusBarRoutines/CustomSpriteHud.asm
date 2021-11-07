@@ -248,10 +248,10 @@ CenterRepeatingIcons:
 			STA $4202		;>Multiplicand A
 			LDA $0004|!dp,y		;>Displacement
 			BPL ...Positive
-			...Negative	;>TotalIcons (positive) * Displacement (negative)
+			...Negative			;>TotalIcons (positive) * Displacement (negative)
 				EOR #$FF
 				INC A
-				STA $4203
+				STA $4203		;>Multiplicand B
 				JSR .WaitCalculation
 				REP #$20
 				LDA $4216		;>Product
@@ -259,8 +259,8 @@ CenterRepeatingIcons:
 				SEP #$20		;
 				;We skip EOR INC since double-negative cancels out
 				BRA ..WriteOutput
-			...Positive	;>TotalIcons (positive) * Displacement (positive)
-				STA $4203
+			...Positive			;>TotalIcons (positive) * Displacement (positive)
+				STA $4203		;>Multiplicand B
 				JSR .WaitCalculation
 				REP #$20
 				LDA $4216		;>Product
@@ -268,15 +268,41 @@ CenterRepeatingIcons:
 				SEP #$20		;\*-1
 				EOR #$FF		;|
 				INC A			;/
+		else
+			PHX
+			LDX #$01			;\Multiply mode
+			STX $2250			;/
+			PLX
+			STA $2251			;\Multiplicand A (total icons, unsigned)
+			STZ $2252			;/
+			LDA $0004|!dp,y			;\Multiplicand B (displacement, signed)
+			BMI ...NegativeMultiplicandB
+			
+			...PositiveMultiplicandB
+				STA $2253
+				STZ $2254		;>Upon writing this byte, it should calculate in 5 cycles.
+				BRA ...SignedHandlerDone
+			...NegativeMultiplicandB
+				STA $2253
+				LDA #$FF
+				STA $2254		;>Upon writing this byte, it should calculate in 5 cycles.
+			...SignedHandlerDone
+			NOP				;\Wait 5 cycles
+			BRA $00				;/
+			LDA $2306			;>Product (SA-1 multiplication are signed)
+			BPL ...Positive
+			...Negative			;>TotalIcons (positive) * Displacement (negative)
+				BRA ..WriteOutput
+			...Positive			;>TotalIcons (positive) * Displacement (positive)
+				EOR #$FF
+				INC A
+		endif
 		..WriteOutput
 			CLC			;\+InputCenter
 			ADC $02|!dp,y		;/
 			STA $02|!dp,y		;>Output
 			DEY
 			BPL .Loop
-	else
-	
-	endif
 	
 	.Done
 	PLY

@@ -1,0 +1,103 @@
+<html>
+	<head>
+		<style>
+			html {
+			background-color: #000207;
+			color: white;
+			font-family: sans-serif;
+			}
+			
+			table, th, td {
+			border: 1px solid white;
+			border-collapse: collapse;
+			}
+			
+			span.NoLineBreak {
+				white-space: nowrap;
+			}
+			
+			abbr{cursor: help;}
+		</style>
+	</head>
+<body onload="GenerateOAMTable()">
+<a href="../GraphicalBar_ReadmeDocumentation.html#OAMNotes">Back</a>
+
+<p>This is just a note for myself and potentially others stumbled across a glitch related to
+writing OAM and wanted to debug it. It just contains a conversion table cheatsheet between
+slot numbers, indexes, and the RAM to write.<p>
+<ul>
+<li>Slot: Refers to which “unit” of a 1-increment index.</li><br>
+
+<li>Index: Refers to a 4-increment index.</li><br>
+
+<li>Normal Sprite OAM slot numbering and Normal sprite OAM index numbering: Refers to normal sprites
+that are part of the 12-slot (22 for sa-1), not extended, minor extended, or cluster. They
+use $15EA,x ($33A2,x under SA-1) which is an offset from <i>halfway</i> from the table (they load
+starting at $0300 and $0460 instead of $0200 and $0420)</li><br>
+</ul>
+
+The majority of stuff uses OAM indexing of increment-4, but one RAM, $0420 uses increments of 1.
+To convert OAM indexing to 1-increment, take that index, transfer it to A, and perform LSR #2,
+which will divide the value by 4, and it converts the value into increments of 1, then transfer
+it back to either X or Y, example:
+<table><tr><td><pre>PHY		;>This likely will be in a loop and we do not want to lose our OAM index loop
+TYA
+LSR #2
+TAY
+&lt;do something&gt;
+STA $0420,y
+PLY</pre></td></tr></table><br><br>
+<span id="Output"></span>
+
+<script>
+	function pad(num, size) {
+		//This adds leading zeroes. [size] is the number of digits at minimum to show (less than that will fill this with 0s).
+		var s = num+"";
+		while (s.length < size) s = "0" + s;
+		return s;
+	}
+	function GenerateOAMTable() {
+		var SlotNumberCount = 0n
+		var HTMLTable = ""
+		
+		//Generate table
+		HTMLTable += "<table>"
+		HTMLTable += "<th>Slot</th><th>Index</th><th>Normal sprite OAM slot numbering (by $15EA/$33A2)</th><th>Normal sprite OAM index numbering (by $15EA/$33A2)</th><th>$0200</th><th>$0420</th>"
+		while (SlotNumberCount < 128n) {
+			//Generate HTML table
+				//Start of row
+					HTMLTable += "<tr>"
+				//Slot number
+					HTMLTable += "<td align='center'><kbd>" + pad(SlotNumberCount.toString(10), 3) + " ($" + pad(SlotNumberCount.toString(16).toUpperCase(), 2) + ")</kbd></td>"
+				//OAM Index
+					HTMLTable += "<td align='center'><kbd>" + pad((SlotNumberCount*4n).toString(10), 3) + " ($" + pad((SlotNumberCount*4n).toString(16).toUpperCase(), 3) + ")</kbd></td>"
+				//Normal sprite slot OAM numbering
+					HTMLTable += "<td align='center'>"
+					if (SlotNumberCount < 64n) {
+						HTMLTable += "N/A"
+					} else {
+						HTMLTable += "<kbd>" + pad((SlotNumberCount-64n).toString(10), 2) + " ($" + pad((SlotNumberCount-64n).toString(16).toUpperCase(), 2) + ")</kbd>"
+					}
+					HTMLTable += "</td>"
+				//Normal sprite slot OAM index numbering
+					HTMLTable += "<td align='center'>"
+					if (SlotNumberCount < 64n) {
+						HTMLTable += "N/A"
+					} else {
+						HTMLTable += "<kbd>" + pad(((SlotNumberCount-64n)*4n).toString(10), 3) + " ($" + pad(((SlotNumberCount-64n)*4n).toString(16).toUpperCase(), 3) + ")</kbd>"
+					}
+					HTMLTable += "</td>"
+				//$0200
+					HTMLTable += "<td align='center'><kbd>$" + pad((BigInt("0x0200")+(SlotNumberCount*4n)).toString(16).toUpperCase(), 4) + "-$" + pad((BigInt("0x0200")+(SlotNumberCount*4n)+3n).toString(16).toUpperCase(), 4) + "</kbd></td>"
+				//$0420
+					HTMLTable += "<td align='center'><kbd>$" + pad((BigInt("0x00420")+SlotNumberCount).toString(16).toUpperCase(), 4) + "</kbd></td>"
+				//End of row
+					HTMLTable += "</tr>"
+			//Next
+				SlotNumberCount++
+		}
+		HTMLTable += "</table>"
+		document.getElementById("Output").innerHTML = HTMLTable
+	}
+
+</script>
