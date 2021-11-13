@@ -1,6 +1,8 @@
 ;List of routines:
 ;-WriteStringAsSpriteOAM
 ;-GetStringXPositionCentered
+;-WriteRepeatedIconsAsOAM
+;-CenterRepeatingIcons
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;This routine writes a string (sequence of tile numbers in this sense)
 ;to OAM (horizontally). Note that this only writes 8x8s.
@@ -270,7 +272,7 @@ CenterRepeatingIcons:
 				INC A			;/
 		else
 			PHX
-			LDX #$01			;\Multiply mode
+			LDX #$00			;\Multiply mode
 			STX $2250			;/
 			PLX
 			STA $2251			;\Multiplicand A (total icons, unsigned)
@@ -292,10 +294,16 @@ CenterRepeatingIcons:
 			LDA $2306			;>Product (SA-1 multiplication are signed)
 			BPL ...Positive
 			...Negative			;>TotalIcons (positive) * Displacement (negative)
+				EOR #$FF		;\Negative number divided by positive 2, then times -1
+				INC A			;|Since we already inverted the number in the process of dividing by 2
+				LSR			;|we don't need to convert it back (this is unoptimized since last two inverters cancel out: EOR #$FF : INC A : LSR : EOR #$FF INC A : EOR #$FF INC A)
+				;EOR #$FF		;|(LSR shifts the bit to the right, and that alone would not correctly take a negative number and divide by 2)
+				;INC A			;/
 				BRA ..WriteOutput
 			...Positive			;>TotalIcons (positive) * Displacement (positive)
-				EOR #$FF
-				INC A
+				LSR			;>/2
+				EOR #$FF		;\*-1
+				INC A			;/
 		endif
 		..WriteOutput
 			CLC			;\+InputCenter
