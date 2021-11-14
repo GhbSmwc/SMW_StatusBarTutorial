@@ -15,10 +15,10 @@ incsrc "../SharedSub_Defines/SubroutineDefs.asm"
 ;^[1 byte] Displays the total (or maximum) of icons.
 
 ;Repeated icons tile data.
- !RepeatIconEmpty = $90
- !RepeatIconFull = $91
- !RepeatIconProperties = %00110001
-  ;^YXPPCCCT
+ !RepeatIconEmpty_TileNumb = $90
+ !RepeatIconEmpty_TileProp = %00110001 ;>YXPPCCCT
+ !RepeatIconFull_TileNumb = $91
+ !RepeatIconFull_TileProp = %00110001 ;>YXPPCCCT
 ;Other settings
  !IconDisplacementX = $08
  !IconDisplacementY = $00
@@ -115,20 +115,18 @@ Graphics:
 			STA $06				;/
 			JSL !CenterRepeatingIcons	;>Center
 		;Draw repeating icons
-			LDA #!RepeatIconEmpty		;\Empty and full tile numbers
-			STA $06				;|
-			LDA #!RepeatIconFull		;|
-			STA $07				;/
-			LDA #!RepeatIconProperties	;\YXPPCCCT
-			STA $08				;/
-			;LDA #!IconDisplacementX		;\Displacement between each icon
-			;STA $04				;|
-			;LDA #!IconDisplacementY		;|
-			;STA $05				;/
-			LDA !Default_RAMToDisplay	;\How many filled
-			STA $09				;/
-			LDA !Default_RAMToDisplay2	;\How much maxed
-			STA $0A				;/
+			LDA #!RepeatIconEmpty_TileNumb		;\Empty and full tile numbers and properties
+			STA $06					;|
+			LDA #!RepeatIconEmpty_TileProp		;|
+			STA $07					;|
+			LDA #!RepeatIconFull_TileNumb		;|
+			STA $08					;|
+			LDA #!RepeatIconFull_TileProp		;|
+			STA $09					;/
+			LDA !Default_RAMToDisplay		;\How many filled
+			STA $0A					;/
+			LDA !Default_RAMToDisplay2		;\How much maxed
+			STA $0B					;/
 			JSL !WriteRepeatedIconsAsOAM
 			PLX
 		.NoRepeatingIcons

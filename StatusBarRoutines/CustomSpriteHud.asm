@@ -141,11 +141,12 @@ GetStringXPositionCentered:
 ;  extends to the left.
 ;--$05: Vertical. Positive ($00 to $7F) would extend and fill downwards, negative ($80 to $FF)
 ;  extend upwards.
-;-$06: "Empty" icon
-;-$07: "Full" icon
-;-$08: Properties (YXPPCCCT)
-;-$09: How many tiles are filled
-;-$0A: How many total tiles are filled (max total).
+;-$06: "Empty" icon tile number
+;-$07: "Empty" icon tile properties (YXPPCCCT)
+;-$08: "Full" icon tile number
+;-$09: "Full" icon tile properties (YXPPCCCT)
+;-$0A: How many tiles are filled
+;-$0B: How many total tiles are filled (max total).
 ;
 ;
 ;Output:
@@ -153,34 +154,35 @@ GetStringXPositionCentered:
 ;-$02: Gets displaced by $07 for each icon written.
 ;-$03: Gets displaced by $08 for each icon written.
 ;Destroyed:
-;-$09: Will be [max(0, Total-NumberOfFilledIcons)] when routine is finished, used as a countdown on how many to write.
-;-$0A: Will be #$00 when routine is finished, used as a countdown on how many left to write.
+;-$0A: Will be [max(0, Total-NumberOfFilledIcons)] when routine is finished, used as a countdown on how many full tiles to write.
+;-$0B: Will be #$00 when routine is finished, used as a countdown on how many left to write.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	WriteRepeatedIconsAsOAM:
 	
 	.Loop
-		LDA $0A			;\If no more total tiles left, we are done.
+		LDA $0B			;\If no more total tiles left, we are done.
 		BEQ .Done		;/
 		
-		LDA $02			;\Write each icon displaced
+		LDA $02			;\Write each icon displaced (XY pos)
 		STA $0300|!addr,y	;|
 		LDA $03			;|
 		STA $0301|!addr,y	;/
 		
 		.FullOrEmpty
-			LDA $09				;\No more full tiles left, write empty
+			LDA $0A				;\No more full tiles left, write empty
 			BEQ ..Empty			;/
 			..Full
-				DEC $09			;>Deduct number of full tiles
-				LDA $07			;>Full
-				BRA ..WriteTileNumber
+				DEC $0A			;>Deduct number of full tiles
+				LDA $08			;\Full tile number
+				STA $0302|!addr,y	;/
+				LDA $09			;>Full properties
+				BRA ..WriteTileProps
 			..Empty
-				LDA $06			;>Empty
-			..WriteTileNumber
-				STA $0302|!addr,y	;>Tile number to use
-		
-		LDA $08			;\Properties
-		STA $0303|!addr,y	;/
+				LDA $06			;\Empty tile number
+				STA $0302|!addr,y	;/
+				LDA $07			;>Empty properties
+			..WriteTileProps
+				STA $0303|!addr,y	;>Tile properties
 		.OAMExtendedBits
 			PHY			;\Set tile size to 8x8.
 			TYA			;|
@@ -206,7 +208,7 @@ GetStringXPositionCentered:
 			INY			;|
 			INY			;/
 			
-			DEC $0A
+			DEC $0B			;>Remaining total number of icons to write -1.
 			BRA .Loop
 		
 		.Done
