@@ -19,7 +19,7 @@
 ;-$02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
 ;-$03: Y position, same as above.
 ;-$04: Number of tiles to write, minus 1 ("100" is 3 characters, so this RAM should be #$02).
-;-$05: Properties (YXPPCCCT)
+;-$05: Properties (YXPPCCCT), will apply to all characters.
 ;-$06 to $09 (3 bytes): 24-bit address location of the table for converting characters to number graphics. Each byte in table lays out as follows:
 ;--$00 to $09 are number tiles, which are for 0-9 digit graphics.
 ;--$0A = "/"
