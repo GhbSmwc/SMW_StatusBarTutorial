@@ -39,7 +39,8 @@ on something simple as how to write a value to memory. You should also know abou
 
 </ul>
 <hr>
-<h2>Javascript tools</h2>
+<h2>Table of contents and other links</h2>
+<h3>Javascript tools</h3>
 <ul>
 	<li>
 		<a href="Readme_Files/TileDataAddr.html" id="QuickJSTools_TileDataAddr">S-PPU tile addressing tool</a>
@@ -54,36 +55,39 @@ on something simple as how to write a value to memory. You should also know abou
 		<a href="Readme_Files/JS_FrameToTimer.html" id="QuickJSTools_JS_FrameToTimer">Convert 32-bit frame to and from timer format.</a>
 	</li>
 </ul>
-<hr>
-<h2>Quick navigation</h2>
-<li><a href="#WarmUp" id="WarmUpBack">The warm-up: SMW's status bar.</a></li>
-<li><a href="#StuffYouMayNeed" id="StuffYouMayNeedBack">Stuff you may need</li>
-<li><a href="#TileFormat" id="TileFormatBack">Tile data format</a></li>
-<li><a href="#SBPatches" id="SBPatchesBack">Other status bar patches</a></li>
-<li><a href="#RoutineControl" id="RoutineControlBack">Adding routine-controlled display to the HUD.</a></li>
+<h3>Quick navigation</h3>
 <ul>
-	<li><a href="#DisplayNumbers" id="DisplayNumbersBack">Displaying decimal numbers</a></li>
+	<li><a href="#WarmUp" id="WarmUpBack">The warm-up: SMW's status bar.</a></li>
+	<li><a href="#StuffYouMayNeed" id="StuffYouMayNeedBack">Stuff you may need</li>
+	<li><a href="#TileFormat" id="TileFormatBack">Tile data format</a></li>
+	<li><a href="#SBPatches" id="SBPatchesBack">Other status bar patches</a></li>
+	<li><a href="#RoutineControl" id="RoutineControlBack">Adding routine-controlled display to the HUD.</a></li>
 	<ul>
-		<li><a href="#RemoveLeadingZeroes" id="RemoveLeadingZeroesBack">Remove leading zeroes (leading spaces)</a></li>
-	</ul>
-	<ul>
-		<li><a href="#AlignedDigits" id="AlignedDigitsBack">Remove Leading zeros, with left/right-aligned digits</a></li>
+		<li><a href="#DisplayNumbers" id="DisplayNumbersBack">Displaying decimal numbers</a></li>
 		<ul>
-			<li><a href="#RightAligned" id="RightAlignedBack">Right aligned display</a></li>
+			<li><a href="#RemoveLeadingZeroes" id="RemoveLeadingZeroesBack">Remove leading zeroes (leading spaces)</a></li>
 		</ul>
-		<li><a href="#IncrementDecrementAnimation" id="IncrementDecrementAnimationBack">Counting animation</a></li>
-		<li><a href="#Frames2Timer" id="Frames2TimerBack">Display a timer in Hours:Minutes:Seconds:Centiseconds format</a></li>
-		<li><a href="#Percentage" id="PercentageBack">Display a percentage</li>
+		<ul>
+			<li><a href="#AlignedDigits" id="AlignedDigitsBack">Remove Leading zeros, with left/right-aligned digits</a></li>
+			<ul>
+				<li><a href="#RightAligned" id="RightAlignedBack">Right aligned display</a></li>
+			</ul>
+			<li><a href="#IncrementDecrementAnimation" id="IncrementDecrementAnimationBack">Counting animation</a></li>
+			<li><a href="#Frames2Timer" id="Frames2TimerBack">Display a timer in Hours:Minutes:Seconds:Centiseconds format</a></li>
+			<li><a href="#Percentage" id="PercentageBack">Display a percentage</li>
+		</ul>
+		<li><a href="#RepeatedSymbol" id="RepeatedSymbolBack">Displaying repeated symbol n times.</a></li>
+		<li><a href="#GraphicalBar" id="GraphicalBarBack">Display a graphical bar</a></li>
 	</ul>
-	<li><a href="#RepeatedSymbol" id="RepeatedSymbolBack">Displaying repeated symbol n times.</a></li>
-	<li><a href="#GraphicalBar" id="GraphicalBarBack">Display a graphical bar</a></li>
+	<li><a href="#OverworldBorder" id="OverworldBorderBack">Displaying stuff on the overworld border</a></li>
+	<li><a href="#OAMHud" id="OAMHudBack">Sprite-based HUD</a></li>
+	<ul>
+		<li><a href="#PixiSprite" id="PixiSpriteBack">Pixi sprites</a></li>
+		<li><a href="#HUDSprites" id="HUDSpritesBack">HUD-like sprites</a></li>
+	</ul>
+	<li><a href="#OtherNotes" id="OtherNotesBack">Other Notes</a></li>
 </ul>
-<li><a href="#OverworldBorder" id="OverworldBorderBack">Displaying stuff on the overworld border</a></li>
-<li><a href="#OAMHud" id="OAMHudBack">Sprite-based HUD</a></li>
-<li><a href="#OtherNotes" id="OtherNotesBack">Other Notes</a></li>
-<hr>
-
-<h2 id="StuffYouMayNeed"><a href="#StuffYouMayNeedBack">^</a>Stuff you may need</h2>
+<h3 id="StuffYouMayNeed"><a href="#StuffYouMayNeedBack">^</a>Stuff you may need</h3>
 <p>These are resources that enhances the layer 3 HUD, usually if you need advanced stuff:</p>
 <ul>
 <li><a href="https://www.smwcentral.net/?p=section&a=details&id=19247">Super status bar</a></li>
@@ -92,13 +96,14 @@ on something simple as how to write a value to memory. You should also know abou
 <li><a href="https://www.smwcentral.net/?p=section&a=details&id=21573">SMB3 status bar</a></li>
 </ul>
 
-<p>Sprite OAM for HUD-related stuff</p>
+<p>Sprite OAM for HUD-related stuff:</p>
 <ul>
 <li><a href="https://www.smwcentral.net/?p=section&a=details&id=26026">Pixi</a></li>
 </ul>
 <p>Other</p>
 <ul>
-<li><a href="https://www.smwcentral.net/?p=section&a=details&id=19545">Shared Subroutines</a>, strongly recommend if you are going to use them on multiple types of HUD (like one as a sprite and other is layer 3)</li>
+<li><a href="https://www.smwcentral.net/?p=section&a=details&id=19545">Shared Subroutines</a>, strongly recommend if you are going to use them on multiple types of HUD (like one as a sprite and other is layer 3).
+The sprite tutorials here however requires it, unless you dramatically edit the code. Here is the <a href="Readme_Files/GettingSharedSubToWork.html" id="SharedSubroutinesBackToTOC">template here you can copy</a>.</li>
 </ul>
 <hr>
 <p>I have provided several routines to make writing codes much user-friendly as possible. So lets begin.</p>
@@ -1986,8 +1991,14 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 <p>Before we get started, I highly recommend reading <a href="https://www.smwcentral.net/?p=viewthread&t=92218">this tutorial on coding sprites</a>. This document covers just the OAM handling.</p>
 
-
-<h3>Pixi custom sprites</h3>
+<p>The very first thing you want to do is get the subroutines into shared subroutines. Here is the <a href="Readme_Files/GettingSharedSubToWork.html" id="SharedSubroutines">tutorial</a>. Don't ask why these could be on pixi's routines folder or uberasm tool's
+library folder. They have limitations that each ASM file are isolated and cannot reference each other from them. Plus, some of these subroutines may call each other within one.</p>
+<h3 id="PixiSprite"><a href="#PixiSpriteBack">^</a>Pixi custom sprites</h3>
+<p>I coded some templates in the <kbd>Pixi_CustomSprite</kbd> folder. To play around with them, insert the sprite (make sure you use the shared subroutines prior to this), place it in a level and use the D-pad to test the values.</p>
+<p>For existing custom sprites, you'll have to edit them to display values.</p>
+<h3 id="HUDSprites"><a href="#HUDSpritesBack">^</a>HUD-like sprites</h3>
+<p>I provided a patch that merely writes OAM tiles to the screen (does not occupy any types of sprite slots (sprite slots for normal sprites (the ones that take 12/22 slots, by smw's enemies and pixi), cluster, extended, minor extended, bounce sprite, etc.)).
+See <kbd>Patch_SpriteStatusBarTest</kbd>. Again, use shared subroutines.</p>
 <hr>
 <h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
 <ul>
