@@ -3,6 +3,7 @@
 ;-GetStringXPositionCentered
 ;-WriteRepeatedIconsAsOAM
 ;-CenterRepeatingIcons
+;-WriteStringAsSpriteOAM_OAMOnly
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;This routine writes a string (sequence of tile numbers in this sense)
 ;to OAM (horizontally). Note that this only writes 8x8s.
@@ -20,7 +21,7 @@
 ;-$03: Y position, same as above.
 ;-$04: Number of tiles to write, minus 1 ("100" is 3 characters, so this RAM should be #$02).
 ;-$05: Properties (YXPPCCCT), will apply to all characters.
-;-$06 to $09 (3 bytes): 24-bit address location of the table for converting characters to number graphics. Each byte in table lays out as follows:
+;-$06 to $08 (3 bytes): 24-bit address location of the table for converting characters to number graphics. Each byte in table lays out as follows:
 ;--$00 to $09 are number tiles, which are for 0-9 digit graphics.
 ;--$0A = "/"
 ; Note that all characters must be on the same page!
@@ -47,8 +48,8 @@ WriteStringAsSpriteOAM:
 		STA !Scratchram_CharacterTileTable,x
 		
 		..Next
-		DEX
-		BPL .LoopConvert
+			DEX
+			BPL .LoopConvert
 	PLY
 	LDX #$00	;>Initialize loop count
 	.LoopWrite
@@ -321,3 +322,152 @@ CenterRepeatingIcons:
 		.WaitCalculation:	;>The register to perform multiplication and division takes 8/16 cycles to complete.
 		RTS
 	endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Same as WriteStringAsSpriteOAM, but deals with just writing to OAM,
+;not to be used for normal sprites.
+;
+;
+;Input:
+;-!Scratchram_CharacterTileTable to !Scratchram_CharacterTileTable+(NumberOfChar-1):
+; The string to display. Will be written directly to $0200,y
+;-Y Index: Which OAM slot to check, starting from !Setting_HUDStartingSpriteOAMToUse
+;-$00 to $01: (16-bit) X position, relative to screen border
+;-$02 to $03: (16-bit) Y position, relative to screen border
+;-$04 to $05: Number of tiles to write, minus 1.
+;-$06: Properties (YXPPCCCT), will apply to all characters.
+;-$07 to $09 (3 bytes): 24-bit address location of the table for converting characters to number graphics. Each byte in table lays out as follows:
+;--$00 to $09 are number tiles, which are for 0-9 digit graphics.
+;--$0A = "/"
+;Overwritten:
+;$00 to $01: Displaced after each write of the tile.
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+WriteStringAsSpriteOAM_OAMOnly:
+	PHB
+	PHK
+	PLB
+	;Convert digits into sprite graphics
+	PHY
+	LDX $04
+	.LoopConvert
+		LDA !Scratchram_CharacterTileTable,x
+		TAY
+		LDA [$07],y
+		STA !Scratchram_CharacterTileTable,x
+		
+		..Next
+			DEX
+			BPL .LoopConvert
+	PLY
+	;Is enough open slots available?
+	REP #$10			;\Check if enough slots found. If there are less open slots then number of tiles to write
+	LDX $04				;|don't write at all.
+	PHX				;|
+	INX				;|
+	JSR FindNFreeOAMSlot		;|
+	PLX				;|
+	BCC +				;|
+	JMP .Done			;/
+	+
+	LDX #$0000			;>Slot counter
+	.WriteString
+		LDY.w #!Setting_HUDStartingSpriteOAMToUse*4 ;>Start writing at the first slot specified.
+		..OAMLoop
+			;Is used?
+			...CheckOAMUsed
+				LDA $0201|!addr,y
+				CMP #$F0
+				BEQ ....NotUsed
+				....Used
+					INY #4
+					BRA ...CheckOAMUsed
+				....NotUsed
+			;Screen and positions
+			...CheckIfOnScreen
+				REP #$20		;\Offscreen horizontally. If offscreen, go to next tile reusing the same OAM slot (avoid hogging slots for nothing)
+				LDA $00			;|
+				CMP #$FFF8+1		;|
+				SEP #$20		;|
+				BMI ...Next		;|
+				REP #$20		;|
+				CMP #$0100		;|
+				SEP #$20		;|
+				BPL ...Next		;/
+				REP #$20		;\Same but vertically
+				LDA $02			;|
+				CMP #$FFF8+1		;|
+				SEP #$20		;|
+				BMI ...Next		;|
+				REP #$20		;|
+				CMP #$00E0		;|
+				SEP #$20		;|
+				BPL ...Next		;/
+			...XPos
+				LDA $00			;\Low 8 bits
+				STA $0200|!addr,y	;/
+				TYA			;\Y = slot, not index, temporally
+				LSR #2			;|
+				PHY			;|
+				TAY			;/
+				LDA $01			;\9th bit X position
+				SEP #$20		;|
+				AND.b #%00000001	;|
+				STA $0420|!addr,y	;/
+				PLY
+			...YPos
+				LDA $02
+				STA $0201|!addr,y
+			...TileNumber
+				LDA !Scratchram_CharacterTileTable,x
+				STA $0202|!addr,y
+			...TileProps
+				LDA $06
+				STA $0203|!addr,y
+			...NextTile
+				INY #4			;Next OAM slot (go to the next if the OAM tile is onscreen)
+			...Next
+				REP #$20		;\Displace tile
+				LDA $00			;|
+				CLC			;|
+				ADC #$0008		;|
+				STA $00			;|
+				SEP #$20		;/
+				INX			;\Next character
+				CPX $04			;/
+				BCC ..OAMLoop		;>Loop until all characters written
+	.Done
+	PLB
+	RTL
+	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Find if enough slots are open
+;Input: $04 = Number of slots open to search for
+;Output: Carry = Set if not enough slots found, Clear if enough slots found
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+FindNFreeOAMSlot:
+	PHY
+	LDY.w #$0000					;>Open slot counter
+	LDX.w #!GraphicalBar_OAMSlot*4			;>skip the first four slots
+	.loop:						;>to avoid message box conflicts
+		CPX #$0200				;\If all slots searched, there is not enough
+		BEQ .notEnoughFound			;/open slots being found
+
+		LDA $0201|!addr,x			;\If slot used, that isn't empty
+		CMP #$F0				;|
+		BNE ..notFree				;/
+		
+		..Free
+		INY					;>Otherwise if it is unused, count it
+		CPY $04					;\If we find n slots that are free, break
+		BEQ .enoughFound			;/
+		..notFree:
+			INX #4				;\Check another slot
+			BRA .loop			;/
+	.notEnoughFound:
+		SEC
+		BRA .Done
+	.enoughFound:
+		CLC
+	.Done
+		PLY
+		RTS

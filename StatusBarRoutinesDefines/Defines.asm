@@ -118,3 +118,9 @@
 		;Overflows, as in if you use the 16-bit hexdec. But very unlikely your hack allows
 		;percentages over 100.
 		!TileNumb_PercentSymbol = $2A
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;OAM settings for sprite HUD
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;Starting OAM slot to use:
+		!Setting_HUDStartingSpriteOAMToUse = 4
+		 ;^Starting slot number to use (increments of 1) for checking, not to be confused with index (which increments by 4). Use only values 0-127 ($00-$7F).
