@@ -1,0 +1,157 @@
+<html>
+	<head>
+		<style>
+			html {
+			background-color: #000207;
+			color: white;
+			font-family: sans-serif;
+			}
+			
+			table, th, td {
+			border: 1px solid white;
+			border-collapse: collapse;
+			}
+			
+			span.NoLineBreak {
+				white-space: nowrap;
+			}
+			
+			abbr{cursor: help;}
+			input[type='text'] { font-family: monospace;}
+			input[type='number'] { font-family: monospace;}
+		</style>
+	</head>
+	<a href="../HowToUseTheStatusBar.html#32BitHexDec_Back">Back</a>
+	<h1>32-bit Hex-dec RAM calculator</h1>
+	<kbd>!Scratchram_32bitHexDecOutput</kbd> RAM to use: <kbd>$</kbd><input id="RAMAddressOfOutputDigits" type="text" class="AnyRadixNumberInput" data-input_number_radix="16" value="7F844E" onchange="ComputeDataUsage()" list="DefaultRAMs"><br>
+	<datalist id="DefaultRAMs">
+	<option value="7F844E"></option>
+	<option value="40019C"></option>
+	</datalist>
+	<kbd>!MaxNumberOfDigits</kbd>: <input id="MaxNumberOfDigits" type="number" min="1" max="10" value="10" onchange="ComputeDataUsage()"><br>
+	<button onclick="Reset()">Reset</button>
+	<hr>
+	<span id="OutputDisplay"></span>
+</html>
+<script>
+	window.onload = function() {
+		UpDownArrowKeysIncrement()
+		ComputeDataUsage()
+	}
+	function Reset() {
+		document.getElementById("RAMAddressOfOutputDigits").value = "7F844E"
+		document.getElementById("MaxNumberOfDigits").value = "10"
+		ComputeDataUsage()
+	}
+	function ComputeDataUsage() {
+		let RAMOutputDigits = BigintClamp(ParseBigIntValue(document.getElementById("RAMAddressOfOutputDigits").value, 16), 0n, ParseBigIntValue("FFFFFF", 16))
+		document.getElementById("RAMAddressOfOutputDigits").value = RAMOutputDigits.toString(16).toUpperCase()
+		let NumberOfDigits = BigintClamp(CorrectDecBigIntValue(ParseBigIntValue(document.getElementById("MaxNumberOfDigits").value, 10)), 1n, 10n)
+		document.getElementById("MaxNumberOfDigits").value = NumberOfDigits.toString(10)
+		
+		let OutputHTML = ""
+		
+		OutputHTML += "Number of bytes used: <kbd>" + NumberOfDigits.toString(10) + "</kbd> (<kbd>$" + RAMOutputDigits.toString(16).toUpperCase() + "</kbd> to <kbd>$" + (RAMOutputDigits + (NumberOfDigits-1n)).toString(16).toUpperCase() + "</kbd>)<br>"
+		
+		OutputHTML += "<table>"
+		OutputHTML += "<tr><th>RAM address</th><th>Place value</th></tr>"
+		for (let Index = 0n; Index < NumberOfDigits; Index++) {
+			OutputHTML += "<tr>"
+			OutputHTML += "<td><kbd>$" + (RAMOutputDigits + Index).toString(16).toUpperCase() + "</kbd> (<kbd>!Scratchram_32bitHexDecOutput+" + Index.toString(10) + "</kbd>)</td>"
+			OutputHTML += "<td>" + (10n**(NumberOfDigits - Index - 1n)).toString(10) + "&apos;s place</td>"
+			OutputHTML += "</tr>"
+		}
+		OutputHTML += "</table>"
+		//Done
+			document.getElementById("OutputDisplay").innerHTML = OutputHTML
+	}
+	function CorrectDecBigIntValue(String) {
+		//This converts the user's input decimal string (negative numbers not allowed)
+		//to BigInt.
+		if ((/^([0-9])+$/).test(String) == false) {
+			String = 0n
+		}
+		return CanConvertHexStringToBigInt = BigInt(String)
+	}
+	function BigintClamp(num, min, max) {
+		//Restrict a number within a specified range, bigInt edition.
+			return num <= min ? min : num >= max ? max : num;
+	}
+	//These makes input text act like a number input, pressing UP/DOWN on the arrow keys to increment/decrement it, but with any radixes.
+	//In order for this to apply, have these on the number input:
+	//- Make sure the class contains "AnyRadixNumberInput"
+	//- Specify what radix it is, have the custom attribute [data-input_number_radix="x"] where x
+	//  is a radix number that can be any number 2-36. Examples include: 2 = binary, 10 = decimal (default), 16 = hexadecimal.
+	//To get this to apply, use this:
+	// window.onload = function(){ //Upon loading, apply the function to execute when the up/down arrow keys are pressed.
+	//  UpDownArrowKeysIncrement()
+	// }
+		function UpDownArrowKeysIncrement() {
+			let FocusedElement = document.activeElement;
+			if(FocusedElement.addEventListener ) {
+				FocusedElement.addEventListener('keydown',this.keyHandler,false);
+			} else if(FocusedElement.attachEvent ) {
+				FocusedElement.attachEvent('onkeydown',this.keyHandler);
+			}
+		}
+	
+		function keyHandler(e) {
+			if (((e.code == "ArrowUp")||e.code == "ArrowDown")&&((/(^|\s.*?)AnyRadixNumberInput($|\s.*?)/).test(document.activeElement.className))) {
+				let target;
+				//Handle radix.
+					let Radix = 10
+					if ((/^\d+$/).test(document.activeElement.dataset.input_number_radix)) {
+						Radix = parseInt(document.activeElement.dataset.input_number_radix)
+					}
+				let InputNumber = ParseBigIntValue(document.activeElement.value, Radix) //This gets the number
+				if (!e) var e = window.event;
+				if (e.target) target = e.target;
+				else if (e.srcElement) target = e.srcElement;
+				
+				if(e.code == "ArrowUp") {
+					InputNumber++
+					e.preventDefault()	//Prevents the caret (blinking text cursor) from being placed at the beginning of the line.
+				} else if(e.code == "ArrowDown") {
+					InputNumber--
+				}
+				document.activeElement.value = InputNumber.toString(Radix).toUpperCase()
+				document.activeElement.setSelectionRange(document.activeElement.value.length, document.activeElement.value.length)
+				document.activeElement.onchange()
+			}
+		}
+	function ParseBigIntValue(string, radix) {
+		//Acts more closely to parseInt, unlike other methods (other functions, like CorrectBinBigIntValue)
+		//this works with bigInt.
+		let Output = 0n
+		let NegativeNumber = 1n
+		if ((/^-/).test(string)) {
+			NegativeNumber = -1n
+		}
+		let DigitPart = string.substring((string.search(/[0-9a-zA-Z]/)))
+		switch (radix) {
+			//decimal
+				default:
+				if ((/^-?\d+$/).test(string)) {
+					Output = BigInt(string)
+				}
+				break
+			//Hexadecimal
+				case 16:
+				case "0x":
+				case "0X":
+				if ((/^-?[0-9A-Fa-f]+$/).test(string)) {
+					Output = BigInt("0x" + DigitPart) * NegativeNumber
+				}
+				break
+			//Binary
+				case 2:
+				case "0b":
+				case "0B":
+				if ((/^-?[01]+$/).test(string)) {
+					Output = BigInt("0b" + DigitPart) * NegativeNumber
+				}
+		
+		}
+		return Output
+	}
+</script>
