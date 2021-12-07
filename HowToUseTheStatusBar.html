@@ -330,7 +330,7 @@ and if you are tired of using branches, then an even simpler approach is to use 
 <p>To display a single digit, just store the value directly to the tile RAM. Digits are correctly displayed if the value is 0-9. Any above that will display more than just digits.</p>
 
 <p>But how do you display multi-digits on the status bar? Well, you use a subroutine that would wrap each digits just like how our real-world decimal number works
-(ones place reset every 10s, 10s increases every 100th value, and the 1000s resets every 10000s, and so on). The routines, <kbd>HexDec</kbd> converts a given number to
+(ones place reset every 10s, 10s digit resets every 100th value, and the 1000s digit resets every 10000s, and so on). The routines, <kbd>HexDec</kbd> converts a given number to
 <a href="https://en.wikipedia.org/wiki/Binary-coded_decimal">binary-coded decimal (BCD, unpacked)</a> to write each digit tiles onto the status bar. Thankfully,
 the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have to convert digit numbers to digit graphics.</p>
 
