@@ -330,7 +330,6 @@ CenterRepeatingIcons:
 ;Input:
 ;-!Scratchram_CharacterTileTable to !Scratchram_CharacterTileTable+(NumberOfChar-1):
 ; The string to display. Will be written directly to $0200,y
-;-Y Index: Which OAM slot to check, starting from !Setting_HUDStartingSpriteOAMToUse
 ;-$00 to $01: (16-bit) X position, relative to screen border
 ;-$02 to $03: (16-bit) Y position, relative to screen border
 ;-$04 to $05: Number of tiles to write, minus 1.
@@ -436,8 +435,9 @@ WriteStringAsSpriteOAM_OAMOnly:
 				CPX $04			;/
 				BCC ..OAMLoop		;>Loop until all characters written
 	.Done
-	PLB
-	RTL
+		SEP #$30				;>Set AXY to 8-bit just in case.
+		PLB
+		RTL
 	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Find if enough slots are open
@@ -447,7 +447,7 @@ WriteStringAsSpriteOAM_OAMOnly:
 FindNFreeOAMSlot:
 	PHY
 	LDY.w #$0000					;>Open slot counter
-	LDX.w #!GraphicalBar_OAMSlot*4			;>skip the first four slots
+	LDX.w #!Setting_HUDStartingSpriteOAMToUse*4	;>skip the first four slots
 	.loop:						;>to avoid message box conflicts
 		CPX #$0200				;\If all slots searched, there is not enough
 		BEQ .notEnoughFound			;/open slots being found

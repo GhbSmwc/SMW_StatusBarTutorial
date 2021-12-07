@@ -15,11 +15,12 @@
 
 ;To use:
 ;-have the shared subroutines patch, and defines ready. I've laid out the instructions here: Readme_Files/GettingSharedSubToWork.html
-;-Have a copy of the defines placed at the same locations as this patch.
+;-Have a copy of the defines (both the folders of the status bar routines defines and the shared subroutines) placed at the same locations as this patch.
 ;-Insert this patch
 
 ;Don't touch:
 	incsrc "StatusBarRoutinesDefines/Defines.asm"
+	incsrc "SharedSub_Defines/SubroutineDefs.asm"
 
 ;Defines:
 ;Remove or install?:
@@ -81,8 +82,43 @@ if !Setting_RemoveOrInstall != 0
 		PHK		;|
 		PLB		;/
 		;Draw HUD code here
+			if !SpriteStatusBarPatchTest_Mode == 0
+				REP #$20
+				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+				STA $00
+				SEP #$20
+				JSL !SixteenBitHexDecDivision		;>Convert to decimal digits
+				LDX #$00				;>Start the string position
+				JSL !SupressLeadingZeros		;>Rid out the leading zeroes
+				LDA.b #DigitTable			;\Supply the table
+				STA $07					;|
+				LDA.b #DigitTable>>8			;|
+				STA $08					;|
+				LDA.b #DigitTable>>16			;|
+				STA $09					;/
+				DEX					;\Number of tiles to write -1
+				STX $04					;/
+				JSL !WriteStringAsSpriteOAM_OAMOnly
+			endif
+		
 		.Done		;>We are done here.
 			SEP #$30
 			PLB
 			JML $00A2EA		;>Continue onwards
+endif
+
+
+if or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 2))
+	DigitTable:
+		db $80				;>Index $00 = for the "0" graphic
+		db $81				;>Index $01 = for the "1" graphic
+		db $82				;>Index $02 = for the "2" graphic
+		db $83				;>Index $03 = for the "3" graphic
+		db $84				;>Index $04 = for the "4" graphic
+		db $85				;>Index $05 = for the "5" graphic
+		db $86				;>Index $06 = for the "6" graphic
+		db $87				;>Index $07 = for the "7" graphic
+		db $88				;>Index $08 = for the "8" graphic
+		db $89				;>Index $09 = for the "9" graphic
+		db $8A				;>Index $0A = for the "/" graphic
 endif
