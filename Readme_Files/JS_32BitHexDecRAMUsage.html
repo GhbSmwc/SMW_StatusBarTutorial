@@ -21,13 +21,11 @@
 			input[type='number'] { font-family: monospace;}
 		</style>
 	</head>
+	<a href="../HowToUseTheStatusBar.html#32BitHexDec_BackTOC">Back (Table of Contents)</a><br>
 	<a href="../HowToUseTheStatusBar.html#32BitHexDec_Back">Back</a>
 	<h1>32-bit Hex-dec RAM calculator</h1>
-	<kbd>!Scratchram_32bitHexDecOutput</kbd> RAM to use: <kbd>$</kbd><input id="RAMAddressOfOutputDigits" type="text" class="AnyRadixNumberInput" data-input_number_radix="16" value="7F844E" onchange="ComputeDataUsage()" list="DefaultRAMs"><br>
-	<datalist id="DefaultRAMs">
-	<option value="7F844E"></option>
-	<option value="40019C"></option>
-	</datalist>
+	Input: <kbd>$00-$03</kbd> (32-bit/4 bytes), little endian<br><br>
+	<kbd>!Scratchram_32bitHexDecOutput</kbd> RAM to use: <kbd>$</kbd><input id="RAMAddressOfOutputDigits" type="text" class="AnyRadixNumberInput" data-input_number_radix="16" value="7F844E" onchange="ComputeDataUsage()"> (Default RAM usage: <kbd>$7F844E</kbd> for normal and <kbd>$40019C</kbd> for SA-1)<br>
 	<kbd>!MaxNumberOfDigits</kbd>: <input id="MaxNumberOfDigits" type="number" min="1" max="10" value="10" onchange="ComputeDataUsage()"><br>
 	<button onclick="Reset()">Reset</button>
 	<hr>
@@ -54,11 +52,12 @@
 		OutputHTML += "Number of bytes used: <kbd>" + NumberOfDigits.toString(10) + "</kbd> (<kbd>$" + RAMOutputDigits.toString(16).toUpperCase() + "</kbd> to <kbd>$" + (RAMOutputDigits + (NumberOfDigits-1n)).toString(16).toUpperCase() + "</kbd>)<br>"
 		
 		OutputHTML += "<table>"
-		OutputHTML += "<tr><th>RAM address</th><th>Place value</th></tr>"
+		OutputHTML += "<tr><th>Output RAM address</th><th>Place value</th><th>Digit index</th></tr>"
 		for (let Index = 0n; Index < NumberOfDigits; Index++) {
 			OutputHTML += "<tr>"
 			OutputHTML += "<td><kbd>$" + (RAMOutputDigits + Index).toString(16).toUpperCase() + "</kbd> (<kbd>!Scratchram_32bitHexDecOutput+" + Index.toString(10) + "</kbd>)</td>"
-			OutputHTML += "<td>" + (10n**(NumberOfDigits - Index - 1n)).toString(10) + "&apos;s place</td>"
+			OutputHTML += "<td>" + numberWithCommas((10n**(NumberOfDigits - Index - 1n)).toString(10)) + "&apos;s place</td>"
+			OutputHTML += "<td>" + (NumberOfDigits-1n-Index).toString(10) + "</td>"
 			OutputHTML += "</tr>"
 		}
 		OutputHTML += "</table>"
@@ -153,5 +152,9 @@
 		
 		}
 		return Output
+	}
+	function numberWithCommas(x) {
+		//Source: https://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
+		return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 	}
 </script>
