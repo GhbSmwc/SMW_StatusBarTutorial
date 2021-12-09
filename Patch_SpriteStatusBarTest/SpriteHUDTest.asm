@@ -63,18 +63,18 @@
 			!sa1 = 1
 		endif
 
-;Main code:
 if !Setting_RemoveOrInstall == 0
-	org $00A2E6				;>$00A2E6 is the code that runs at the end of the frame, after ALL sprite tiles are written.
-	autoclean JML DrawHUD
-else
 	if read4($00A2E6) != $028AB122			;22 B1 8A 02 -> JSL.L CODE_028AB1
 		autoclean read3($00A2E6+1)
 	endif
 	org $00A2E6
 	JSL $028AB1
+else
+	org $00A2E6				;>$00A2E6 is the code that runs at the end of the frame, after ALL sprite tiles are written.
+	autoclean JML DrawHUD
 endif
 
+;Main code:
 if !Setting_RemoveOrInstall != 0
 	freecode
 	DrawHUD:
@@ -97,7 +97,16 @@ if !Setting_RemoveOrInstall != 0
 				LDA.b #DigitTable>>16			;|
 				STA $09					;/
 				DEX					;\Number of tiles to write -1
-				STX $04					;/
+				STX $04					;|
+				STZ $05					;/
+				LDA.b #%00000101			;\Properties
+				STA $06					;/
+				REP #$20				;\XY position
+				LDA #$0000				;|
+				STA $00					;|
+				LDA #$0000				;|
+				STA $02					;|
+				SEP #$20				;/
 				JSL !WriteStringAsSpriteOAM_OAMOnly
 			endif
 		
@@ -108,7 +117,7 @@ if !Setting_RemoveOrInstall != 0
 endif
 
 
-if or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 2))
+if or(equal(!SpriteStatusBarPatchTest_Mode, 0), equal(!SpriteStatusBarPatchTest_Mode, 1))
 	DigitTable:
 		db $80				;>Index $00 = for the "0" graphic
 		db $81				;>Index $01 = for the "1" graphic

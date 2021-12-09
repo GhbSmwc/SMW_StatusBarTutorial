@@ -363,8 +363,10 @@ WriteStringAsSpriteOAM_OAMOnly:
 	LDX $04				;|don't write at all.
 	PHX				;|
 	INX				;|
+	STX $04				;|
 	JSR FindNFreeOAMSlot		;|
 	PLX				;|
+	STX $04				;|
 	BCC +				;|
 	JMP .Done			;/
 	+
@@ -433,7 +435,8 @@ WriteStringAsSpriteOAM_OAMOnly:
 				SEP #$20		;/
 				INX			;\Next character
 				CPX $04			;/
-				BCC ..OAMLoop		;>Loop until all characters written
+				BEQ ..OAMLoop		;\Loop until all characters written
+				BCC ..OAMLoop		;/(BEQ since $04 is the number of tiles to write -1)
 	.Done
 		SEP #$30				;>Set AXY to 8-bit just in case.
 		PLB
