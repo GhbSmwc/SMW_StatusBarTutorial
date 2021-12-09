@@ -406,12 +406,13 @@ WriteStringAsSpriteOAM_OAMOnly:
 			...XPos
 				LDA $00			;\Low 8 bits
 				STA $0200|!addr,y	;/
+				REP #$20
 				TYA			;\Y = slot, not index, temporally
 				LSR #2			;|
 				PHY			;|
 				TAY			;/
+				SEP #$20
 				LDA $01			;\9th bit X position
-				SEP #$20		;|
 				AND.b #%00000001	;|
 				STA $0420|!addr,y	;/
 				PLY

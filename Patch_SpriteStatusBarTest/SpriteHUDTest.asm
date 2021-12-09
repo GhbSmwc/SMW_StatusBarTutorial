@@ -82,14 +82,27 @@ if !Setting_RemoveOrInstall != 0
 		PHK		;|
 		PLB		;/
 		;Draw HUD code here
-			if !SpriteStatusBarPatchTest_Mode == 0
+			if or(equal(!SpriteStatusBarPatchTest_Mode, 0), equal(!SpriteStatusBarPatchTest_Mode, 1))
 				REP #$20
 				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
 				STA $00
 				SEP #$20
 				JSL !SixteenBitHexDecDivision		;>Convert to decimal digits
 				LDX #$00				;>Start the string position
-				JSL !SupressLeadingZeros		;>Rid out the leading zeroes
+				JSL !SupressLeadingZeros		;>Rid out the leading zeroes (X = number of characters/tiles written)
+				if !SpriteStatusBarPatchTest_Mode == 1
+					LDA #$0A							;\#$0A will be converted to the "/" graphic in the digit table
+					STA !Scratchram_CharacterTileTable,x				;/
+					INX								;>That (above) counts as a character.
+					PHX								;>Push X because it gets modified by the HexDec routine.
+					REP #$20							;\Convert a given number to decimal digits.
+					LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;|
+					STA $00								;|
+					SEP #$20							;|
+					JSL !SixteenBitHexDecDivision					;/
+					PLX								;>Restore.
+					JSL !SupressLeadingZeros					;>Remove leading zeroes of the second number.
+				endif
 				LDA.b #DigitTable			;\Supply the table
 				STA $07					;|
 				LDA.b #DigitTable>>8			;|
