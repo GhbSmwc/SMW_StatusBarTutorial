@@ -99,13 +99,13 @@ if !Setting_RemoveOrInstall != 0
 				DEX					;\Number of tiles to write -1
 				STX $04					;|
 				STZ $05					;/
-				LDA.b #%00000101			;\Properties
+				LDA.b #%00110101			;\Properties (YXPPCCCT)
 				STA $06					;/
 				REP #$20				;\XY position
 				LDA #$0000				;|
 				STA $00					;|
-				LDA #$0000				;|
-				STA $02					;|
+				LDA #$FFFF				;|\Y position is shifted down for some reason...
+				STA $02					;|/
 				SEP #$20				;/
 				JSL !WriteStringAsSpriteOAM_OAMOnly
 			endif
