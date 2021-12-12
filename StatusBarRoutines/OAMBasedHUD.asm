@@ -5,6 +5,7 @@
 ;-CenterRepeatingIcons
 ;-WriteStringAsSpriteOAM_OAMOnly
 ;-GetStringXPositionCentered16Bit
+;-WriteRepeatedIconsAsOAM_OAMOnly
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;This routine writes a string (sequence of tile numbers in this sense)
 ;to OAM (horizontally). Note that this only writes 8x8s.
@@ -149,7 +150,7 @@ GetStringXPositionCentered:
 ;-$08: "Full" icon tile number
 ;-$09: "Full" icon tile properties (YXPPCCCT)
 ;-$0A: How many tiles are filled
-;-$0B: How many total tiles are filled (max total).
+;-$0B: How many total tiles there are (max total).
 ;
 ;
 ;Output:
@@ -387,24 +388,8 @@ WriteStringAsSpriteOAM_OAMOnly:
 				....NotUsed
 			;Screen and positions
 			...CheckIfOnScreen
-				REP #$20		;\Offscreen horizontally. If offscreen, go to next tile reusing the same OAM slot (avoid hogging slots for nothing)
-				LDA $00			;|
-				CMP #$FFF8+1		;|
-				SEP #$20		;|
-				BMI ...Next		;|
-				REP #$20		;|
-				CMP #$0100		;|
-				SEP #$20		;|
-				BPL ...Next		;/
-				REP #$20		;\Same but vertically
-				LDA $02			;|
-				CMP #$FFF8+1		;|
-				SEP #$20		;|
-				BMI ...Next		;|
-				REP #$20		;|
-				CMP #$00E0		;|
-				SEP #$20		;|
-				BPL ...Next		;/
+				JSL CheckIf8x8IsOffScreen
+				BCS ...Next
 			...XPos
 				LDA $00			;\Low 8 bits
 				STA $0200|!addr,y	;/
@@ -444,7 +429,6 @@ WriteStringAsSpriteOAM_OAMOnly:
 		SEP #$30				;>Set AXY to 8-bit just in case.
 		PLB
 		RTL
-	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Find if enough slots are open
 ;Input: $04 = Number of slots open to search for
@@ -478,6 +462,40 @@ FindNFreeOAMSlot:
 		PLY
 		RTS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Check if given 8x8 tile is offscreen or not.
+;Input:
+;-$00 to $01: X position, relative to screen border
+;-$02 to $03: Y position, relative to screen border
+;Output:
+;Carry: Clear if visible on-screen, set of offscreen.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CheckIf8x8IsOffScreen:
+	REP #$20		;\Offscreen horizontally. If offscreen, go to next tile reusing the same OAM slot (avoid hogging slots for nothing)
+	LDA $00			;|
+	CMP #$FFF8+1		;|
+	SEP #$20		;|
+	BMI .OffScreen		;|
+	REP #$20		;|
+	CMP #$0100		;|
+	SEP #$20		;|
+	BPL .OffScreen		;/
+	REP #$20		;\Same but vertically
+	LDA $02			;|
+	CMP #$FFF8+1		;|
+	SEP #$20		;|
+	BMI .OffScreen		;|
+	REP #$20		;|
+	CMP #$00E0		;|
+	SEP #$20		;|
+	BPL .OffScreen		;/
+	
+	.OnScreen
+		CLC
+		RTL
+	.OffScreen
+		SEC
+		RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Similar to GetStringXPositionCentered, but for 16-bit positioning. Not
 ;to be used for normal sprites.
 ;
@@ -502,4 +520,134 @@ GetStringXPositionCentered16Bit:
 	ADC $00			;/
 	STA $00			;>X position of string
 	SEP #$20
+	RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Same as WriteRepeatedIconsAsOAM but for mere OAM and not normal
+;sprites
+;
+;Input:
+;-$00 to $01: X position
+;-$02 to $03: Y position
+;-$04: X displacement (8-bit signed)
+;-$05: Y displacement (8-bit signed)
+;-$06: Empty tile number
+;-$07: Empty tile properties
+;-$08: Full tile number
+;-$09: Full tile properties
+;-$0A: How many tiles filled
+;-$0B: How many tiles total
+;Output:
+;-$00 to $03: Overwritten as each tile displaced
+;Overwritten:
+;-$0A: Will be [max(0, Total-NumberOfFilledIcons)] when routine is finished, used as a countdown on how many full tiles to write.
+;-$0B: Will be 0 when routine finished, used as a countdown on how many total tiles to write
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+WriteRepeatedIconsAsOAM_OAMOnly:
+	PHB
+	PHK
+	PLB
+	;Enough slots available?
+	REP #$10
+	LDX $04				;\$04-$05 is going to be used for something else
+	PHX				;/
+	LDA $0B				;\Total tiles
+	STA $04				;|
+	STZ $05				;/
+	JSR FindNFreeOAMSlot		;>Check if enough empty slots are there
+	PLX				;\Restore
+	STX $04				;/
+	BCC +
+	JMP .Done
+	+
+	.WriteRepeatedIconsAsOAM
+		LDY.w #!Setting_HUDStartingSpriteOAMToUse*4 ;>Start writing at the first slot specified.
+		..OAMLoop
+			...CheckIfAllIconsWritten
+				LDA $0B
+				BEQ .Done
+			;Is used?
+			...CheckOAMUsed
+				LDA $0201|!addr,y
+				CMP #$F0
+				BEQ ....NotUsed
+				....Used
+					INY #4
+					BRA ...CheckOAMUsed
+				....NotUsed
+			...CheckIfOnScreen
+				JSL CheckIf8x8IsOffScreen
+				BCS ...Next
+			...XPos
+				LDA $00			;\Low 8 bits
+				STA $0200|!addr,y	;/
+				REP #$20
+				TYA			;\Y = slot, not index, temporally
+				LSR #2			;|
+				PHY			;|
+				TAY			;/
+				SEP #$20
+				LDA $01			;\9th bit X position
+				AND.b #%00000001	;|
+				STA $0420|!addr,y	;/
+				PLY
+			...YPos
+				LDA $02
+				STA $0201|!addr,y
+			...TileNumberAndProps
+				LDA $0A
+				BEQ ....Empty
+				
+				....Full
+					DEC $0A		;>Decrement how many full tiles left to write
+					LDA $08
+					STA $0202|!addr,y
+					LDA $09
+					BRA ....WriteTileProps
+				....Empty
+					LDA $06
+					STA $0202|!addr,y
+					LDA $07
+				....WriteTileProps
+					STA $0203|!addr,y
+			...NextTile
+				INY #4
+			...Next
+				....HandleDisplacement
+					.....Horizontal
+						LDA $00
+						CLC
+						ADC $04
+						STA $00
+						LDA $04
+						BPL ......Positive
+						......Negative
+							LDA $01
+							ADC #$FF
+							STA $01
+						......Positive
+							LDA $01
+							ADC #$00
+							STA $01
+					.....Vertical
+						LDA $02
+						CLC
+						ADC $05
+						STA $02
+						LDA $05
+						BPL ......Positive
+						
+						......Negative
+							LDA $03
+							ADC #$FF
+							STA $03
+						......Positive
+							LDA $03
+							ADC #$00
+							STA $03
+				....NextTile
+					DEC $0B		;>Decrement how many total tiles to write.
+					BRL ..OAMLoop
+	.Done
+		SEP #$30
+		PLB
 	RTL

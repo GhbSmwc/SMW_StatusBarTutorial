@@ -74,7 +74,8 @@ autoclean JML GetStringXPositionCentered
 autoclean JML WriteRepeatedIconsAsOAM
 autoclean JML CenterRepeatingIcons
 autoclean JML WriteStringAsSpriteOAM_OAMOnly
-autoclean JML GetStringXPositionCentered16Bit</pre></td></tr></table>
+autoclean JML GetStringXPositionCentered16Bit
+autoclean JML WriteRepeatedIconsAsOAM_OAMOnly</pre></td></tr></table>
 			</li>
 			<li>
 			And defined them (and don't forget to copy and paste <kbd>SharedSub_Defines</kbd> in places like pixi and anything else that are using sharedsub, and reference it via <kbd>incsrc &lt;file_path_to_defines_asm&gt;</kbd> on
@@ -106,7 +107,8 @@ autoclean JML GetStringXPositionCentered16Bit</pre></td></tr></table>
 %SetDefine(WriteRepeatedIconsAsOAM)
 %SetDefine(CenterRepeatingIcons)
 %SetDefine(WriteStringAsSpriteOAM_OAMOnly)
-%SetDefine(GetStringXPositionCentered16Bit)</pre></td></tr></table>
+%SetDefine(GetStringXPositionCentered16Bit)
+%SetDefine(WriteRepeatedIconsAsOAM_OAMOnly)</pre></td></tr></table>
 			</li>
 		</ol>
 		<li>Now run asar.exe to insert the patch to insert the subroutines.</li>

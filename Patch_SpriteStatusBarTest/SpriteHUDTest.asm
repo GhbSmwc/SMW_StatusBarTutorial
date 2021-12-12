@@ -35,7 +35,7 @@
   ;^[2 bytes] for 16-bit numerical digit display
   ;^[1 byte] for repeated icons display (how many total icons)
 ;Settings
- !SpriteStatusBarPatchTest_Mode = 1
+ !SpriteStatusBarPatchTest_Mode = 2
   ;^0 = 16-bit numerical digit display
   ; 1 = same as above but for displaying 2 numbers ("200/300", for example)
   ; 2 = repeated icons display
@@ -46,7 +46,21 @@
   ;Positions, relative to top-left of screen or Mario
    !SpriteStatusBarPatchTest_DisplayXPos = $0000
     ;^Note: If set to relative to player, this will be the center position.
-   !SpriteStatusBarPatchTest_DisplayYPos = $FFF8
+   !SpriteStatusBarPatchTest_DisplayYPos = $FFF8	;>Please note that Y position will appear 1px lower than this value.
+  ;Repeated icons settings
+   ;Displacement between each icons. These are 8-bit signed.
+   ;A positive number would place each tile from left to right or top to bottom, negative is in reverse,
+   ;A value of +/-8 means each tile will be written next to another tile.
+   ;This will also alter the "fill direction". For example, an X displacement of $F8 (-8) will cause the
+   ;repeated icons meter to fill from right to left as the value stored in !Freeram_SpriteStatusBarPatchTest_ValueToRepresent increases.
+    !SpriteStatusBarPatchTest_RepeatIcons_XDisp = $08
+    !SpriteStatusBarPatchTest_RepeatIcons_YDisp = $00
+   ;Tile number and properties to use:
+    !SpriteStatusBarPatchTest_RepeatIcons_EmptyNumb = $90
+    !SpriteStatusBarPatchTest_RepeatIcons_EmptyProp = %00110001 ;YXPPCCCT.
+    !SpriteStatusBarPatchTest_RepeatIcons_FullNumb = $91
+    !SpriteStatusBarPatchTest_RepeatIcons_FullProp = %00110001
+    !
 
 ;SA-1 handling (don't touch):
 	;SA-1
@@ -143,6 +157,30 @@ if !Setting_RemoveOrInstall != 0
 					SEP #$20
 				endif
 				JSL !WriteStringAsSpriteOAM_OAMOnly
+			elseif !SpriteStatusBarPatchTest_Mode == 2
+				REP #$20						;\Positions
+				LDA #!SpriteStatusBarPatchTest_DisplayXPos		;|
+				STA $00							;|
+				LDA #!SpriteStatusBarPatchTest_DisplayYPos		;|
+				STA $02							;|
+				SEP #$20						;/
+				LDA #!SpriteStatusBarPatchTest_RepeatIcons_XDisp	;\Displacement for each tile
+				STA $04							;|
+				LDA #!SpriteStatusBarPatchTest_RepeatIcons_YDisp	;|
+				STA $05							;/
+				LDA #!SpriteStatusBarPatchTest_RepeatIcons_EmptyNumb	;\Tile numbers to use
+				STA $06							;|
+				LDA.b #!SpriteStatusBarPatchTest_RepeatIcons_EmptyProp	;|
+				STA $07							;|
+				LDA #!SpriteStatusBarPatchTest_RepeatIcons_FullNumb	;|
+				STA $08							;|
+				LDA.b #!SpriteStatusBarPatchTest_RepeatIcons_FullProp	;|
+				STA $09							;/
+				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent		;\Number of filled tiles and how many total
+				STA $0A								;|
+				LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;|
+				STA $0B								;/
+				JSL !WriteRepeatedIconsAsOAM_OAMOnly			;>Write.
 			endif
 		
 		.Done		;>We are done here.
