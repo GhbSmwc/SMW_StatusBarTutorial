@@ -35,11 +35,18 @@
   ;^[2 bytes] for 16-bit numerical digit display
   ;^[1 byte] for repeated icons display (how many total icons)
 ;Settings
- !SpriteStatusBarPatchTest_Mode = 0
+ !SpriteStatusBarPatchTest_Mode = 1
   ;^0 = 16-bit numerical digit display
   ; 1 = same as above but for displaying 2 numbers ("200/300", for example)
   ; 2 = repeated icons display
-  
+ ;Positions settings
+  !SpriteStatusBarPatchTest_PositionMode = 1
+   ;^0 = Fixed on-screen
+   ; 1 = Relative to Mario
+  ;Positions, relative to top-left of screen or Mario
+   !SpriteStatusBarPatchTest_DisplayXPos = $0000
+    ;^Note: If set to relative to player, this will be the center position.
+   !SpriteStatusBarPatchTest_DisplayYPos = $FFF8
 
 ;SA-1 handling (don't touch):
 	;SA-1
@@ -114,12 +121,27 @@ if !Setting_RemoveOrInstall != 0
 				STZ $05					;/
 				LDA.b #%00110101			;\Properties (YXPPCCCT)
 				STA $06					;/
-				REP #$20				;\XY position
-				LDA #$0000				;|
-				STA $00					;|
-				LDA #$FFFF				;|\Y position is shifted down for some reason...
-				STA $02					;|/
-				SEP #$20				;/
+				if !SpriteStatusBarPatchTest_PositionMode == 0
+					REP #$20				;\XY position
+					LDA #$0000				;|
+					STA $00					;|
+					LDA #$FFFF				;|\Y position is shifted down for some reason...
+					STA $02					;|/
+					SEP #$20				;/
+				elseif !SpriteStatusBarPatchTest_PositionMode == 1
+					REP #$20
+					LDA $7E
+					CLC
+					ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+$04
+					STA $00
+					JSL !GetStringXPositionCentered16Bit
+					REP #$20
+					LDA $80
+					CLC
+					ADC.w #!SpriteStatusBarPatchTest_DisplayYPos
+					STA $02
+					SEP #$20
+				endif
 				JSL !WriteStringAsSpriteOAM_OAMOnly
 			endif
 		

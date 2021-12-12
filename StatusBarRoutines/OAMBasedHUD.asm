@@ -4,6 +4,7 @@
 ;-WriteRepeatedIconsAsOAM
 ;-CenterRepeatingIcons
 ;-WriteStringAsSpriteOAM_OAMOnly
+;-GetStringXPositionCentered16Bit
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;This routine writes a string (sequence of tile numbers in this sense)
 ;to OAM (horizontally). Note that this only writes 8x8s.
@@ -111,6 +112,7 @@ WriteStringAsSpriteOAM:
 ;
 ;Input:
 ;-X index: How many characters.
+;-$00: Sprite OAM X position, obtained from calling getdrawinfo.
 ;-$03: Offset displacement (signed) from the sprite's origin X position (Value in $00 + value in $03)
 ;Output:
 ;-$02: X position of the string, for "WriteStringAsSpriteOAM" subroutine.
@@ -122,10 +124,10 @@ GetStringXPositionCentered:
 	ASL #2			;/
 	EOR #$FF		;\Multiply by -1, which inverts the sign
 	INC A			;/
-	CLC			;\Add with the sprite's X position
+	CLC			;\Add with the center point position
 	ADC $00			;/
 	CLC			;\Plus OffsetToCenter
-	ADC #08			;/
+	ADC $03			;/
 	STA $02			;>X position of string
 	RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -475,3 +477,29 @@ FindNFreeOAMSlot:
 	.Done
 		PLY
 		RTS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Similar to GetStringXPositionCentered, but for 16-bit positioning. Not
+;to be used for normal sprites.
+;
+;Main difference is that OffsetToCenter doesn't exist here, because
+;interactable sprites have a given position that is not necessary.
+;
+;Input:
+;-X index: How many characters.
+;-$00 to $01: The position you want the string to be centered around on.
+;Output:
+;-$00 to $01: X position of the string, for "WriteStringAsSpriteOAM" subroutine.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+GetStringXPositionCentered16Bit:
+	TXA
+	REP #$20
+	;ASL #3			;>Multiply by 2^3 (which is 8)
+	;LSR			;\Divide by 2... Wait a minute! Code optimization! Multiplying by 8/2 can be reduced to 4/1. This means we only need to ASL 2 times (2^2 = 4) since a leftshift then a rightshift will cancel each other out.
+	ASL #2			;/
+	EOR #$FFFF		;\Multiply by -1, which inverts the sign
+	INC A			;/
+	CLC			;\Add with the center point
+	ADC $00			;/
+	STA $00			;>X position of string
+	SEP #$20
+	RTL

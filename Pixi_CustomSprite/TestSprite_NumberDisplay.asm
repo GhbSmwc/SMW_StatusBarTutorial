@@ -148,7 +148,7 @@ Graphics:
 		PLA				;|
 		STA $00				;/
 		PLY				;We need the Y index for OAM indexing
-		LDA #$08			;\Center position of sprite from its origin (top-left corner to center on the X-axis)
+		LDA #$08			;\Center X position (this egg sprite is 16px wide, with origin position at the top-left edge, add 8 from there and you'll be at the midpoint)
 		STA $03				;/
 		JSL !GetStringXPositionCentered	;>$02 is now the X position of the string centered.
 		LDA $01				;\Y position
