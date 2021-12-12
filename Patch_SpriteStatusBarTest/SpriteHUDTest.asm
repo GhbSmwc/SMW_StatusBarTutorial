@@ -43,7 +43,9 @@
   !SpriteStatusBarPatchTest_PositionMode = 1
    ;^0 = Fixed on-screen
    ; 1 = Relative to Mario
-  ;Positions, relative to top-left of screen or Mario
+  ;Positions, relative to top-left of screen or Mario. Note:
+  ;when using repeated icons display, it is the first tile drawn in the direction of the X and Y displacement.
+  ;Meaning if you have a displacement of ($F8,$F8), it would be the bottom-rightmost of the line of icons.
    !SpriteStatusBarPatchTest_DisplayXPos = $0000
     ;^Note: If set to relative to player, this will be the center position.
    !SpriteStatusBarPatchTest_DisplayYPos = $FFF8	;>Please note that Y position will appear 1px lower than this value.
@@ -60,7 +62,6 @@
     !SpriteStatusBarPatchTest_RepeatIcons_EmptyProp = %00110001 ;YXPPCCCT.
     !SpriteStatusBarPatchTest_RepeatIcons_FullNumb = $91
     !SpriteStatusBarPatchTest_RepeatIcons_FullProp = %00110001
-    !
 
 ;SA-1 handling (don't touch):
 	;SA-1

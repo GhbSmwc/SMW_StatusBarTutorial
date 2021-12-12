@@ -564,7 +564,9 @@ WriteRepeatedIconsAsOAM_OAMOnly:
 		..OAMLoop
 			...CheckIfAllIconsWritten
 				LDA $0B
-				BEQ .Done
+				BNE +
+				JMP .Done			;>Branch out of bounds
+				+
 			;Is used?
 			...CheckOAMUsed
 				LDA $0201|!addr,y
@@ -614,39 +616,41 @@ WriteRepeatedIconsAsOAM_OAMOnly:
 			...Next
 				....HandleDisplacement
 					.....Horizontal
-						LDA $00
-						CLC
-						ADC $04
-						STA $00
-						LDA $04
+						LDA $00			;\Low byte
+						CLC			;|
+						ADC $04			;|
+						STA $00			;/
+						LDA $04			;\High byte
 						BPL ......Positive
 						......Negative
 							LDA $01
 							ADC #$FF
 							STA $01
+							BRA .....Vertical
 						......Positive
 							LDA $01
 							ADC #$00
 							STA $01
 					.....Vertical
-						LDA $02
-						CLC
-						ADC $05
-						STA $02
-						LDA $05
+						LDA $02			;\Low byte
+						CLC			;|
+						ADC $05			;|
+						STA $02			;/
+						LDA $05			;\High byte
 						BPL ......Positive
 						
 						......Negative
 							LDA $03
 							ADC #$FF
 							STA $03
+							BRA ....NextTile
 						......Positive
 							LDA $03
 							ADC #$00
 							STA $03
 				....NextTile
 					DEC $0B		;>Decrement how many total tiles to write.
-					BRL ..OAMLoop
+					JMP ..OAMLoop	;>BRA cannot jump that far.
 	.Done
 		SEP #$30
 		PLB
