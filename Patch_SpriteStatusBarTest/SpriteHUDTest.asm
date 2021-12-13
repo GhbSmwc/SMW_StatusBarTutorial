@@ -42,7 +42,7 @@
  ;Positions settings
   !SpriteStatusBarPatchTest_PositionMode = 1
    ;^0 = Fixed on-screen
-   ; 1 = Relative to Mario
+   ; 1 = Relative to Mario (centered)
   ;Positions, relative to top-left of screen or Mario. Note:
   ;when using repeated icons display, it is the first tile drawn in the direction of the X and Y displacement.
   ;Meaning if you have a displacement of ($F8,$F8), it would be the bottom-rightmost of the line of icons.
@@ -159,16 +159,32 @@ if !Setting_RemoveOrInstall != 0
 				endif
 				JSL !WriteStringAsSpriteOAM_OAMOnly
 			elseif !SpriteStatusBarPatchTest_Mode == 2
-				REP #$20						;\Positions
-				LDA #!SpriteStatusBarPatchTest_DisplayXPos		;|
-				STA $00							;|
-				LDA #!SpriteStatusBarPatchTest_DisplayYPos		;|
-				STA $02							;|
-				SEP #$20						;/
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_XDisp	;\Displacement for each tile
 				STA $04							;|
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_YDisp	;|
 				STA $05							;/
+				if !SpriteStatusBarPatchTest_PositionMode = 0
+					REP #$20						;\Positions
+					LDA #!SpriteStatusBarPatchTest_DisplayXPos		;|
+					STA $00							;|
+					LDA #!SpriteStatusBarPatchTest_DisplayYPos		;|
+					STA $02							;|
+					SEP #$20						;/
+				elseif !SpriteStatusBarPatchTest_PositionMode = 1
+					REP #$20
+					LDA $7E							;\Positions
+					CLC							;|
+					ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+4		;|
+					STA $00							;|
+					LDA $80							;|
+					CLC							;|
+					ADC #$FFF8						;|
+					STA $02							;/
+					SEP #$20
+					LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;\Number of icons
+					STA $06								;/
+					JSL !CenterRepeatingIcons_OAMOnly
+				endif
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_EmptyNumb	;\Tile numbers to use
 				STA $06							;|
 				LDA.b #!SpriteStatusBarPatchTest_RepeatIcons_EmptyProp	;|

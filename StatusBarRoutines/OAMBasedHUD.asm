@@ -6,6 +6,7 @@
 ;-WriteStringAsSpriteOAM_OAMOnly
 ;-GetStringXPositionCentered16Bit
 ;-WriteRepeatedIconsAsOAM_OAMOnly
+;-CenterRepeatingIcons_OAMOnly
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;This routine writes a string (sequence of tile numbers in this sense)
 ;to OAM (horizontally). Note that this only writes 8x8s.
@@ -228,7 +229,7 @@ GetStringXPositionCentered:
 ;
 ;Which is processed in this order:
 ;
-;((((TotalIcons-1)*Displacement)/2) * -1) + InputCenter
+;XOrYPositionOfFirstIcon = ((((TotalIcons-1)*Displacement)/2) * -1) + InputCenter
 ;
 ;InputCenter = Given center point as the input.
 ;TotalIcons = Total number of icons (max).
@@ -655,3 +656,118 @@ WriteRepeatedIconsAsOAM_OAMOnly:
 		SEP #$30
 		PLB
 	RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Same as CenterRepeatingIcons, but in 16-bit mode.
+;
+;XOrYPositionOfFirstIcon = InputCenter - (((TotalIcons-1)*Displacement)/2)
+;
+;Which is processed in this order:
+;
+;XOrYPositionOfFirstIcon = ((((TotalIcons-1)*Displacement)/2) * -1) + InputCenter
+;
+;InputCenter = Given center point as the input.
+;TotalIcons = Total number of icons (max).
+;Displacement = (signed) displacement between each icon.
+;
+;Input:
+;-$00 to $01: X position, relative to screen border (example: take $7E
+; (Mario's Xpos on screen), add #$0004, then store here).
+;-$02 to $03: Y position, same as above.
+;-$04: X Displacement between each icon (8-bit signed)
+;-$05: Y Displacement between each icon (8-bit signed)
+;-$06: Total number of icons
+;Output:
+;-$00 to $01: X position centered.
+;-$02 to $03: Y position centered.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CenterRepeatingIcons_OAMOnly:
+	LDY #$02
+	.Loop
+		LDA $06				;\No icons = no using this formula
+		BEQ .Done			;/
+		DEC A				;>(TotalIcons-1)
+		..Multiplying			;>...Multiply by displacement
+		if !sa1 == 0
+			STA $4202		;>Multiplicand A
+			PHY			;
+			TYA			;\Since displacement of X and Y are 8-bit and 1 byte from another
+			LSR			;|unlike most coordinates, we need Y to be 1-increment instead of 2.
+			TAY			;/
+			LDA $0004|!dp,y		;>Displacement
+			PLY			;
+			CMP #$00		;>This is needed so that it compares A and not Y.
+			BPL ...Positive
+			...Negative			;>TotalIcons (positive) * Displacement (negative)
+				EOR #$FF
+				INC A
+				STA $4203		;>Multiplicand B
+				JSR .WaitCalculation
+				REP #$20
+				LDA $4216		;>Product (16-bit)
+				LSR			;
+				;We skip EOR INC since double-negative cancels out
+				BRA ..WriteOutput
+			...Positive			;>TotalIcons (positive) * Displacement (positive)
+				STA $4203		;>Multiplicand B
+				JSR .WaitCalculation
+				REP #$20
+				LDA $4216		;>Product (16-bit)
+				LSR			;>/2
+				EOR #$FFFF		;\*-1
+				INC A			;/
+		else
+			;A: (TotalIcons-1)
+			LDX #$00			;\Multiply mode
+			STX $2250			;/
+			STA $2251			;\Multiplicand A (total icons, unsigned)
+			STZ $2252			;/
+			PHY
+			TYA				;\Since displacement of X and Y are 8-bit and 1 byte from another
+			LSR				;|unlike most coordinates, we need Y to be 1-increment instead of 2.
+			TAY				;/
+			LDA $0004|!dp,y			;\Multiplicand B (displacement, signed)
+			PLY
+			BMI ...NegativeMultiplicandB
+			
+			...PositiveMultiplicandB
+				STA $2253
+				STZ $2254		;>Upon writing this byte, it should calculate in 5 cycles.
+				BRA ...SignedHandlerDone
+			...NegativeMultiplicandB
+				STA $2253
+				LDA #$FF
+				STA $2254		;>Upon writing this byte, it should calculate in 5 cycles.
+			...SignedHandlerDone
+			NOP				;\Wait 5 cycles
+			BRA $00				;/
+			REP #$20
+			LDA $2306			;>Product (SA-1 multiplication are signed), product here is 32-bit
+			BPL ...Positive
+			...Negative			;>TotalIcons (positive) * Displacement (negative)
+				EOR #$FFFF		;\Negative number divided by positive 2, then times -1
+				INC A			;|Since we already inverted the number in the process of dividing by 2
+				LSR			;|we don't need to convert it back (this is unoptimized since last two inverters cancel out: EOR #$FF : INC A : LSR : EOR #$FF INC A : EOR #$FF INC A)
+				;EOR #$FFFF		;|(LSR shifts the bit to the right, and that alone would not correctly take a negative number and divide by 2)
+				;INC A			;/
+				BRA ..WriteOutput
+			...Positive			;>TotalIcons (positive) * Displacement (positive)
+				LSR			;>/2
+				EOR #$FFFF		;\*-1
+				INC A			;/
+		endif
+		..WriteOutput
+			CLC			;\+InputCenter
+			ADC $00|!dp,y		;/
+			STA $00|!dp,y		;>Output
+			SEP #$20
+		..Next
+			DEY
+			DEY
+			BPL .Loop
+	
+	.Done
+	RTL
+	if !sa1 == 0
+		.WaitCalculation:	;>The register to perform multiplication and division takes 8/16 cycles to complete.
+		RTS
+	endif
