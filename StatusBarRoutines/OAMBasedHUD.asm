@@ -601,7 +601,11 @@ WriteRepeatedIconsAsOAM_OAMOnly:
 				BEQ ....Empty
 				
 				....Full
-					;DEC $0A		;>Decrement how many full tiles left to write (edit, had to be moved to under "...Next" so that when the first N icons goes offscreen, MUST count as a full tile being written, else fill glitches will occur)
+					;Reason why DEC $0A (decrement number of full tiles remaining)
+					;was relocated towards the end of the loop (where it also
+					;decrements the total tiles remaining) so that
+					;a bug won't occur if they go offscreen-- each offscreen full tiles
+					;won't count and will start to appear that the meter "increased".
 					LDA $08
 					STA $0202|!addr,y
 					LDA $09
@@ -650,7 +654,7 @@ WriteRepeatedIconsAsOAM_OAMOnly:
 							ADC #$00
 							STA $03
 				....NextTile
-					LDA $0A			;\DEC $0A relocated here.
+					LDA $0A			;\DEC $0A relocated here (so that offscreen full tiles will properly decrement).
 					BEQ +			;|
 					DEC $0A			;|
 					+			;/
