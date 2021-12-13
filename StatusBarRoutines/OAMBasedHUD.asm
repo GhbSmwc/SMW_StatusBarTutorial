@@ -601,7 +601,7 @@ WriteRepeatedIconsAsOAM_OAMOnly:
 				BEQ ....Empty
 				
 				....Full
-					DEC $0A		;>Decrement how many full tiles left to write
+					;DEC $0A		;>Decrement how many full tiles left to write (edit, had to be moved to under "...Next" so that when the first N icons goes offscreen, MUST count as a full tile being written, else fill glitches will occur)
 					LDA $08
 					STA $0202|!addr,y
 					LDA $09
@@ -650,8 +650,12 @@ WriteRepeatedIconsAsOAM_OAMOnly:
 							ADC #$00
 							STA $03
 				....NextTile
-					DEC $0B		;>Decrement how many total tiles to write.
-					JMP ..OAMLoop	;>BRA cannot jump that far.
+					LDA $0A			;\DEC $0A relocated here.
+					BEQ +			;|
+					DEC $0A			;|
+					+			;/
+					DEC $0B			;>Decrement how many total tiles to write.
+					JMP ..OAMLoop		;>BRA cannot jump that far.
 	.Done
 		SEP #$30
 		PLB
