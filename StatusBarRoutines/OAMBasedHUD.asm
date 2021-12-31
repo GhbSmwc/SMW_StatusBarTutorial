@@ -1,4 +1,4 @@
-;List of routines:
+;List of routines. Note: "OAMOnly" means only directly writing to OAM without using sprite slots.
 ;-WriteStringAsSpriteOAM
 ;-GetStringXPositionCentered
 ;-WriteRepeatedIconsAsOAM
@@ -8,7 +8,7 @@
 ;-WriteRepeatedIconsAsOAM_OAMOnly
 ;-CenterRepeatingIcons_OAMOnly
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;This routine writes a string (sequence of tile numbers in this sense)
+;This routine writes an 8x8 string (sequence of tile numbers in this sense)
 ;to OAM (horizontally). Note that this only writes 8x8s.
 ;
 ;To be used for “normal sprites” only, as in sprites part of the 12/22
@@ -24,14 +24,12 @@
 ;-$03: Y position, same as above.
 ;-$04: Number of tiles to write, minus 1 ("100" is 3 characters, so this RAM should be #$02).
 ;-$05: Properties (YXPPCCCT), will apply to all characters.
-;-$06 to $08 (3 bytes): 24-bit address location of the table for converting characters to number graphics. Each byte in table lays out as follows:
+;-$06 to $08 (3 bytes): 24-bit address location of the table for converting characters to graphics (such as numbers). Each byte in table lays out as follows:
 ;--$00 to $09 are number tiles, which are for 0-9 digit graphics.
 ;--$0A = "/"
 ; Note that all characters must be on the same page!
 ;Output:
 ;-Y index: The OAM index after writing the last tile character.
-;-$0A: Used for displacement (in pixels) to write each character. When this routine is finished,
-; it represent the length of the string from the start (not in how many characters, how many pixels)
 ;
 ;Here's is how it works: It simply takes each byte in !Scratchram_CharacterTileTable
 ;and write them into OAM. Note that control characters (spaces, and newline) are not implemented
@@ -94,6 +92,8 @@ WriteStringAsSpriteOAM:
 ;This routine calculates where to position the string horizontally
 ;to be centered (text align) to a given reference point. Mainly
 ;useful for having numbers centered with the body of the sprite.
+;
+;NOTE: This ALWAYS places each tile 8 pixels away from each tile.
 ;
 ;Here is how it works:
 ; Formula to get the X position of the centered string:

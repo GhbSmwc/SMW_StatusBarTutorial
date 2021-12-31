@@ -99,7 +99,27 @@ Graphics:
 	;Draw repeated icons
 		PHX
 		;Center repeating icons
-			LDA $00				;\X position
+		;To have the center point correctly position, here is the calculation
+		;-Assume both have an origin at the top-left corner
+		;-To obtain the horizontal midpoint of both, just divide by 2: 16x16: 8px from left, 8x8: 4px from the left.
+		;-Take the half-horizontal position of the body of sprite, subtract by half-horizontal of the icon.
+		;Therefore the formula is:
+		;IconCenterPlacement = (WidthOfBody/2) - (WidthOfIcons/2)
+		;Where:
+		;WidthOfBody = The width, in pixels, of the body of the sprite (the egg part of the sprite in this example)
+		;WidthOfIcons = the width of the icons, in pixels.
+		;
+		;In this example, WidthOfBody = 16, WidthOfIcons = 8:
+		;4 = (16/2) - (8/2)
+		;4 = 8 - 4
+		;
+		;Scratch RAM $00 contains the sprite's origin X position relative to the screen, we then take that, add
+		;by IconCenterPlacement (4 in this example), and write it to $02, which will be the X position for the 
+		;!CenterRepeatingIcons subroutine.
+		;
+		;Now note: If you are using an existing sprite, its origin may not always be the top-left of the bounding
+		;box of the sprite (such as thwomps).
+			LDA $00				;\X position, the body of the sprite is 16x16, and each icon is 8x8.
 			CLC				;|
 			ADC #$04			;|
 			STA $02				;/

@@ -2004,9 +2004,92 @@ library folder. They have limitations that each ASM file are isolated and cannot
 <h3 id="PixiSprite"><a href="#PixiSpriteBack">^</a>Pixi custom sprites</h3>
 <p>I coded some templates in the <kbd>Pixi_CustomSprite</kbd> folder. To play around with them, insert the sprite (make sure you use the shared subroutines prior to this), place it in a level and use the D-pad to test the values.</p>
 <p>For existing custom sprites, you'll have to edit them to display values.</p>
+<p>I provided a template/example, see the ASM files in <kbd>StatusBarTutorial/Pixi_CustomSprite</kbd>.</p>
 <h3 id="HUDSprites"><a href="#HUDSpritesBack">^</a>HUD-like sprites</h3>
 <p>I provided a patch that merely writes OAM tiles to the screen (does not occupy any types of sprite slots (sprite slots for normal sprites (the ones that take 12/22 slots, by smw's enemies and pixi), cluster, extended, minor extended, bounce sprite, etc.)).
-See <kbd>Patch_SpriteStatusBarTest</kbd>. Again, use shared subroutines.</p>
+See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>. Again, use shared subroutines.</p>
+<h3>Subroutines in OAMBasedHUD.asm</h3>
+<p>Routines-based inputs is almost the same as the layer 3 status bar, you just have to read the comments and description in the code as well as the info in the subroutines to fully understands how this works and how to use it. I do not want to explain everything
+as it would make this tutorial unnecessarily long.</p>
+
+<p>Here are the subroutines to use. There are 2 varations, with the first one being for pixi sprites and the other with the <kbd>OAMOnly</kbd> in the name which writes OAM directly without using sprite slots at all.</p>
+<table>
+<tr><th>Subroutine name</th><th>Input</th><th>Output</th><th>Description</th></tr>
+<tr>
+	<td><kbd>WriteStringAsSpriteOAM</kbd></td>
+	<td>
+		<table>
+			<tr>
+				<td><kbd>!Scratchram_CharacterTileTable</kbd> (<kbd>!NumberOfChar</kbd> bytes)</td>
+				<td>The string (such as numbers)</td>
+			</tr>
+			<tr>
+				<td><kbd>Y index</kbd> (8-bit XY)</td>
+				<td>OAM index to start writing</td>
+			</tr>
+			<tr>
+				<td><kbd>$02</kbd> (1 byte)</td>
+				<td>X position relative to screen border</td>
+			</tr>
+			<tr>
+				<td><kbd>$03</kbd> (1 byte)</td>
+				<td>Y position relative to screen border</td>
+			</tr>
+			<tr>
+				<td><kbd>$04</kbd> (1 byte)</td>
+				<td>Number of tiles to write, minus 1</td>
+			</tr>
+			<tr>
+				<td><kbd>$05</kbd> (1 byte)</td>
+				<td>Properties (YXPPCCCT)</td>
+			</tr>
+			<tr>
+				<td><kbd>$06</kbd> (3 byte)</td>
+				<td>
+					24-bit address location of a table for converting characters into graphics (often numbers):
+<table><tr><td><pre>
+Character:	Graphic:
+$00-$09		digits 0-9
+$0A		"/"
+</pre></td></tr></table>
+					Note that the table must all be within a page, not crossing bank borders!
+				</td>
+			</tr>
+		</table>
+	</td>
+	<td>
+		<kbd>Y index</kbd>: The OAM index after writing the last tile character.
+	</td>
+	<td>
+		Writes 8x8 tiles (often for numbers) into OAM. Use after <kbd>SupressLeadingZeros</kbd>.
+	</td>
+</tr>
+<tr>
+	<td>GetStringXPositionCentered</td>
+	<td>
+		<table>
+			<tr>
+				<td><kbd>X index</kbd> (8-bit)</td>
+				<td>How many characters</td>
+			</tr>
+			<tr>
+				<td><kbd>$00</kbd> (1 byte)</td>
+				<td>Sprite OAM X position</td>
+			</tr>
+			<tr>
+				<td><kbd>$03</kbd> (1 byte)</td>
+				<td>Offset displacement (signed)</td>
+			</tr>
+		</table>
+	</td>
+	<td>
+		<kbd>$02</kbd>: X position of string, for <kbd>WriteStringAsSpriteOAM</kbd>.
+	</td>
+	<td>
+		Calculates the X position of the string to be centered with a given point. Use this before calling <kbd>WriteStringAsSpriteOAM</kbd>.
+	</td>
+</tr>
+</table>
 <hr>
 <h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
 <ul>
