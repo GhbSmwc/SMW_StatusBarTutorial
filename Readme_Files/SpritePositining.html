@@ -20,7 +20,8 @@
 		</style>
 	</head>
 	
-<a href="../HowToUseTheStatusBar.html#SpritePositioningInfo_Back">Back</a><br>
+<a href="../HowToUseTheStatusBar.html#SpritePositioningInfo_Back">Back (<kbd>GetStringXPositionCentered</kbd>)</a><br>
+<a href="../HowToUseTheStatusBar.html#SpritePositioningInfo_Back2">Back (<kbd>CenterRepeatingIcons</kbd>)</a><br>
 <h1>Understanding positioning</h1>
 <p>All the resources here to draw HUD elements on sprites needs a displacement from their sprite &ldquo;origin&rdquo;-- the position obtained after calling <kbd>GetDrawInfo</kbd> written to <kbd>$00</kbd> and <kbd>$01</kbd>.</p>
 
@@ -57,4 +58,11 @@ The formula to instantly find the displacement is <kbd>IconCenterPlacement = (Wi
 the formula would have to be <kbd>IconCenterPlacement = GetToCenterOfSpriteFromOrigin - (WidthOfEachIcon/2)</kbd>. Where <kbd>GetToCenterOfSpriteFromOrigin</kbd> means a signed value representing an offset from the origin of the sprite.
 Here is an example of what I mean using the giant masked koopa boss in its &ldquo;mask&rdquo; form:<br>
 <img src="WhenSprHaveOriginNotAtLeftEdge.png">
+</p>
+<h2>Player's position</h2>
+<p>The player character (Mario or Luigi)'s position, like most sprites, is on the top-left corner. His bounding box, however, contrary to his visual appearance, is 16x32 pixels, regardless if he is crouching, being small, or have super/cape/fire powerup, and any combination of it.
+If he is on yoshi, then his Y position is offset by 16 (<kbd>$0010</kbd>) pixels up. As presented below, the red dots represents the player's position (RAM address <kbd>X_Position: $94-$95</kbd>, <kbd>Y_Position: $96-$97</kbd> for level coordinates, <kbd>X_Position: $7E-$7F</kbd>,
+<kbd>Y_Position: $80-$81</kbd> for position relative to the screen border):<br>
+<img src="MarioOriginDiagram.png">
+
 </p>
