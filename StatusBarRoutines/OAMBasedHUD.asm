@@ -150,8 +150,8 @@ GetStringXPositionCentered:
 ;-$07: "Empty" icon tile properties (YXPPCCCT)
 ;-$08: "Full" icon tile number
 ;-$09: "Full" icon tile properties (YXPPCCCT)
-;-$0A: How many tiles are filled
-;-$0B: How many total tiles there are (max total).
+;-$0A: How many icons are filled
+;-$0B: How many total icons there are (max total).
 ;
 ;
 ;Output:
@@ -236,13 +236,13 @@ GetStringXPositionCentered:
 ;Displacement = (signed) displacement between each icon.
 ;
 ;Input:
-;-$02: X position relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
+;-$02: X position relative to screen border (signed, you can take $00/$01, offset it (add by some number), and write on here).
 ;-$03: Same as above but Y position
 ;-$04: X Displacement for each icon (signed)
 ;-$05: Y Displacement for each icon (signed)
 ;-$06: Max/total number of icons.
 ;Output:
-;-$02: X position for the repeated icons to be centered
+;-$02: X position for the repeated icons to be centered (signed).
 ;-$03: same as above but for Y.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CenterRepeatingIcons:
@@ -498,13 +498,13 @@ CheckIf8x8IsOffScreen:
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Similar to GetStringXPositionCentered, but for 16-bit positioning. Not
-;to be used for normal sprites.
+;to be used for OAM-only type sprites.
 ;
 ;Main difference is that OffsetToCenter doesn't exist here, because
 ;interactable sprites have a given position that is not necessary.
 ;
 ;Input:
-;-X index: How many characters.
+;-X index: How many characters (8-bit).
 ;-$00 to $01: The position you want the string to be centered around on.
 ;Output:
 ;-$00 to $01: X position of the string, for "WriteStringAsSpriteOAM" subroutine.

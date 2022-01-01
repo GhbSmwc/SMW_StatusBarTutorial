@@ -2012,13 +2012,17 @@ See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>. Again, use shared su
 <p>Routines-based inputs is almost the same as the layer 3 status bar, you just have to read the comments and description in the code as well as the info in the subroutines to fully understands how this works and how to use it. I do not want to explain everything
 as it would make this tutorial unnecessarily long.</p>
 
-<p>Here are the subroutines to use. There are 2 varations, with the first one being for pixi sprites and the other with the <kbd>OAMOnly</kbd> in the name which writes OAM directly without using sprite slots at all.</p>
+<p>Here are the subroutines to use. There are 2 varations, with the first one being for pixi sprites and the other with the <kbd>OAMOnly</kbd> (and 16-bit centering) in the name which writes OAM directly without using sprite slots at all.</p>
 <table>
 <tr><th>Subroutine name</th><th>Input</th><th>Output</th><th>Description</th></tr>
 <tr>
-	<td><kbd>WriteStringAsSpriteOAM</kbd></td>
-	<td>
+	<td><kbd>WriteStringAsSpriteOAM</kbd> and <kbd>WriteStringAsSpriteOAM_OAMOnly</kbd></td>
+	<td>Pixi sprites:
 		<table>
+			<tr>
+				<th>Input</th>
+				<th>Description</th>
+			</tr>
 			<tr>
 				<td><kbd>!Scratchram_CharacterTileTable</kbd> (<kbd>!NumberOfChar</kbd> bytes)</td>
 				<td>The string (such as numbers)</td>
@@ -2029,11 +2033,11 @@ as it would make this tutorial unnecessarily long.</p>
 			</tr>
 			<tr>
 				<td><kbd>$02</kbd> (1 byte)</td>
-				<td>X position relative to screen border</td>
+				<td>X position relative to screen border (signed)</td>
 			</tr>
 			<tr>
 				<td><kbd>$03</kbd> (1 byte)</td>
-				<td>Y position relative to screen border</td>
+				<td>Y position relative to screen border (signed)</td>
 			</tr>
 			<tr>
 				<td><kbd>$04</kbd> (1 byte)</td>
@@ -2044,7 +2048,7 @@ as it would make this tutorial unnecessarily long.</p>
 				<td>Properties (YXPPCCCT)</td>
 			</tr>
 			<tr>
-				<td><kbd>$06</kbd> (3 byte)</td>
+				<td><kbd>$06</kbd> to <kbd>$08</kbd> (3 bytes)</td>
 				<td>
 					24-bit address location of a table for converting characters into graphics (often numbers):
 <table><tr><td><pre>
@@ -2056,18 +2060,53 @@ $0A		"/"
 				</td>
 			</tr>
 		</table>
+		<br>OAM only:
+		<table>
+			<tr>
+				<th>Input</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>!Scratchram_CharacterTileTable</kbd> (<kbd>!NumberOfChar</kbd> bytes)</td>
+				<td>String to display</td>
+			</tr>
+			<tr>
+				<td><kbd>$00</kbd> to <kbd>$01</kbd> (2 bytes)</td>
+				<td>X position, relative to screen border (signed).</td>
+			</tr>
+			<tr>
+				<td><kbd>$02</kbd> to <kbd>$03</kbd> (2 bytes)</td>
+				<td>Y position, relative to screen border (signed).</td>
+			</tr>
+			<tr>
+				<td><kbd>$04</kbd> to <kbd>$05</kbd> (2 bytes)</td>
+				<td>Number of tiles to write, minus 1.</td>
+			</tr>
+			<tr>
+				<td><kbd>$06</kbd> (1 byte)</td>
+				<td>Properties (YXPPCCCT), will apply to all characters.</td>
+			</tr>
+			<tr>
+				<td><kbd>$07</kbd> to <kbd>$09</kbd> (3 bytes)</td>
+				<td>24-bit address location of a table for converting characters into graphics (often numbers). Same as the pixi version for <kbd>$06-$08</kbd></td>
+			</tr>
+		</table>
 	</td>
 	<td>
-		<kbd>Y index</kbd>: The OAM index after writing the last tile character.
+		<kbd>Y index</kbd> (8-bit, pixi sprites only): The OAM index after writing the last tile character. Does not output anything for OAM-only.
 	</td>
 	<td>
 		Writes 8x8 tiles (often for numbers) into OAM. Use after <kbd>SupressLeadingZeros</kbd>.
 	</td>
 </tr>
 <tr>
-	<td>GetStringXPositionCentered</td>
-	<td>
+	<td><kbd>GetStringXPositionCentered</kbd> and <kbd>GetStringXPositionCentered16Bit</kbd></td>
+	<td>Pixi sprites:
 		<table>
+			<tr>
+				<th>Input</th>
+				<th>Description</th>
+			</tr>
 			<tr>
 				<td><kbd>X index</kbd> (8-bit)</td>
 				<td>How many characters</td>
@@ -2081,13 +2120,302 @@ $0A		"/"
 				<td>Offset displacement (signed)</td>
 			</tr>
 		</table>
+		<br>16-bit:
+		<table>
+			<tr>
+				<th>Input</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>X index</kbd> (8-bit)</td>
+				<td>How many characters</td>
+			</tr>
+			<tr>
+				<td><kbd>$00</kbd> to <kbd>$01</kbd> (2 bytes)</td>
+				<td>The position you want the string to be centered around on.</td>
+			</tr>
+		</table>
 	</td>
 	<td>
-		<kbd>$02</kbd>: X position of string, for <kbd>WriteStringAsSpriteOAM</kbd>.
+		Pixi sprites:
+		<table>
+			<tr>
+				<th>Output</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>$02</kbd> (1 byte)</td>
+				<td>X position of string, for <kbd>WriteStringAsSpriteOAM</kbd>.</td>
+			</tr>
+		</table>
+		<br>16-bit:
+		<table>
+			<tr>
+				<th>Output</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>$00</kbd> to <kbd>$01</kbd> (2 bytes)</td>
+				<td>X position of the string, for <kbd>WriteStringAsSpriteOAM</kbd> subroutine.</td>
+			</tr>
+		</table>
 	</td>
 	<td>
 		Calculates the X position of the string to be centered with a given point. Use this before calling <kbd>WriteStringAsSpriteOAM</kbd>.
 	</td>
+</tr>
+<tr>
+	<td><kbd>WriteRepeatedIconsAsOAM</kbd> and <kbd>WriteRepeatedIconsAsOAM_OAMOnly</kbd></td>
+	<td>Pixi sprites:
+		<table>
+			<tr>
+				<th>Input</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>Y index</kbd> (8-bit)</td>
+				<td>OAM index</td>
+			</tr>
+			<tr>
+				<td><kbd>$02</kbd> (1 byte)</td>
+				<td>X position of the first tile relative to screen border (signed).</td>
+			</tr>
+			<tr>
+				<td><kbd>$03</kbd> (1 byte)</td>
+				<td>Y position of the first tile relative to screen border (signed).</td>
+			</tr>
+			<tr>
+				<td><kbd>$04</kbd> (1 byte)</td>
+				<td>Horizontal displacement between each icon (signed)</td>
+			</tr>
+			<tr>
+				<td><kbd>$05</kbd> (1 byte)</td>
+				<td>Vertical displacement between each icon (signed)</td>
+			</tr>
+			<tr>
+				<td><kbd>$06</kbd> (1 byte)</td>
+				<td>&ldquo;empty&rdquo; icon tile number</td>
+			</tr>
+			<tr>
+				<td><kbd>$07</kbd> (1 byte)</td>
+				<td>&ldquo;empty&rdquo; icon tile properties (YXPPCCCT)</td>
+			</tr>
+			<tr>
+				<td><kbd>$08</kbd> (1 byte)</td>
+				<td>&ldquo;full&rdquo; icon tile number</td>
+			</tr>
+			<tr>
+				<td><kbd>$09</kbd> (1 byte)</td>
+				<td>&ldquo;full&rdquo; icon tile properties (YXPPCCCT)</td>
+			</tr>
+			<tr>
+				<td><kbd>$0A</kbd> (1 byte)</td>
+				<td>How many icons filled</td>
+			</tr>
+			<tr>
+				<td><kbd>$0B</kbd> (1 byte)</td>
+				<td>How many total icons.</td>
+			</tr>
+		</table>
+		<br>OAM only:
+		<table>
+			<tr>
+				<th>Input</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>$00</kbd> to <kbd>$01</kbd> (2 bytes)</td>
+				<td>X position (signed)</td>
+			</tr>
+			<tr>
+				<td><kbd>$02</kbd> to <kbd>$03</kbd> (2 bytes)</td>
+				<td>Y position (signed)</td>
+			</tr>
+			<tr>
+				<td><kbd>$04</kbd> (1 byte)</td>
+				<td>X displacement (8-bit signed)</td>
+			</tr>
+			<tr>
+				<td><kbd>$05</kbd> (1 byte)</td>
+				<td>Y displacement (8-bit signed)</td>
+			</tr>
+			<tr>
+				<td><kbd>$06</kbd> (1 byte)</td>
+				<td>Empty tile number</td>
+			</tr>
+			<tr>
+				<td><kbd>$07</kbd> (1 byte)</td>
+				<td>Empty tile properties</td>
+			</tr>
+			<tr>
+				<td><kbd>$08</kbd> (1 byte)</td>
+				<td>Full tile number</td>
+			</tr>
+			<tr>
+				<td><kbd>$09</kbd> (1 byte)</td>
+				<td>Full tile properties</td>
+			</tr>
+			<tr>
+				<td><kbd>$0A</kbd> (1 byte)</td>
+				<td>Number of tiles filled</td>
+			</tr>
+			<tr>
+				<td><kbd>$0B</kbd> (1 byte)</td>
+				<td>Total number of tiles.</td>
+			</tr>
+
+		</table>
+	</td>
+	<td>Pixi sprites:
+		<table>
+			<tr>
+				<th>Output</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>Y index</kbd> (8-bit)</td>
+				<td>OAM index after writing all icons</td>
+			</tr>
+		</table>
+		<table>
+			<tr>
+				<th>Destroyed</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>$02</kbd> (1 byte)</td>
+				<td>Gets displaced by $07 for each icon written.</td>
+			</tr>
+			<tr>
+				<td><kbd>$03</kbd> (1 byte)</td>
+				<td>Gets displaced by $08 for each icon written.</td>
+			</tr>
+			<tr>
+				<td><kbd>$0A</kbd> (1 byte)</td>
+				<td>Will be <kbd>max(0, Total-NumberOfFilledIcons)</kbd> when routine is finished, used as a countdown on how many full tiles to write.</td>
+			</tr>
+			<tr>
+				<td><kbd>$0B</kbd> (1 byte)</td>
+				<td>Will be <kbd>#$00</kbd>. Used as a countdown on how many left to write total.</td>
+			</tr>
+		</table>
+		<br>OAM only:
+		<table>
+			<tr>
+				<th>Destroyed</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>$00</kbd> to <kbd>$03</kbd> (4 bytes)</td>
+				<td>Overwritten as each tile displaced</td>
+			</tr>
+			<tr>
+				<td><kbd>$0A</kbd> (1 byte)</td>
+				<td>Will be <kbd>max(0, Total-NumberOfFilledIcons)</kbd> when routine is finished, used as a countdown on how many full tiles to write.</td>
+			</tr>
+			<tr>
+				<td><kbd>$0B</kbd> (1 byte)</td>
+				<td>Will be <kbd>#$00</kbd>. Used as a countdown on how many left to write total.</td>
+			</tr>
+		</table>
+	</td>
+	<td>
+		Writes repeated icons into OAM. X and Y displacement refers to each displacement from the first tile written (first tile starts at <kbd>$02</kbd> and <kbd>$03</kbd>,
+		and gets displaced for each tile from it).
+	</td>
+</tr>
+<tr>
+	<td>
+		<kbd>CenterRepeatingIcons</kbd> and <kbd>CenterRepeatingIcons_OAMOnly</kbd>
+	</td>
+	<td>
+		Pixi sprite:
+		<table>
+			<tr>
+				<th>Input</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>$02</kbd> (1 byte)</td>
+				<td>X position relative to screen border (signed, you can take $00/$01, offset it (add by some number), and write on here).</td>
+			</tr>
+			<tr>
+				<td><kbd>$03</kbd> (1 byte)</td>
+				<td>Y position relative to screen border (signed, you can take $00/$01, offset it (add by some number), and write on here).</td>
+			</tr>
+			<tr>
+				<td><kbd>$04</kbd> (1 byte)</td>
+				<td>X Displacement for each icon (signed)</td>
+			</tr>
+			<tr>
+				<td><kbd>$05</kbd> (1 byte)</td>
+				<td>Y Displacement for each icon (signed)</td>
+			</tr>
+			<tr>
+				<td><kbd>$06</kbd> (1 byte)</td>
+				<td>Max/total number of icons.</td>
+			</tr>
+		</table>
+		<br>OAM only:
+		<table>
+			<tr>
+				<th>Input</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>$00</kbd> to <kbd>$01</kbd> (2 bytes)</td>
+				<td>X position, relative to screen border.</td>
+			</tr>
+			<tr>
+				<td><kbd>$02</kbd> to <kbd>$03</kbd> (2 bytes)</td>
+				<td>Y position, relative to screen border.</td>
+			</tr>
+			<tr>
+				<td><kbd>$04</kbd> (1 byte)</td>
+				<td>X displacement between each icon (8-bit signed)</td>
+			</tr>
+			<tr>
+				<td><kbd>$05</kbd> (1 byte)</td>
+				<td>Y displacement between each icon (8-bit signed)</td>
+			</tr>
+			<tr>
+				<td><kbd>$06</kbd> (1 byte)</td>
+				<td>Total number of icons.</td>
+			</tr>
+		</table>
+	</td>
+	<td>Pixi sprites:
+		<table>
+			<tr>
+				<th>Output</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>$02</kbd> (1 byte)</td>
+				<td>X position for the repeated icons to be centered (signed).</td>
+			</tr>
+			<tr>
+				<td><kbd>$03</kbd> (1 byte)</td>
+				<td>Y position for the repeated icons to be centered (signed).</td>
+			</tr>
+		</table>
+		<br>OAM only:
+		<table>
+			<tr>
+				<th>Output</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><kbd>$00</kbd> to <kbd>$01</kbd> (2 bytes)</td>
+				<td>X position centered</td>
+			</tr>
+			<tr>
+				<td><kbd>$02</kbd> to <kbd>$03</kbd> (2 bytes)</td>
+				<td>Y position centered</td>
+			</tr>
+		</table>
+	</td>
+	<td>Calculates the X and Y position (of the first tile) of the repeating icons to be centered around a given point.</td>
 </tr>
 </table>
 <hr>
