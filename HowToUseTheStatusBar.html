@@ -20,10 +20,6 @@
 		</style>
 	</head>
 
-
-
-
-
 <body onload="Calculate()">
 <center><h1>How to use the status bar</h1></center>
 <hr>
@@ -2096,7 +2092,7 @@ $0A		"/"
 		<kbd>Y index</kbd> (8-bit, pixi sprites only): The OAM index after writing the last tile character. Does not output anything for OAM-only.
 	</td>
 	<td>
-		Writes 8x8 tiles (often for numbers) into OAM. Use after <kbd>SupressLeadingZeros</kbd>.
+		Writes 8x8 tiles (often for numbers) into OAM in the form of text-style (1 line only). Use after <kbd>SupressLeadingZeros</kbd>.
 	</td>
 </tr>
 <tr>
@@ -2161,7 +2157,8 @@ $0A		"/"
 		</table>
 	</td>
 	<td>
-		Calculates the X position of the string to be centered with a given point. Use this before calling <kbd>WriteStringAsSpriteOAM</kbd>.
+		Calculates the X position of the string to be centered with a given point. Use this before calling <kbd>WriteStringAsSpriteOAM</kbd>. Note that this ALWAYS treats each character 8 pixels wide.
+		For more information about positioning, see <a id="SpritePositioningInfo_Back" href="Readme_Files/SpritePositining.html">this info</a></a>.
 	</td>
 </tr>
 <tr>

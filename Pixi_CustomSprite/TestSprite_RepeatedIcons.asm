@@ -104,10 +104,10 @@ Graphics:
 		;-To obtain the horizontal midpoint of both, just divide by 2: 16x16: 8px from left, 8x8: 4px from the left.
 		;-Take the half-horizontal position of the body of sprite, subtract by half-horizontal of the icon.
 		;Therefore the formula is:
-		;IconCenterPlacement = (WidthOfBody/2) - (WidthOfIcons/2)
+		;IconCenterPlacement = (WidthOfBody/2) - (WidthOfEachIcon/2)
 		;Where:
 		;WidthOfBody = The width, in pixels, of the body of the sprite (the egg part of the sprite in this example)
-		;WidthOfIcons = the width of the icons, in pixels.
+		;WidthOfIcons = the width of each icon, in pixels.
 		;
 		;In this example, WidthOfBody = 16, WidthOfIcons = 8:
 		;4 = (16/2) - (8/2)

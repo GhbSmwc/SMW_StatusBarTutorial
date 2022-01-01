@@ -1,0 +1,60 @@
+<html>
+	<head>
+		<style>
+			html {
+			background-color: #000207;
+			color: white;
+			font-family: sans-serif;
+			}
+			
+			table, th, td {
+			border: 1px solid white;
+			border-collapse: collapse;
+			}
+			
+			span.NoLineBreak {
+				white-space: nowrap;
+			}
+			
+			abbr{cursor: help;}
+		</style>
+	</head>
+	
+<a href="../HowToUseTheStatusBar.html#SpritePositioningInfo_Back">Back</a><br>
+<h1>Understanding positioning</h1>
+<p>All the resources here to draw HUD elements on sprites needs a displacement from their sprite &ldquo;origin&rdquo;-- the position obtained after calling <kbd>GetDrawInfo</kbd> written to <kbd>$00</kbd> and <kbd>$01</kbd>.</p>
+
+<p>Sprites have their &ldquo;origin&rdquo; X-position generally at the left edge of their body, for vertical position of the said origin, it is usually 16 pixels from the bottom (the &ldquo;feet&rdquo;) for object-interacting sprites and the top-left of the minimum
+bounding box for most non-object-interacting sprites:<br>
+<img src="SpritePositionPoints.png">
+</p>
+
+<p>Not all custom sprites are like this due to it being coded by different people. An easy way to find its origin is to simply use <kbd>$00</kbd> and <kbd>$01</kbd> (after calling <kbd>GetDrawInfo</kbd>) and write to <kbd>$02</kbd> and <kbd>$03</kbd>,
+like this:
+<table><tr><td><pre>	LDA $00
+	STA $02
+	LDA $01
+	STA $03</pre></td></tr></table>
+And then immediately call <kbd>WriteStringAsSpriteOAM</kbd> without using any centering codes. In the game, on the first tile placed (the leftmost tile when displaying a string (specifically numbers)), <i>its</i> top-left corner will point to where the sprite origin is located at:
+<img src="SpriteOrigin.png">
+</p>
+
+<p>Now in the above example shown, the sprite is 16px wide, finding the midpoint on the horizontal axis is very easy: divide the width by 2 and you get 8. So to obtain the offset from the origin, just take $00, add by $08, write to $03, then call
+<kbd>GetStringXPositionCentered</kbd>.</p>
+
+<p>However, when dealing with repeating icons, it is a whole another story. That routine can accept any displacement amount besides 8 pixels. In the test sprite <kbd>StatusBarTutorial/Pixi_CustomSprite/TestSprite_RepeatedIcons.asm</kbd>,
+the horizontal offset for the center point from the origin is <kbd>+4</kbd>:
+<table><tr><td><pre>			LDA $00				;\X position, the body of the sprite is 16x16, and each icon is 8x8.
+			CLC				;|
+			ADC #$04			;|
+			STA $02				;/</pre></td></tr></table><br>
+Because of this:<br>
+<img src="CenterRepeatingIcons.png"><br>
+The icons themselves have an origin at their top-left corner as well. While 8-pixel itself is halfway of a 16x16 sprite, this would place the left edge of the icon in the center of the body rather than the icon's center:<br>
+<img src="IncorrectCentering.png"><br>
+
+The formula to instantly find the displacement is <kbd>IconCenterPlacement = (WidthOfBody/2) - (WidthOfEachIcon/2)</kbd>. Note that this only works if the sprite's origin is at the top-left of its minimum bounding box, if not, then
+the formula would have to be <kbd>IconCenterPlacement = GetToCenterOfSpriteFromOrigin - (WidthOfEachIcon/2)</kbd>. Where <kbd>GetToCenterOfSpriteFromOrigin</kbd> means a signed value representing an offset from the origin of the sprite.
+Here is an example of what I mean using the giant masked koopa boss in its &ldquo;mask&rdquo; form:<br>
+<img src="WhenSprHaveOriginNotAtLeftEdge.png">
+</p>
