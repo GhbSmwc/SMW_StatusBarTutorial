@@ -1997,10 +1997,15 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 library folder. They have limitations that each ASM file are isolated and cannot reference each other from them. Plus, some of these subroutines may call each other within one.</p>
 
 <p>Don't forget the graphics, see <kbd>StatusBarTutorial/ExGFX</kbd>. Filenames are obvious.</p>
+
+<p>Note: Due to sprites can display no tile by placing them offscreen (<kbd>OAM Y position = $F0</kbd> rather than a tile number, such as status bar tile <kbd>$FC</kbd>), writing digits using the following routines will always require a string-styled system
+like how the RAM defined in <kbd>!Scratchram_CharacterTileTable</kbd> is being used by <kbd>SupressLeadingZeros</kbd>.</p>
+
 <h3 id="PixiSprite"><a href="#PixiSpriteBack">^</a>Pixi custom sprites</h3>
 <p>I coded some templates in the <kbd>Pixi_CustomSprite</kbd> folder. To play around with them, insert the sprite (make sure you use the shared subroutines prior to this), place it in a level and use the D-pad to test the values.</p>
 <p>For existing custom sprites, you'll have to edit them to display values.</p>
 <p>I provided a template/example, see the ASM files in <kbd>StatusBarTutorial/Pixi_CustomSprite</kbd>.</p>
+
 <h3 id="HUDSprites"><a href="#HUDSpritesBack">^</a>HUD-like sprites</h3>
 <p>I provided a patch that merely writes OAM tiles to the screen (does not occupy any types of sprite slots (sprite slots for normal sprites (the ones that take 12/22 slots, by smw's enemies and pixi), cluster, extended, minor extended, bounce sprite, etc.)).
 See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>. Again, use shared subroutines.</p>
