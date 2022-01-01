@@ -159,7 +159,7 @@ GetStringXPositionCentered:
 ;-$02: Gets displaced by $07 for each icon written.
 ;-$03: Gets displaced by $08 for each icon written.
 ;Destroyed:
-;-$0A: Will be [max(0, Total-NumberOfFilledIcons)] when routine is finished, used as a countdown on how many full tiles to write.
+;-$0A: Will be [max(0, NumberOfFilledIcons-Total)] when routine is finished, used as a countdown on how many full tiles to write.
 ;-$0B: Will be #$00 when routine is finished, used as a countdown on how many left to write.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	WriteRepeatedIconsAsOAM:
@@ -540,7 +540,7 @@ GetStringXPositionCentered16Bit:
 ;Output:
 ;-$00 to $03: Overwritten as each tile displaced
 ;Overwritten:
-;-$0A: Will be [max(0, Total-NumberOfFilledIcons)] when routine is finished, used as a countdown on how many full tiles to write.
+;-$0A: Will be [max(0, NumberOfFilledIcons-Total)] when routine is finished, used as a countdown on how many full tiles to write.
 ;-$0B: Will be 0 when routine finished, used as a countdown on how many total tiles to write
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WriteRepeatedIconsAsOAM_OAMOnly:
