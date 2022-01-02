@@ -115,7 +115,8 @@ WriteStringAsSpriteOAM:
 ;Input:
 ;-X index: How many characters.
 ;-$00: Sprite OAM X position, obtained from calling getdrawinfo.
-;-$03: Offset displacement (signed) from the sprite's origin X position (Value in $00 + value in $03)
+;-$03: X position of the point the string to be centered with, relative to the sprite's origin
+; (this routine takes $00, add by whats in $03, and stores to $02)
 ;Output:
 ;-$02: X position of the string, for "WriteStringAsSpriteOAM" subroutine.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -236,7 +237,8 @@ GetStringXPositionCentered:
 ;Displacement = (signed) displacement between each icon.
 ;
 ;Input:
-;-$02: X position relative to screen border (signed, you can take $00/$01, offset it (add by some number), and write on here).
+;-$02: X position of the point to center with (signed, you can take $00/$01,
+; offset it (add by some number), and write on here), relative to screen border.
 ;-$03: Same as above but Y position
 ;-$04: X Displacement for each icon (signed)
 ;-$05: Y Displacement for each icon (signed)

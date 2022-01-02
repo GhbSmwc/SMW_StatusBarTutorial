@@ -2118,7 +2118,7 @@ $0A		"/"
 			</tr>
 			<tr>
 				<td><kbd>$03</kbd> (1 byte)</td>
-				<td>Offset displacement (signed)</td>
+				<td>X position of the point the string to be centered with, relative to the sprite's origin (PointToCenterAround = Value in $00 + value in $03)</td>
 			</tr>
 		</table>
 		<br>16-bit:
@@ -2133,7 +2133,7 @@ $0A		"/"
 			</tr>
 			<tr>
 				<td><kbd>$00</kbd> to <kbd>$01</kbd> (2 bytes)</td>
-				<td>The position you want the string to be centered around on.</td>
+				<td>The X position you want the string to be centered around on.</td>
 			</tr>
 		</table>
 	</td>
@@ -2188,11 +2188,11 @@ $0A		"/"
 			</tr>
 			<tr>
 				<td><kbd>$04</kbd> (1 byte)</td>
-				<td>Horizontal displacement between each icon (signed)</td>
+				<td>Horizontal displacement between each icon (8-bit signed)</td>
 			</tr>
 			<tr>
 				<td><kbd>$05</kbd> (1 byte)</td>
-				<td>Vertical displacement between each icon (signed)</td>
+				<td>Vertical displacement between each icon (8-bit signed)</td>
 			</tr>
 			<tr>
 				<td><kbd>$06</kbd> (1 byte)</td>
@@ -2227,19 +2227,19 @@ $0A		"/"
 			</tr>
 			<tr>
 				<td><kbd>$00</kbd> to <kbd>$01</kbd> (2 bytes)</td>
-				<td>X position (signed)</td>
+				<td>X position of the first tile relative to screen border (16-bit signed)</td>
 			</tr>
 			<tr>
 				<td><kbd>$02</kbd> to <kbd>$03</kbd> (2 bytes)</td>
-				<td>Y position (signed)</td>
+				<td>Y position of the first tile relative to screen border (16-bit signed)</td>
 			</tr>
 			<tr>
 				<td><kbd>$04</kbd> (1 byte)</td>
-				<td>X displacement (8-bit signed)</td>
+				<td>Horizontal displacement between each icon (8-bit signed)</td>
 			</tr>
 			<tr>
 				<td><kbd>$05</kbd> (1 byte)</td>
-				<td>Y displacement (8-bit signed)</td>
+				<td>Vertical displacement between each icon (8-bit signed)</td>
 			</tr>
 			<tr>
 				<td><kbd>$06</kbd> (1 byte)</td>
@@ -2322,8 +2322,10 @@ $0A		"/"
 		</table>
 	</td>
 	<td>
-		Writes repeated icons into OAM. X and Y displacement refers to each displacement from the first tile written (first tile starts at <kbd>$02</kbd> and <kbd>$03</kbd>,
-		and gets displaced for each tile from it).
+		<p>Writes repeated icons into OAM.</p>
+		<p>Horizontal and vertical displacement refers to each displacement (in pixels) of each tile starting from the first tile being written. Negative numbers (<kbd>$80-$FF</kbd>) would write each tile to the left or up and positive numbers (<kbd>$01-$7F</kbd>)
+		would write each to the right or down. This also means it affects the &ldquo;fill direction&rdquo; (e.g if horizontal displacement is <kbd>$F8</kbd>, the icons fill right-to-left) A displacement of <kbd>$00</kbd> means all the icons will be on
+		the vertical and/or horizontal axis. Normally, you'll want a displacement value of <kbd>$F8</kbd> or <kbd>$08</kbd> on one axis with the other being <kbd>$00</kbd>.</p>
 	</td>
 </tr>
 <tr>
@@ -2339,11 +2341,11 @@ $0A		"/"
 			</tr>
 			<tr>
 				<td><kbd>$02</kbd> (1 byte)</td>
-				<td>X position relative to screen border (signed, you can take $00/$01, offset it (add by some number), and write on here).</td>
+				<td>X position relative to screen border (signed, you can take $00/$01, offset it (add by some number), and write on here) of the point to be centered around with.</td>
 			</tr>
 			<tr>
 				<td><kbd>$03</kbd> (1 byte)</td>
-				<td>Y position relative to screen border (signed, you can take $00/$01, offset it (add by some number), and write on here).</td>
+				<td>Y position relative to screen border (signed, you can take $00/$01, offset it (add by some number), and write on here) of the point to be centered around with.</td>
 			</tr>
 			<tr>
 				<td><kbd>$04</kbd> (1 byte)</td>
@@ -2366,11 +2368,11 @@ $0A		"/"
 			</tr>
 			<tr>
 				<td><kbd>$00</kbd> to <kbd>$01</kbd> (2 bytes)</td>
-				<td>X position, relative to screen border.</td>
+				<td>X position of the point to be centered around with, relative to screen border.</td>
 			</tr>
 			<tr>
 				<td><kbd>$02</kbd> to <kbd>$03</kbd> (2 bytes)</td>
-				<td>Y position, relative to screen border.</td>
+				<td>Y position of the point to be centered around with, relative to screen border.</td>
 			</tr>
 			<tr>
 				<td><kbd>$04</kbd> (1 byte)</td>
