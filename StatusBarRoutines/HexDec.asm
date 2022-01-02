@@ -540,13 +540,13 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	; Input:
 	;  -!Scratchram_16bitHexDecOutput to !Scratchram_16bitHexDecOutput+4 = a 5-digit 0-9 per byte (used for
 	;   1-digit per 8x8 tile, using my 4/5 hexdec routine; ordered from high to low digits)
-	;  -X = the location within the table to place the string in. X=$00 means the starting byte.
+	;  -X = the starting location within the table to place the string in. X=$00 means the starting byte.
 	; Output:
 	;  -!Scratchram_CharacterTileTable = A table containing a string of numbers with
 	;   unnecessary spaces and zeroes stripped out.
-	;  -X = the location to place string AFTER the numbers. Also use for
-	;   indicating the last digit (or any tile) number for how many tiles to
-	;   be written to the status bar, overworld border, etc.
+	;  -X = the location to place string AFTER the numbers (increments every character written). Also use
+	;   for indicating the last digit (or any tile) number for how many tiles to be written to the status
+	;   bar, overworld border, etc.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	SupressLeadingZeros:
 		LDY #$00				;>Start looking at the leftmost (highest) digit
@@ -591,7 +591,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				INY						;\Write next digit
 				CPY #$04					;|
 				BCC ..FoundDigit				;/
-				LDA #$24					;\Write decimal point
+				LDA #$24					;\Write decimal point (".")
 				STA !Scratchram_CharacterTileTable,x		;/
 				INX
 				LDA !Scratchram_16bitHexDecOutput+$04		;\Write tenths place.
@@ -622,7 +622,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				INY						;\Write next digit
 				CPY #$03					;|
 				BCC ..FoundDigit				;/
-				LDA #$24					;\Write decimal point
+				LDA #$24					;\Write decimal point (".")
 				STA !Scratchram_CharacterTileTable,x		;/
 				INX
 				LDA !Scratchram_16bitHexDecOutput+$03		;\Write tenths place.

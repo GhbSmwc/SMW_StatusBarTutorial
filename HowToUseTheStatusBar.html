@@ -342,70 +342,133 @@ should increment the highword), before calling the routine, and also write the m
 
 <p>Here is a cheatsheet of all the HexDec routines in <kbd>HexDec.asm</kbd>:
 <table>
-<tr>
-<th>Subroutine</th><th>Maximum number of digits</th><th>Input</th><th>Output</th>
-</tr>
-<tr>
-<td><kbd>EightBitHexDec</kbd></td>
-<td><kbd>2</kbd> (or <kbd>3</kbd> when called again for the hundreds)</td>
-<td>A (8-bit/1-byte)</td>
-<td>
-<ul>
-<li>A = 1s place</li>
-<li>X = 10s place, if A is &gt;99, the tens place will start picking graphics other than numbers.</li>
-</ul>
-</td>
-</tr>
-<tr>
-<td><kbd>EightBitHexDec3Digits</kbd></td>
-<td><kbd>3</kbd></td>
-<td>A (8-bit/1-byte)</td>
-<td>
-<ul>
-<li>A = 1s place</li>
-<li>X = 10s place</li>
-<li>Y = 100s place</li>
-</ul>
-</td>
-</tr>
-<tr>
-<td><kbd>SixteenBitHexDecDivision</kbd></td>
-<td><kbd>5</kbd></td>
-<td><kbd>$00</kbd>-<kbd>$01</kbd> (16-bit/2-byte)</td>
-<td>
-<table>
-<tr><th>Relative to RAM being defined</th><th>RAM used in normal hack</th><th>RAM used under SA-1</th><th>Place value</th></tr>
-<tr><td><kbd>!Scratchram_16bitHexDecOutput+0</kbd></td><td><kbd>$02</kbd></td><td><kbd>$04</kbd></td><td>10,000s place</td></tr>
-<tr><td><kbd>!Scratchram_16bitHexDecOutput+1</kbd></td><td><kbd>$03</kbd></td><td><kbd>$05</kbd></td><td>1,000s place</td></tr>
-<tr><td><kbd>!Scratchram_16bitHexDecOutput+2</kbd></td><td><kbd>$04</kbd></td><td><kbd>$06</kbd></td><td>100s place</td></tr>
-<tr><td><kbd>!Scratchram_16bitHexDecOutput+3</kbd></td><td><kbd>$05</kbd></td><td><kbd>$07</kbd></td><td>10s place</td></tr>
-<tr><td><kbd>!Scratchram_16bitHexDecOutput+4</kbd></td><td><kbd>$06</kbd></td><td><kbd>$08</kbd></td><td>1s place</td></tr>
-</table>
-</td>
-</tr>
-<tr>
-<td><kbd>Convert32bitIntegerToDecDigits</kbd></td>
-<td><kbd>1</kbd>-<kbd>10</kbd> digits, defined as <kbd>!MaxNumberOfDigits</kbd></td>
-<td><kbd>$00</kbd>-<kbd>$03</kbd> (32-bit/4-byte)</td>
-<td>
-<kbd>!Scratchram_32bitHexDecOutput</kbd> to <kbd>!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)</kbd>: Contains value 0-9 on every byte,
-in decreasing significant digits (last byte is always the 1s place). Formula to get what RAM of a given digit:<br><br><kbd>!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)-(DigitIndex)</kbd><br><br>
-Where <kbd>!MaxNumberOfDigits</kbd> indicates the largest number of digits in your entire hack, up to 10.<br>
-Where <kbd>DigitIndex</kbd>, ranging from 0 to <kbd>!MaxNumberOfDigits-1</kbd> represent which digit in positional notation:
-<ul>
-<li>DigitIndex = 0: 1s</li>
-<li>DigitIndex = 1: 10s</li>
-<li>DigitIndex = 2: 100s</li>
-<li>DigitIndex = 3: 1,000s</li>
-<li>DigitIndex = 4: 10,000s</li>
-<li>...</li>
-<li>DigitIndex = 9: 1,000,000,000s (maximum unsigned 32-bit integer is 4,294,967,295)</li>
-</ul>
-
-Due to the maximum number of digits giving out such a huge combinations, I provided <a href="Readme_Files/JS_32BitHexDecRAMUsage.html" id="32BitHexDec_Back">this JS tool</a> that you can adjust to find out its data layout.
-</td>
-</tr>
-
+	<tr>
+		<th>Subroutine</th><th>Maximum number of digits</th><th>Input</th><th>Output</th>
+	</tr>
+	<tr>
+		<td><kbd>EightBitHexDec</kbd></td>
+		<td><kbd>2</kbd> (or <kbd>3</kbd> when called again for the hundreds)</td>
+		<td>A (8-bit/1-byte)</td>
+		<td>
+			<table>
+				<tr>
+					<th>Output</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<td><kbd>A register</kbd> (8-bit)</td>
+					<td>1s place</td>
+				</tr>
+				<tr>
+					<td><kbd>X index</kbd> (8-bit)</td>
+					<td>10s place, if the input <kbd>A register</kbd> is &gt;99, will start using values beyond 9, which picks graphics besides numbers.</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td><kbd>EightBitHexDec3Digits</kbd></td>
+		<td><kbd>3</kbd></td>
+		<td>A (8-bit/1-byte)</td>
+		<td>
+			<table>
+				<tr>
+					<th>Output</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<td><kbd>A register</kbd> (8-bit)</td>
+					<td>1s place</td>
+				</tr>
+				<tr>
+					<td><kbd>X index</kbd> (8-bit)</td>
+					<td>10s place</td>
+				</tr>
+				<tr>
+					<td><kbd>Y index</kbd> (8-bit)</td>
+					<td>100s place</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td><kbd>SixteenBitHexDecDivision</kbd></td>
+		<td><kbd>5</kbd></td>
+		<td><kbd>$00</kbd>-<kbd>$01</kbd> (16-bit/2-byte)</td>
+		<td>
+			<table>
+				<tr><th>Relative to RAM being defined</th><th>RAM used in normal hack</th><th>RAM used under SA-1</th><th>Place value</th></tr>
+				<tr><td><kbd>!Scratchram_16bitHexDecOutput+0</kbd></td><td><kbd>$02</kbd></td><td><kbd>$04</kbd></td><td>10,000s place</td></tr>
+				<tr><td><kbd>!Scratchram_16bitHexDecOutput+1</kbd></td><td><kbd>$03</kbd></td><td><kbd>$05</kbd></td><td>1,000s place</td></tr>
+				<tr><td><kbd>!Scratchram_16bitHexDecOutput+2</kbd></td><td><kbd>$04</kbd></td><td><kbd>$06</kbd></td><td>100s place</td></tr>
+				<tr><td><kbd>!Scratchram_16bitHexDecOutput+3</kbd></td><td><kbd>$05</kbd></td><td><kbd>$07</kbd></td><td>10s place</td></tr>
+				<tr><td><kbd>!Scratchram_16bitHexDecOutput+4</kbd></td><td><kbd>$06</kbd></td><td><kbd>$08</kbd></td><td>1s place</td></tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td><kbd>Convert32bitIntegerToDecDigits</kbd></td>
+		<td><kbd>1</kbd>-<kbd>10</kbd> digits, defined as <kbd>!MaxNumberOfDigits</kbd></td>
+		<td><kbd>$00</kbd>-<kbd>$03</kbd> (32-bit/4-byte)</td>
+		<td>
+			<kbd>!Scratchram_32bitHexDecOutput</kbd> to <kbd>!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)</kbd>: Contains value 0-9 on every byte,
+			in decreasing significant digits (last byte is always the 1s place). Formula to get what RAM of a given digit:<br><br><kbd>!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)-(DigitIndex)</kbd><br><br>
+			Where <kbd>!MaxNumberOfDigits</kbd> indicates the largest number of digits in your entire hack, up to 10.<br>
+			Where <kbd>DigitIndex</kbd>, ranging from 0 to <kbd>!MaxNumberOfDigits-1</kbd> represent which digit in positional notation:
+			<ul>
+				<li>DigitIndex = 0: 1s</li>
+				<li>DigitIndex = 1: 10s</li>
+				<li>DigitIndex = 2: 100s</li>
+				<li>DigitIndex = 3: 1,000s</li>
+				<li>DigitIndex = 4: 10,000s</li>
+				<li>...</li>
+				<li>DigitIndex = 9: 1,000,000,000s (maximum unsigned 32-bit integer is 4,294,967,295)</li>
+			</ul>
+			
+			Due to the maximum number of digits giving out such a huge combinations, I provided <a href="Readme_Files/JS_32BitHexDecRAMUsage.html" id="32BitHexDec_Back">this JS tool</a> that you can adjust to find out its data layout.
+		</td>
+	</tr>
+	<tr>
+		<td><kbd>SupressLeadingZeros</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast2</kbd>, and <kbd>SupressLeadingZerosPercentageLeaveLast3</kbd></td>
+		<td>5 digits</td>
+		<td>
+			<table>
+				<tr>
+					<th>Input</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<td><kbd>!Scratchram_16bitHexDecOutput</kbd> to <kbd>!Scratchram_16bitHexDecOutput+4</kbd> (5 bytes)</td>
+					<td>A string of characters.</td>
+				</tr>
+				<tr>
+					<td><kbd>X index</kbd> (8-bit)</td>
+					<td>The starting location within the table to place the string in. X=$00 means the starting byte.</td>
+				</tr>
+			</table>
+			
+			
+		</td>
+		<td>
+			<table>
+				<tr>
+					<th>Output</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<td><kbd>!Scratchram_CharacterTileTable</kbd> to <kbd>!Scratchram_CharacterTileTable+(NumberOfChar-1)</kbd> (NumberOfChar bytes)</td>
+					<td>A string (without leading zeroes)</td>
+				</tr>
+				<tr>
+					<td><kbd>X index</kbd> (8-bit)</td>
+					<td>
+						The location to place string AFTER the numbers (increments every character written). Also use for indicating the last digit (or
+						any tile) number for how many tiles to be written to the status bar, overworld border, etc.
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
 </table>
 </p>
 <p>Lets start with something very simple with small number of digits.</p>
@@ -1998,9 +2061,14 @@ library folder. They have limitations that each ASM file are isolated and cannot
 
 <p>Don't forget the graphics, see <kbd>StatusBarTutorial/ExGFX</kbd>. Filenames are obvious.</p>
 
-<p>Note: Due to sprites can display no tile by placing them offscreen (<kbd>OAM Y position = $F0</kbd> rather than a tile number, such as status bar tile <kbd>$FC</kbd>), writing digits using the following routines will always require a string-styled system
-like how the RAM defined in <kbd>!Scratchram_CharacterTileTable</kbd> is being used by <kbd>SupressLeadingZeros</kbd>.</p>
+<h3>Notes</h3>
+<ul>
+<li>Due to sprites can display &ldquo;no tile&rdquo; by placing them offscreen (<kbd>OAM Y position = $F0</kbd> rather than a tile number, such as status bar tile <kbd>$FC</kbd>), writing digits using the following routines will always require a string-styled system
+like how the RAM defined in <kbd>!Scratchram_CharacterTileTable</kbd> is being used by <kbd>SupressLeadingZeros</kbd>. Almost everything is performed similarly to the layer 3 status bar, up until you are done writing to <kbd>!Scratchram_CharacterTileTable</kbd>
+(after the last time you write to <kbd>!SupressLeadingZeros</kbd>) is then you are dealing with OAM-related routines.</li>
 
+<li>For repeating icon routines, they OAM directly without conversions, it does merely a loop of writing a given tile numbers and properties.</li>
+</ul>
 <h3 id="PixiSprite"><a href="#PixiSpriteBack">^</a>Pixi custom sprites</h3>
 <p>I coded some templates in the <kbd>Pixi_CustomSprite</kbd> folder. To play around with them, insert the sprite (make sure you use the shared subroutines prior to this), place it in a level and use the D-pad to test the values.</p>
 <p>For existing custom sprites, you'll have to edit them to display values.</p>
