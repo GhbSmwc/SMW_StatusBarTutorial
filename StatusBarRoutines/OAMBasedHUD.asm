@@ -1,12 +1,19 @@
 ;List of routines. Note: "OAMOnly" means only directly writing to OAM without using sprite slots.
 ;-WriteStringAsSpriteOAM
 ;-GetStringXPositionCentered
+;-ConvertStringChars
 ;-WriteRepeatedIconsAsOAM
 ;-CenterRepeatingIcons
 ;-WriteStringAsSpriteOAM_OAMOnly
 ;-GetStringXPositionCentered16Bit
 ;-WriteRepeatedIconsAsOAM_OAMOnly
 ;-CenterRepeatingIcons_OAMOnly
+;
+;Other routines:
+;-ConvertStringChars
+;-ConvertStringChars_OAMOnly
+;-FindNFreeOAMSlot
+;-CheckIf8x8IsOffScreen
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;This routine writes an 8x8 string (sequence of tile numbers in this sense)
 ;to OAM (horizontally). Note that this only writes 8x8s.
@@ -39,19 +46,7 @@
 ;This routine is mainly useful for displaying numbers.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WriteStringAsSpriteOAM:
-	PHY
-	LDX $04
-	.LoopConvert
-		;this converts string to graphic tile numbers. NOTE: does not work if graphics are in different GFX pages.
-		LDA !Scratchram_CharacterTileTable,x
-		TAY
-		LDA [$06],y
-		STA !Scratchram_CharacterTileTable,x
-		
-		..Next
-			DEX
-			BPL .LoopConvert
-	PLY
+	JSL ConvertStringChars
 	LDX #$00	;>Initialize loop count
 	.LoopWrite
 			
@@ -87,6 +82,55 @@ WriteStringAsSpriteOAM:
 			CPX $04
 			BEQ .LoopWrite
 			BCC .LoopWrite
+	RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Convert strings to tile graphics (for pixi sprites).
+;
+;Input:
+;$04 (1 byte) = Number of characters, minus 1
+;$06 (3 bytes) = Table location of each character to convert to.
+;Output: !Scratchram_CharacterTileTable (NumberOfChar bytes): converted
+; to tile numbers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ConvertStringChars:
+	PHY
+	LDX $04
+	.LoopConvert
+		;this converts string to graphic tile numbers. NOTE: does not work if graphics are in different GFX pages.
+		LDA !Scratchram_CharacterTileTable,x
+		TAY
+		LDA [$06],y
+		STA !Scratchram_CharacterTileTable,x
+		
+		..Next
+			DEX
+			BPL .LoopConvert
+	PLY
+	RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Convert strings to tile graphics (for OAM-only sprites).
+;
+;Input:
+;$04 (1 byte) = Number of characters, minus 1
+;$07 (3 bytes) = Table location of each character to convert to.
+;Output: !Scratchram_CharacterTileTable (NumberOfChar bytes): converted
+; to tile numbers
+;
+;Had to duplicate the routine due to scratch RAM layout being different.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ConvertStringChars_OAMOnly:
+	PHY
+	LDX $04
+	.LoopConvert
+		LDA !Scratchram_CharacterTileTable,x
+		TAY
+		LDA [$07],y
+		STA !Scratchram_CharacterTileTable,x
+		
+		..Next
+			DEX
+			BPL .LoopConvert
+	PLY
 	RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;This routine calculates where to position the string horizontally
@@ -352,18 +396,7 @@ WriteStringAsSpriteOAM_OAMOnly:
 	PHK
 	PLB
 	;Convert digits into sprite graphics
-	PHY
-	LDX $04
-	.LoopConvert
-		LDA !Scratchram_CharacterTileTable,x
-		TAY
-		LDA [$07],y
-		STA !Scratchram_CharacterTileTable,x
-		
-		..Next
-			DEX
-			BPL .LoopConvert
-	PLY
+	JSL ConvertStringChars_OAMOnly
 	;Is enough open slots available?
 	REP #$10			;\Check if enough slots found. If there are less open slots then number of tiles to write
 	LDX $04				;|don't write at all.

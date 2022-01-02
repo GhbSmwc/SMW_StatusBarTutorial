@@ -7,16 +7,30 @@
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../SharedSub_Defines/SubroutineDefs.asm"
 
-!TwoNumbers = 1
-;^0 = 1 number
-; 1 = 2 numbers (X/Y)
+;Display setting
+!NumberDisplayType = 1
+ ;^0 = 1 number
+ ; 1 = 2 numbers (X/Y)
+ ; 2 = percentage
+;Percentage display settings
+ !Default_PercentagePrecision = 0
+  ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
+  ; with !Scratchram_PercentageFixedPointPrecision.
+  
+ !CapAt100 = 1
+  ;^0 = allow percentage to display values greater than 100, 1 = cap at 100.
+
+ !AvoidRounding0 = 1
+  ;^0 = allow rounding towards 0%, 1 = round to 1%, 0.1%, or 0.01%.
+ !AvoidRounding100 = 1
+  ;^0 = allow rounding towards 100%, 1 = round to 99%, 99.9% or 99.99%.
 
 !Default_RAMToDisplay = $60
 ;^[2 bytes] Displays the decimal number of this RAM.
 !Default_RAMToDisplay2 = $62
-;^[2 bytes] Second number to display, if enabled by !TwoNumbers
+;^[2 bytes] Second number to display, if enabled by !NumberDisplayType
 
-;Digit tiles. See GraphicTable for each digit tile number.
+;character tile properties (applies to all characters). See GraphicTable for each character.
  !DigitProperties = %00110001
   ;^YXPPCCCT
 
@@ -44,66 +58,69 @@ print "MAIN ",pc
 	RTL
 
 SpriteCode:
-	PHB : PHK : PLB
-	LDA $9D
-	BNE .SkipFreeze
-	
-	.ControllerChangeNumberVert
-		LDA $15
-		BIT.b #%00001000
-		BNE ..Up
-		BIT.b #%00000100
-		BNE ..Down
-		BRA +
-	
-		..Up
-			REP #$20
-			LDA !Default_RAMToDisplay
-			CMP #$FFFF
-			BEQ ++
-			INC A
-			STA !Default_RAMToDisplay
-			++
-			SEP #$20
-			BRA +
-		..Down
-			REP #$20
-			LDA !Default_RAMToDisplay
-			BEQ ++
-			DEC A
-			STA !Default_RAMToDisplay
-			++
-			SEP #$20
-	+
-	.ControllerChangeNumberHoriz
-		LDA $15
-		BIT.b #%00000001
-		BNE ..Right
-		BIT.b #%00000010
-		BNE ..Left
-		BRA +
+	;Controls that adjust the number
+		PHB : PHK : PLB
+		LDA $9D
+		BNE .SkipFreeze
 		
-		..Right
-			REP #$20
-			LDA !Default_RAMToDisplay2
-			CMP #$FFFF
-			BEQ ++
-			INC A
-			STA !Default_RAMToDisplay2
-			++
-			SEP #$20
+		.ControllerChangeNumberVert
+			LDA $15
+			BIT.b #%00001000
+			BNE ..Up
+			BIT.b #%00000100
+			BNE ..Down
 			BRA +
-		..Left
-			REP #$20
-			LDA !Default_RAMToDisplay2
-			BEQ ++
-			DEC A
-			STA !Default_RAMToDisplay2
-			++
-			SEP #$20
-	+
-	.SkipFreeze
-	JSR DrawSprite
+		
+			..Up
+				REP #$20
+				LDA !Default_RAMToDisplay
+				CMP #$FFFF
+				BEQ ++
+				INC A
+				STA !Default_RAMToDisplay
+				++
+				SEP #$20
+				BRA +
+			..Down
+				REP #$20
+				LDA !Default_RAMToDisplay
+				BEQ ++
+				DEC A
+				STA !Default_RAMToDisplay
+				++
+				SEP #$20
+		+
+		.ControllerChangeNumberHoriz
+			LDA $15
+			BIT.b #%00000001
+			BNE ..Right
+			BIT.b #%00000010
+			BNE ..Left
+			BRA +
+			
+			..Right
+				REP #$20
+				LDA !Default_RAMToDisplay2
+				CMP #$FFFF
+				BEQ ++
+				INC A
+				STA !Default_RAMToDisplay2
+				++
+				SEP #$20
+				BRA +
+			..Left
+				REP #$20
+				LDA !Default_RAMToDisplay2
+				BEQ ++
+				DEC A
+				STA !Default_RAMToDisplay2
+				++
+				SEP #$20
+		+
+		.SkipFreeze
+	;Handle graphics
+		JSR DrawSprite
+	;And done.
 	PLB
 	RTS
 	
@@ -114,6 +131,7 @@ DrawSprite:
 Graphics:
 	%GetDrawInfo()		;>We need: Y: OAM index, $00 and $01: Position. It does not mess with any other data in $02-$0F. Like I said, don't push, then call this without pulling in between pushing and calling GetDrawInfo.
 	;Draw the number string
+	if or(equal(!NumberDisplayType, 0), equal(!NumberDisplayType, 1))
 		PHX				;>Preserve sprite index
 		PHY
 		LDA $00				;\Preserve XY position in $00-$01
@@ -127,7 +145,7 @@ Graphics:
 		JSL !SixteenBitHexDecDivision	
 		LDX #$00			;>Start the string at position 0 for suppressing leading zeroes in string
 		JSL !SupressLeadingZeros	;We have the string at !Scratchram_CharacterTileTable and we have X acting as how many characters/sprite tiles so far written.
-		if !TwoNumbers != 0
+		if !NumberDisplayType != 0
 			;Draw the second number "X/Y", the "/Y" part.
 			;"/" symbol
 				LDA #$0A
@@ -168,7 +186,73 @@ Graphics:
 		STA $08				;/
 		JSL !WriteStringAsSpriteOAM	;>Write to OAM, we also have Y as the OAM index.
 		PLX				;>Restore sprite index
-	
+	else
+		PHX
+		;First, get the percentage
+			REP #$20
+			LDA !Default_RAMToDisplay
+			STA !Scratchram_PercentageQuantity
+			LDA !Default_RAMToDisplay2
+			STA !Scratchram_PercentageMaxQuantity
+			LDA #!Default_PercentagePrecision
+			STA !Scratchram_PercentageFixedPointPrecision
+			SEP #$20
+			JSL !ConvertToPercentage
+		;Cap at 100
+			if !CapAt100 != 0
+				.CheckExceed100
+					REP #$30
+					LDX.w #(10**(!Default_PercentagePrecision+2))
+					;Check the high word of the XXXX (RAM_00-RAM_03 = $XXXXYYYY)
+						LDA $02			;\Any nonzero digits in the high word would mean at least
+						BNE ..Cap100		;/65536 ($00010000), which is guaranteed over 100/1000/10000.
+					;Check low word
+						TXA
+						CMP $00			;\Max compares with RAM_00
+						BCS ..Under		;/If Max >= RAM_00 or RAM_00 is lower, don't set it to max.
+					
+					..Cap100
+						TXA
+						STA $00
+					..Under
+					SEP #$30
+			endif
+		;Round away from 0 and 100
+			if !AvoidRounding0 != 0
+				CPY #$01
+				BNE +
+				REP #$20
+				LDA #$01
+				STA $00
+				STZ $02
+				SEP #$20
+				+
+			endif
+			if !AvoidRounding100 != 0
+				CPY #$02
+				BNE +
+				REP #$20
+				LDA.w #(10**(!Default_PercentagePrecision+2)-1)		;>99%, 99.9%, or 99.99%.
+				STA $00
+				STZ $02
+				SEP #$20
+				+
+			endif
+		;Display the number
+			JSL !SixteenBitHexDecDivision
+			;Since we are dealing with OAM, and at the start of each frame, it clears the OAM (Ypos = $F0),
+			;we don't need to clear a space since it is already done.
+			if !Default_PercentagePrecision == 1
+				;JSL HexDec_SupressLeadingZerosPercentageLeaveLast2
+			elseif !Default_PercentagePrecision == 2
+				;JSL HexDec_SupressLeadingZerosPercentageLeaveLast3
+			endif
+			;LDA #!TileNumb_PercentSymbol			;\Write percent symbol
+			;STA !Scratchram_CharacterTileTable,x		;/
+			;Write to OAM
+				;JSL WriteStringAsSpriteOAM 
+		PLX
+	endif
 	;Draw the body of sprite
 		LDA $00			;\X position
 		STA $0300|!addr,y	;/
