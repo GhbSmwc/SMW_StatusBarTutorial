@@ -445,6 +445,10 @@ should increment the highword), before calling the routine, and also write the m
 					<td><kbd>X index</kbd> (8-bit)</td>
 					<td>The starting location within the table to place the string in. X=$00 means the starting byte.</td>
 				</tr>
+				<tr>
+					<td><kbd>$09</kbd> (1 byte)</td>
+					<td>Character number for decimal point. By default status bar, it must be <kbd>#$24</kbd> to represent the decimal point, for sprite OAM, it must be <kbd>#$0D</kbd>.</td>
+				</tr>
 			</table>
 			
 			
@@ -1696,8 +1700,12 @@ main:
 				
 				LDX #$00
 				if !Default_PercentagePrecision == 1
+					LDA #$24		;\Decimal point
+					STA $09			;/
 					JSL HexDec_SupressLeadingZerosPercentageLeaveLast2
 				elseif !Default_PercentagePrecision == 2
+					LDA #$24		;\Decimal point
+					STA $09			;/
 					JSL HexDec_SupressLeadingZerosPercentageLeaveLast3
 				endif
 				LDA #!TileNumb_PercentSymbol			;\Write percent symbol
@@ -2120,11 +2128,32 @@ as it would make this tutorial unnecessarily long.</p>
 				<td><kbd>$06</kbd> to <kbd>$08</kbd> (3 bytes)</td>
 				<td>
 					24-bit address location of a table for converting characters into graphics (often numbers):
-<table><tr><td><pre>
-Character:	Graphic:
-$00-$09		digits 0-9
-$0A		"/"
-</pre></td></tr></table>
+					<table>
+						<tr>
+							<th>Value</th>
+							<th>Graphic</th>
+						</tr>
+						<tr>
+							<td><kbd>$00-$09</kbd></td>
+							<td>Digits 0-9</td>
+						</tr>
+						<tr>
+							<td><kbd>$0A</kbd></td>
+							<td>"/"</td>
+						</tr>
+						<tr>
+							<td><kbd>$0B</kbd></td>
+							<td>"%"</td>
+						</tr>
+						<tr>
+							<td><kbd>$0C</kbd></td>
+							<td>"!"</td>
+						</tr>
+						<tr>
+							<td><kbd>$0D</kbd></td>
+							<td>"."</td>
+						</tr>
+					</table>
 					Note that the table must all be within a page, not crossing bank borders!
 				</td>
 			</tr>

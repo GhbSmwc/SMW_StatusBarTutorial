@@ -187,16 +187,21 @@ Graphics:
 		JSL !WriteStringAsSpriteOAM	;>Write to OAM, we also have Y as the OAM index.
 		PLX				;>Restore sprite index
 	else
-		PHX
+		PHX		;>Preserve sprite slot index
+		PHY		;>Preserve sprite OAM index
+		LDA $00		;\Preserve OAM XY pos
+		PHA		;|
+		LDA $01		;|
+		PHA		;/
 		;First, get the percentage
 			REP #$20
 			LDA !Default_RAMToDisplay
 			STA !Scratchram_PercentageQuantity
 			LDA !Default_RAMToDisplay2
 			STA !Scratchram_PercentageMaxQuantity
-			LDA #!Default_PercentagePrecision
-			STA !Scratchram_PercentageFixedPointPrecision
 			SEP #$20
+			LDA.b #!Default_PercentagePrecision
+			STA !Scratchram_PercentageFixedPointPrecision
 			JSL !ConvertToPercentage
 		;Cap at 100
 			if !CapAt100 != 0
@@ -222,7 +227,7 @@ Graphics:
 				CPY #$01
 				BNE +
 				REP #$20
-				LDA #$01
+				LDA #$0001
 				STA $00
 				STZ $02
 				SEP #$20
@@ -242,16 +247,53 @@ Graphics:
 			JSL !SixteenBitHexDecDivision
 			;Since we are dealing with OAM, and at the start of each frame, it clears the OAM (Ypos = $F0),
 			;we don't need to clear a space since it is already done.
-			if !Default_PercentagePrecision == 1
-				;JSL HexDec_SupressLeadingZerosPercentageLeaveLast2
+			if !Default_PercentagePrecision == 0
+				LDX #$00
+				JSL !SupressLeadingZeros
+			elseif !Default_PercentagePrecision == 1
+				LDA #$0D
+				STA $09
+				LDX #$00
+				JSL !SupressLeadingZerosPercentageLeaveLast2
 			elseif !Default_PercentagePrecision == 2
-				;JSL HexDec_SupressLeadingZerosPercentageLeaveLast3
+				LDA #$0D
+				STA $09
+				LDX #$00
+				JSL !SupressLeadingZerosPercentageLeaveLast3
 			endif
-			;LDA #!TileNumb_PercentSymbol			;\Write percent symbol
-			;STA !Scratchram_CharacterTileTable,x		;/
-			;Write to OAM
-				;JSL WriteStringAsSpriteOAM 
-		PLX
+			;X = number of characters
+			LDA #$0B					;\Percent symbol
+			STA !Scratchram_CharacterTileTable,x		;/
+			INX
+			PLA				;\Restore OAM XY
+			STA $01				;|
+			PLA				;|
+			STA $00				;/
+			PLY				;>Restore sprite OAM index
+		;Center X position
+			LDA #$08				;\Center to sprite
+			STA $03					;/
+			JSL !GetStringXPositionCentered		;>$02 = center X pos
+		;Y position
+			LDA $01					;\Y position
+			CLC					;|
+			ADC #$10				;/
+			STA $03					;>$03 = Y pos
+			STX $04				;>Number of tiles
+		;Tile table
+			LDA.b #GraphicTable		;\conversion table from numbers to graphic numbers
+			STA $06				;|
+			LDA.b #GraphicTable>>8		;|
+			STA $07				;|
+			LDA.b #GraphicTable>>16		;|
+			STA $08				;/
+			LDA.b #!DigitProperties		;\Properties
+			STA $05				;/
+		;Write to OAM
+			DEX
+			STX $04
+			JSL !WriteStringAsSpriteOAM
+			PLX				;>Restore sprite slot index
 	endif
 	;Draw the body of sprite
 		LDA $00			;\X position
@@ -290,3 +332,6 @@ GraphicTable:
 	db $88				;>Index $08 = for the "8" graphic
 	db $89				;>Index $09 = for the "9" graphic
 	db $8A				;>Index $0A = for the "/" graphic
+	db $8B				;>Index $0B = for the "%" graphic
+	db $8C				;>Index $0C = for the "!" graphic
+	db $8D				;>Index $0D = for the "." graphic

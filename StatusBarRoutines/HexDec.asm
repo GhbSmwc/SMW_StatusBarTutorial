@@ -20,6 +20,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ;Leading zeroes remover (left or aligned digits):
 ; -SupressLeadingZeros
 ; -SupressLeadingZerosPercentageLeaveLast2
+; -SupressLeadingZerosPercentageLeaveLast3
 ; -ConvertToRightAligned
 ; -ConvertToRightAlignedFormat2
 ;Aligned digit to OWB digits:
@@ -574,6 +575,10 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				RTL
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Same as above, but this is for fixed-point numbers.
+	;Input for fixed-point numbers:
+	; -$09: Character number for decimal point, for status bar (by default), it
+	;  must be #$24 for sprite OAM prior calling WriteStringAsSpriteOAM, it
+	;  must be #$0D.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	SupressLeadingZerosPercentageLeaveLast2:
 		;XXX.X% (XXXX.X%)
@@ -591,7 +596,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				INY						;\Write next digit
 				CPY #$04					;|
 				BCC ..FoundDigit				;/
-				LDA #$24					;\Write decimal point (".")
+				LDA $09						;\Write decimal point (".")
 				STA !Scratchram_CharacterTileTable,x		;/
 				INX
 				LDA !Scratchram_16bitHexDecOutput+$04		;\Write tenths place.
@@ -622,7 +627,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				INY						;\Write next digit
 				CPY #$03					;|
 				BCC ..FoundDigit				;/
-				LDA #$24					;\Write decimal point (".")
+				LDA $09						;\Write decimal point (".")
 				STA !Scratchram_CharacterTileTable,x		;/
 				INX
 				LDA !Scratchram_16bitHexDecOutput+$03		;\Write tenths place.

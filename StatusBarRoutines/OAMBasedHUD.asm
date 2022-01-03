@@ -34,6 +34,9 @@
 ;-$06 to $08 (3 bytes): 24-bit address location of the table for converting characters to graphics (such as numbers). Each byte in table lays out as follows:
 ;--$00 to $09 are number tiles, which are for 0-9 digit graphics.
 ;--$0A = "/"
+;--$0B = "%"
+;--$0C = "!"
+;--$0D = "."
 ; Note that all characters must be on the same page!
 ;Output:
 ;-Y index: The OAM index after writing the last tile character.
@@ -89,6 +92,12 @@ WriteStringAsSpriteOAM:
 ;Input:
 ;$04 (1 byte) = Number of characters, minus 1
 ;$06 (3 bytes) = Table location of each character to convert to.
+;!Scratchram_CharacterTileTable (NumberOfChar bytes) = to convert:
+;--$00 to $09 are number tiles, which are for 0-9 digit graphics.
+;--$0A = "/"
+;--$0B = "%"
+;--$0C = "!"
+;--$0D = "."
 ;Output: !Scratchram_CharacterTileTable (NumberOfChar bytes): converted
 ; to tile numbers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -101,6 +110,7 @@ ConvertStringChars:
 		TAY
 		LDA [$06],y
 		STA !Scratchram_CharacterTileTable,x
+		BRA ..Next
 		
 		..Next
 			DEX
@@ -113,6 +123,7 @@ ConvertStringChars:
 ;Input:
 ;$04 (1 byte) = Number of characters, minus 1
 ;$07 (3 bytes) = Table location of each character to convert to.
+;!Scratchram_CharacterTileTable (NumberOfChar bytes) = to convert.
 ;Output: !Scratchram_CharacterTileTable (NumberOfChar bytes): converted
 ; to tile numbers
 ;
@@ -384,9 +395,7 @@ CenterRepeatingIcons:
 ;-$02 to $03: (16-bit) Y position, relative to screen border
 ;-$04 to $05: Number of tiles to write, minus 1.
 ;-$06: Properties (YXPPCCCT), will apply to all characters.
-;-$07 to $09 (3 bytes): 24-bit address location of the table for converting characters to number graphics. Each byte in table lays out as follows:
-;--$00 to $09 are number tiles, which are for 0-9 digit graphics.
-;--$0A = "/"
+;-$07 to $09 (3 bytes): 24-bit address location of the table for converting characters to number graphics. Same as WriteStringAsSpriteOAM.
 ;Overwritten:
 ;$00 to $01: Displaced after each write of the tile.
 ;
