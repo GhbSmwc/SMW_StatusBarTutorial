@@ -12,9 +12,21 @@
 ; -$02 = 1/100th of a percentage ("XXX.XX%")
 ;extra_byte_3: Cap at 100, allow-round-to-zero, allow-round-to-100 flags (if extra_byte_1 is $02):
 ; -Bitwise format: %00000HZC
-; --C = Cap to 100 flag. 0 = no, 1 = yes
-; --Z = Allow rounding to zero: 0 = no, 1 = yes
-; --H = Allow rounding to 100: 0 = no, 1 = yes
+; --C = Cap to 100 flag. 0 = no, 1 = yes (any value greater than 100% will display 100%).
+; --Z = Allow rounding to 0:
+;    0 = no, The X in the rule of [0 < X < 5*10**(-Precision)] would be replaced with (1*10**(-Precision))
+;     Essentially:
+;      Precision = 0: [0% < X < 0.5%] will display 1%
+;      Precision = 1: [0% < X < 0.05%] will display 0.1%
+;      Precision = 2: [0% < X < 0.005%] will display 0.01%
+;    1 = yes
+; --H = Allow rounding to 100:
+;    0 = no, the X in the rule of [100-(5*10**(-Precision-1)) < X < 100] would be replaced with (100 - (1*10**(-Precision))
+;     Essentially:
+;      Precision = 0 [99.5% <= X < 100%] will display 99%
+;      Precision = 1 [99.95% <= X < 100%] will display 99.9%
+;      Precision = 2 [99.995% <= X < 100%] will display 99.99%
+;    1 = yes.
 
 ;It makes use of the RAM defined as "!Scratchram_CharacterTileTable"
 ;And writes them to OAM.
@@ -196,7 +208,6 @@ Graphics:
 		LDX $15E9|!addr
 		JMP .DrawBodyOfSprite
 	.PercentageDisplayMode
-		wdm
 		;PHX		;>Preserve sprite slot index
 		PHY		;>Preserve sprite OAM index
 		LDA $00		;\Preserve OAM XY pos

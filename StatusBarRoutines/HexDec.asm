@@ -981,7 +981,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	; !Scratchram_PercentageMaxQuantity to !Scratchram_PercentageMaxQuantity+1:
 	;  The denominator of the fraction
 	; !Scratchram_PercentageFixedPointPrecision:
-	;  Rather to convert the fraction to:
+	;  Precision, rather to convert the fraction to:
 	;   $00 = out of 100.
 	;   $01 = out of 1000 (can be converted to XXX.X% via fixed point)
 	;   $02 = out of 10000 (can be converted to XXX.XX%, same as a above)
@@ -993,8 +993,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;             and 99% if exclusively between 99 and 100%. This also applies to higher precision, but
 	;             instead of by the ones place, it is actually the rightmost/last digit.
 	;  Y=$00: no
-	;  Y=$01: Rounded to 0
-	;  Y=$02: Rounded from 99 to 100.
+	;  Y=$01: Rounded to 0 ([0 < X < 5*10**(-Precision)] would've round to 0% misleadingly)
+	;  Y=$02: Rounded from 99 to 100 ([100-(5*10**(-Precision-1)) <= X < 100] would've round to 100% misleadingly)
 	;Destroyed:
 	; $06-$07: Needed to compare the remainder with half the denominator.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
