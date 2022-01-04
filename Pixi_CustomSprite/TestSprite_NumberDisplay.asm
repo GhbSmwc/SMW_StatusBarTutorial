@@ -1,29 +1,26 @@
 ;This is a test sprite to write a string of text (characters).
 ;This is useful for displaying numbers.
+;
+;
+;extra_byte_1: Display type:
+; -$00 = One number ("X")
+; -$01 = Two numbers ("X/Y")
+; -$02 = Percentage ("XXX%", "XXX.X%", or "XXX.XX%")
+;extra_byte_2: Percentage precision (if extra_byte_1 is $02):
+; -$00 = whole percentage ("XXX%")
+; -$01 = 1/10th of a percentage ("XXX.X%")
+; -$02 = 1/100th of a percentage ("XXX.XX%")
+;extra_byte_3: Cap at 100, allow-round-to-zero, allow-round-to-100 flags (if extra_byte_1 is $02):
+; -Bitwise format: %00000HZC
+; --C = Cap to 100 flag. 0 = no, 1 = yes
+; --Z = Allow rounding to zero: 0 = no, 1 = yes
+; --H = Allow rounding to 100: 0 = no, 1 = yes
 
 ;It makes use of the RAM defined as "!Scratchram_CharacterTileTable"
 ;And writes them to OAM.
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../SharedSub_Defines/SubroutineDefs.asm"
-
-;Display setting
-!NumberDisplayType = 1
- ;^0 = 1 number
- ; 1 = 2 numbers (X/Y)
- ; 2 = percentage
-;Percentage display settings
- !Default_PercentagePrecision = 0
-  ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
-  ; with !Scratchram_PercentageFixedPointPrecision.
-  
- !CapAt100 = 1
-  ;^0 = allow percentage to display values greater than 100, 1 = cap at 100.
-
- !AvoidRounding0 = 1
-  ;^0 = allow rounding towards 0%, 1 = round to 1%, 0.1%, or 0.01%.
- !AvoidRounding100 = 1
-  ;^0 = allow rounding towards 100%, 1 = round to 99%, 99.9% or 99.99%.
 
 !Default_RAMToDisplay = $60
 ;^[2 bytes] Displays the decimal number of this RAM.
@@ -131,9 +128,12 @@ DrawSprite:
 Graphics:
 	%GetDrawInfo()		;>We need: Y: OAM index, $00 and $01: Position. It does not mess with any other data in $02-$0F. Like I said, don't push, then call this without pulling in between pushing and calling GetDrawInfo.
 	;Draw the number string
-	if or(equal(!NumberDisplayType, 0), equal(!NumberDisplayType, 1))
-		PHX				;>Preserve sprite index
-		PHY
+	LDA !extra_byte_1,x
+	CMP #$02
+	BEQ .PercentageDisplayMode
+	.OneOrTwoDigitsMode
+		;PHX				;>Preserve sprite index
+		PHY				;>Preserve sprite OAM index
 		LDA $00				;\Preserve XY position in $00-$01
 		PHA				;|
 		LDA $01				;|
@@ -145,7 +145,14 @@ Graphics:
 		JSL !SixteenBitHexDecDivision	
 		LDX #$00			;>Start the string at position 0 for suppressing leading zeroes in string
 		JSL !SupressLeadingZeros	;We have the string at !Scratchram_CharacterTileTable and we have X acting as how many characters/sprite tiles so far written.
-		if !NumberDisplayType != 0
+		PHX
+		LDX $15E9|!addr
+		LDA !extra_byte_1,x
+		PLX
+		CMP #$00			;>Compare with A, not X.
+		BEQ ..SkipSecondNumber
+		
+		..SecondNumber
 			;Draw the second number "X/Y", the "/Y" part.
 			;"/" symbol
 				LDA #$0A
@@ -160,7 +167,7 @@ Graphics:
 				JSL !SixteenBitHexDecDivision
 				PLX					;>Restore string character position
 				JSL !SupressLeadingZeros
-		endif
+		..SkipSecondNumber
 		PLA				;\Restore XY position
 		STA $01				;|
 		PLA				;|
@@ -185,9 +192,12 @@ Graphics:
 		LDA.b #GraphicTable>>16		;|
 		STA $08				;/
 		JSL !WriteStringAsSpriteOAM	;>Write to OAM, we also have Y as the OAM index.
-		PLX				;>Restore sprite index
-	else
-		PHX		;>Preserve sprite slot index
+		;PLX				;>Restore sprite index
+		LDX $15E9|!addr
+		JMP .DrawBodyOfSprite
+	.PercentageDisplayMode
+		wdm
+		;PHX		;>Preserve sprite slot index
 		PHY		;>Preserve sprite OAM index
 		LDA $00		;\Preserve OAM XY pos
 		PHA		;|
@@ -200,67 +210,91 @@ Graphics:
 			LDA !Default_RAMToDisplay2
 			STA !Scratchram_PercentageMaxQuantity
 			SEP #$20
-			LDA.b #!Default_PercentagePrecision
+			LDX $15E9|!addr
+			LDA !extra_byte_2,x
 			STA !Scratchram_PercentageFixedPointPrecision
-			JSL !ConvertToPercentage
+			JSL !ConvertToPercentage			;>$00-$03: Percentage (fixed point)
+			LDX $15E9|!addr
 		;Cap at 100
-			if !CapAt100 != 0
-				.CheckExceed100
-					REP #$30
-					LDX.w #(10**(!Default_PercentagePrecision+2))
-					;Check the high word of the XXXX (RAM_00-RAM_03 = $XXXXYYYY)
-						LDA $02			;\Any nonzero digits in the high word would mean at least
-						BNE ..Cap100		;/65536 ($00010000), which is guaranteed over 100/1000/10000.
-					;Check low word
-						TXA
-						CMP $00			;\Max compares with RAM_00
-						BCS ..Under		;/If Max >= RAM_00 or RAM_00 is lower, don't set it to max.
-					
-					..Cap100
-						TXA
-						STA $00
-					..Under
-					SEP #$30
-			endif
+			LDA !extra_byte_3,x
+			AND.b #%00000001
+			BEQ ..NoCap
+			..Cap
+				PHY					;>Preserve rouding flag
+				REP #$30
+				LDA !extra_byte_2,x
+				AND #$00FF
+				ASL
+				TAY
+				LDA PercentageMaximums,y
+				TAY
+				...HighWord
+					LDA $02		;>If highword is any nonzero value, then the 32-bit is greater than 65536 ($00010000), which is guaranteed to be over 100/1000/10000.
+					BNE ...Cap100
+				...LowWord
+					TYA
+					CMP $00
+					BCS ...Under100
+				...Cap100
+					TYA
+					STA $00
+				...Under100
+				SEP #$30
+				PLY					;>Restore rounding flag
+			..NoCap
 		;Round away from 0 and 100
-			if !AvoidRounding0 != 0
-				CPY #$01
-				BNE +
-				REP #$20
-				LDA #$0001
-				STA $00
-				STZ $02
-				SEP #$20
-				+
-			endif
-			if !AvoidRounding100 != 0
-				CPY #$02
-				BNE +
-				REP #$20
-				LDA.w #(10**(!Default_PercentagePrecision+2)-1)		;>99%, 99.9%, or 99.99%.
-				STA $00
-				STZ $02
-				SEP #$20
-				+
-			endif
+			LDX $15E9|!addr					;>Not sure if changing the index 8/16bit mode would destroy this, but here just in case.
+			LDA !extra_byte_3,x
+			AND.b #%00000010
+			BNE +
+			
+			CPY #$01					;\Avoid rounding to 0
+			BNE +						;|
+			REP #$20					;|
+			LDA #$0001					;|
+			STA $00						;|
+			STZ $02						;|
+			SEP #$20					;/
+			+
+			
+			LDA !extra_byte_3,x
+			AND.b #%00000100
+			BNE +
+			
+			CPY #$02					;\Avoid rounding to 100
+			BNE +						;|
+			REP #$20					;|
+			DEC $00						;|
+			STZ $02						;|
+			SEP #$20					;/
+			+
 		;Display the number
 			JSL !SixteenBitHexDecDivision
 			;Since we are dealing with OAM, and at the start of each frame, it clears the OAM (Ypos = $F0),
 			;we don't need to clear a space since it is already done.
-			if !Default_PercentagePrecision == 0
-				LDX #$00
+			LDX $15E9|!addr
+			LDA !extra_byte_2,x
+			LDX #$00
+			CMP #$00			;>Compare with A, not X.
+			BEQ ..DisplayWhole100
+			CMP #$01
+			BEQ ..DisplayOneTenths
+			CMP #$02
+			BEQ ..DisplayOneHundredths
+			
+			..DisplayWhole100
 				JSL !SupressLeadingZeros
-			elseif !Default_PercentagePrecision == 1
+				BRA +
+			..DisplayOneTenths
 				LDA #$0D
 				STA $09
-				LDX #$00
 				JSL !SupressLeadingZerosPercentageLeaveLast2
-			elseif !Default_PercentagePrecision == 2
+				BRA +
+			..DisplayOneHundredths
 				LDA #$0D
 				STA $09
-				LDX #$00
 				JSL !SupressLeadingZerosPercentageLeaveLast3
-			endif
+			+
 			;X = number of characters
 			LDA #$0B					;\Percent symbol
 			STA !Scratchram_CharacterTileTable,x		;/
@@ -293,8 +327,9 @@ Graphics:
 			DEX
 			STX $04
 			JSL !WriteStringAsSpriteOAM
-			PLX				;>Restore sprite slot index
-	endif
+			LDX $15E9|!addr
+			;PLX				;>Restore sprite slot index
+	.DrawBodyOfSprite
 	;Draw the body of sprite
 		LDA $00			;\X position
 		STA $0300|!addr,y	;/
@@ -320,6 +355,10 @@ Graphics:
 		%FinishOAMWrite()
 	;Graphics done.
 	RTS
+PercentageMaximums:
+	dw 100		;>Index $00 ($00): 100%
+	dw 1000		;>Index $01 ($02): 100.0%
+	dw 10000	;>Index $02 ($04): 100.00%
 GraphicTable:
 	db $80				;>Index $00 = for the "0" graphic
 	db $81				;>Index $01 = for the "1" graphic
