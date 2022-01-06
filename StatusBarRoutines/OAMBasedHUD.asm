@@ -549,9 +549,11 @@ CheckIf8x8IsOffScreen:
 ;
 ;Input:
 ;-X index: How many characters (8-bit).
-;-$00 to $01: The position you want the string to be centered around on.
+;-$00 to $01: The position you want the string to be centered around on, relative
+; to the border of the screen.
 ;Output:
-;-$00 to $01: X position of the string, for "WriteStringAsSpriteOAM" subroutine.
+;-$00 to $01: X position of the string, for "WriteStringAsSpriteOAM" subroutine, relative to
+; the border of the screen.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 GetStringXPositionCentered16Bit:
 	TXA
