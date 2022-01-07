@@ -38,7 +38,17 @@
  !SpriteStatusBarPatchTest_Mode = 2
   ;^0 = 16-bit numerical digit display
   ; 1 = same as above but for displaying 2 numbers ("200/300", for example)
-  ; 2 = repeated icons display
+  ; 2 = Percentage. Displays a percentage of ValueToRepresent out of SecondValueToRepresent.
+  ; 3 = repeated icons display
+ ;Percentage display settings.
+  !SpriteStatusBarPatchTest_PercentagePrecision = 2
+   ;^Number of digits after the decimal point when displaying the percentage, Use only values 0-2.
+  !SpriteStatusBarPatchTest_PercentageDisplayCap = 1
+   ;^0 = Allow displaying numbers greater than 100%.
+   ; 1 = If a percentage is exceeding 100%, then display 100%
+ ;Number display settings (1, 2-number display, and percentage).
+  !SpriteStatusBarPatchTest_NumberDisplayProperties = %00110101
+   ;^Properties (YXPPCCCT). Note: Will apply to all characters in the string.
  ;Positions settings
   !SpriteStatusBarPatchTest_PositionMode = 1
    ;^0 = Fixed on-screen
@@ -48,7 +58,7 @@
   ;Meaning if you have a displacement of ($F8,$F8), it would be the bottom-rightmost of the line of icons.
    !SpriteStatusBarPatchTest_DisplayXPos = $0000
     ;^Note: If set to relative to player, this will be the center position.
-   !SpriteStatusBarPatchTest_DisplayYPos = $FFF8	;>Please note that Y position will appear 1px lower than this value.
+   !SpriteStatusBarPatchTest_DisplayYPos = $FFFF	;>Please note that Y position will appear 1px lower than this value.
   ;Repeated icons settings
    ;Displacement between each icons. These are 8-bit signed.
    ;A positive number would place each tile from left to right or top to bottom, negative is in reverse,
@@ -134,8 +144,8 @@ if !Setting_RemoveOrInstall != 0
 				DEX					;\Number of tiles to write -1
 				STX $04					;|
 				STZ $05					;/
-				LDA.b #%00110101			;\Properties (YXPPCCCT)
-				STA $06					;/
+				LDA.b #!SpriteStatusBarPatchTest_NumberDisplayProperties	;\Properties (YXPPCCCT)
+				STA $06								;/
 				if !SpriteStatusBarPatchTest_PositionMode == 0
 					REP #$20				;\XY position
 					LDA #$0000				;|
@@ -159,6 +169,116 @@ if !Setting_RemoveOrInstall != 0
 				endif
 				JSL !WriteStringAsSpriteOAM_OAMOnly
 			elseif !SpriteStatusBarPatchTest_Mode == 2
+				.PercentageDisplay
+				;Display a percentage
+					REP #$20
+					LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+					STA !Scratchram_PercentageQuantity
+					LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+					STA !Scratchram_PercentageMaxQuantity
+					SEP #$20
+					LDA #!SpriteStatusBarPatchTest_PercentagePrecision
+					STA !Scratchram_PercentageFixedPointPrecision
+					JSL !ConvertToPercentage
+					if !SpriteStatusBarPatchTest_PercentageDisplayCap != 0
+						..CapAt100
+							REP #$30
+							LDX.w #(10**(!SpriteStatusBarPatchTest_PercentagePrecision+2))
+							...HighWordCheck ;Check the high word of the XXXX (RAM_00-RAM_03 = $XXXXYYYY)
+								LDA $02			;\Any nonzero digits in the high word would mean at least
+								BNE ..Cap100		;/65536 ($00010000), which is guaranteed over 100/1000/10000.
+							...LowWordCheck
+								TXA
+								CMP $00			;\Max compares with RAM_00
+								BCS ..Under		;/If Max >= RAM_00 or RAM_00 is lower, don't set it to max.
+						..Cap100
+							TXA
+							STA $00
+						..Under
+						SEP #$30
+					endif
+				.RoundAwayFromEndpoint
+					;Avoid displaying 0% and 100% misleadingly if close to them.
+					CPY #$00
+					BEQ ..Normal
+					CPY #$01
+					BEQ ..RoundTo1Percent
+					CPY #$02
+					BCS ..RoundTo99Percent		;>Just in case somehow Y is a value $03 or more
+					
+					..RoundTo1Percent
+						REP #$20
+						LDA.w #1
+						STA $00
+						STZ $02
+						SEP #$20
+						BRA ..Normal
+					..RoundTo99Percent
+						REP #$20
+						LDA.w #(10**(!SpriteStatusBarPatchTest_PercentagePrecision+2)-1)		;>99%, 99.9%, or 99.99%.
+						STA $00
+						STZ $02
+						SEP #$20
+					..Normal
+				.Display ;Write to OAM
+					JSL !SixteenBitHexDecDivision
+					;Since we are dealing with OAM, and at the start of each frame, it clears the OAM (Ypos = $F0),
+					;we don't need to clear a space since it is already done.
+					LDX #$00
+					if !SpriteStatusBarPatchTest_PercentagePrecision == 0
+						JSL !SupressLeadingZeros
+					elseif !SpriteStatusBarPatchTest_PercentagePrecision == 1
+						LDA #$0D						;\Decimal symbol
+						STA $09							;/
+						JSL !SupressLeadingZerosPercentageLeaveLast2
+					elseif !SpriteStatusBarPatchTest_PercentagePrecision == 2
+						LDA #$0D						;\Decimal symbol
+						STA $09							;/
+						JSL !SupressLeadingZerosPercentageLeaveLast3
+					endif
+					;X = number of characters
+					LDA #$0B					;\Percent symbol
+					STA !Scratchram_CharacterTileTable,x		;/
+					INX
+					wdm
+					;XY position
+						if !SpriteStatusBarPatchTest_PositionMode == 0
+							REP #$20
+							LDA #!SpriteStatusBarPatchTest_DisplayXPos
+							STA $00
+							LDA #!SpriteStatusBarPatchTest_DisplayYPos
+							STA $02
+							SEP #$20
+						else
+							REP #$20
+							LDA $7E
+							CLC
+							ADC #!SpriteStatusBarPatchTest_DisplayXPos+8
+							STA $00
+							LDA $80
+							CLC
+							ADC #!SpriteStatusBarPatchTest_DisplayYPos
+							STA $02
+							SEP #$20
+							JSL !GetStringXPositionCentered16Bit
+						endif
+					;Number of chars
+						DEX
+						STX $04
+						STZ $05
+					;YXPPCCCT
+						LDA.b #!SpriteStatusBarPatchTest_NumberDisplayProperties
+						STA $06
+					;Tile table
+						LDA.b #DigitTable			;\Supply the table
+						STA $07					;|
+						LDA.b #DigitTable>>8			;|
+						STA $08					;|
+						LDA.b #DigitTable>>16			;|
+						STA $09					;/
+					;And done
+						JSL !WriteStringAsSpriteOAM_OAMOnly
+			elseif !SpriteStatusBarPatchTest_Mode == 3
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_XDisp	;\Displacement for each tile
 				STA $04							;|
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_YDisp	;|
@@ -207,7 +327,7 @@ if !Setting_RemoveOrInstall != 0
 endif
 
 
-if or(equal(!SpriteStatusBarPatchTest_Mode, 0), equal(!SpriteStatusBarPatchTest_Mode, 1))
+if lessequal(!SpriteStatusBarPatchTest_Mode, 2)
 	DigitTable:
 		db $80				;>Index $00 = for the "0" graphic
 		db $81				;>Index $01 = for the "1" graphic
@@ -220,4 +340,7 @@ if or(equal(!SpriteStatusBarPatchTest_Mode, 0), equal(!SpriteStatusBarPatchTest_
 		db $88				;>Index $08 = for the "8" graphic
 		db $89				;>Index $09 = for the "9" graphic
 		db $8A				;>Index $0A = for the "/" graphic
+		db $8B				;>Index $0B = for the "%" graphic
+		db $8C				;>Index $0C = for the "!" graphic
+		db $8D				;>Index $0D = for the "." graphic
 endif

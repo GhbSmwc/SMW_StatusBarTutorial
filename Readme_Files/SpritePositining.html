@@ -30,14 +30,16 @@ bounding box for most non-object-interacting sprites:<br>
 <img src="SpritePositionPoints.png">
 </p>
 
-<p>Not all custom sprites are like this due to it being coded by different people. An easy way to find its origin is to simply use <kbd>$00</kbd> and <kbd>$01</kbd> (after calling <kbd>GetDrawInfo</kbd>) and write to <kbd>$02</kbd> and <kbd>$03</kbd>,
+<p>Not all custom sprites are like this due to it being coded by different people. An easy way to find its origin is to simply use <kbd>$00</kbd> and <kbd>$01</kbd> (after calling <kbd>GetDrawInfo</kbd>) and write to <kbd>$02</kbd> and <kbd>$03</kbd> (do this before drawing the body of the sprite*),
 like this:
 <table><tr><td><pre>	LDA $00
 	STA $02
 	LDA $01
 	STA $03</pre></td></tr></table>
 And then immediately call <kbd>WriteStringAsSpriteOAM</kbd> without using any centering codes. In the game, on the first tile placed (the leftmost tile when displaying a string (specifically numbers)), <i>its</i> top-left corner will point to where the sprite origin is located at:
-<img src="SpriteOrigin.png">
+<img src="SpriteOrigin.png"><br>
+*The reason you should draw the HUD-related elements before drawing the body of the sprite is so that the body of the sprite is not drawn in front of the HUD element: every tile written using the increment-4 (INYs 4 time to use the next OAM slot) gets written at a lower priority (the second tile to write
+is behind the first one).
 </p>
 
 <h2>Player's origin</h2>
