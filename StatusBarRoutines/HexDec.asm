@@ -913,7 +913,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		BRA .Loop
 		
 		.ConvertFramesToCentiseconds
-		;simply put [Frames*100/60], highest [Frames*100 should be 5900] shouldn't overflow.
+		;simply put [Frames*100/60], highest [Frames*100 should be 5900] shouldn't overflow in unsigned 16-bit.
 		if !sa1 == 0
 			LDA !Scratchram_Frames2TimeOutput+3	;\Frames*100
 			STA $4202				;|
@@ -982,19 +982,21 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;  The denominator of the fraction
 	; !Scratchram_PercentageFixedPointPrecision:
 	;  Precision, rather to convert the fraction to:
-	;   $00 = out of 100.
-	;   $01 = out of 1000 (can be converted to XXX.X% via fixed point)
-	;   $02 = out of 10000 (can be converted to XXX.XX%, same as a above)
+	;   $00 = out of 100 (display whole percentage).
+	;   $01 = out of 1000 (display 1/10 precision (1 digit after decimal), can be converted to XXX.X% via fixed point)
+	;   $02 = out of 10000 (display 1/100 precision (2 digits after decimal), can be converted to XXX.XX%, same as a above)
 	;Output:
-	; $00-$03: Percentage, rounded 1/2 up. Using 32-bit unsigned
-	;          integer to prevent potential overflow (mainly going beyond 65535)
-	;          if your hack allows going higher than 100% and with higher Scratchram_PercentageFixedPointPrecision setting.
+	; $00-$03: Percentage, using fixed-point notation (an integer here, then scaled by 1/(10**!Scratchram_PercentageFixedPointPrecision)),
+	;          rounded 1/2 up to the nearest 1*10**(-!Scratchram_PercentageFixedPointPrecision). Using 32-bit unsigned integer to prevent
+	;          potential overflow (mainly going beyond 65535) if your hack allows going higher than 100% and with higher
+	;          !Scratchram_PercentageFixedPointPrecision precision.
 	; Y register: Detect rounding to 0 or 100. Can be used to display 1% if exclusively between 0 and 1%
-	;             and 99% if exclusively between 99 and 100%. This also applies to higher precision, but
-	;             instead of by the ones place, it is actually the rightmost/last digit.
-	;  Y=$00: no
-	;  Y=$01: Rounded to 0 ([0 < X < 5*10**(-Precision)] would've round to 0% misleadingly)
-	;  Y=$02: Rounded from 99 to 100 ([100-(5*10**(-Precision-1)) <= X < 100] would've round to 100% misleadingly)
+	;             and 99% if exclusively between 99 and 100%. This is useful for avoid misleading 0 and 100% displays when actually close
+	;             to such numbers. This also applies to higher precision, but instead of by the ones place, it is actually the
+	;             rightmost/last digit:
+	;              Y=$00: no
+	;              Y=$01: Rounded to 0 ([0 < X < 5*10**(-Precision)] would've round to 0% misleadingly)
+	;              Y=$02: Rounded from 99 to 100 ([100-(5*10**(-Precision-1)) <= X < 100] would've round to 100% misleadingly)
 	;Destroyed:
 	; $06-$07: Needed to compare the remainder with half the denominator.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1377,7 +1377,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	endif</pre></td></tr></table>
 	
 <p>This works by taking a 32-bit frame counter (it must increment by 1 every 1/60th of a second, which is the NTSC SNES's game loop speed) and doing repeated divisions by 60:
-<table><tr><td><pre>Frames / 60 = Q: Seconds R: Frames		;&gt;We have seconds (not wrapped 0-59 yet), and frames (wrapped 0-59, then displayed as 0-99)
+<table><tr><td><pre>Frames / 60 = Q: Seconds R: Frames		;&gt;We have seconds (not wrapped 0-59 yet), and frames (wrapped 0-59, then displayed as 0-<abbr title="Actually 98, due to 59/60 = 0.98[3]">99</abbr>)
 Seconds / 60 = Q: Minutes R: Seconds		;&gt;We have minutes (not wrapped 0-59 yet), and seconds (wrapped 0-59)
 Minutes / 60 = Q: Hours R: Minutes		;&gt;We have hours (not wrapped 0-59), and minutes (wrapped 0-59)</pre></td></tr></table>
 
