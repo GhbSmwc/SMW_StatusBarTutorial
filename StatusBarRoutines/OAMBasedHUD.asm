@@ -549,7 +549,7 @@ CheckIf8x8IsOffScreen:
 ;interactable sprites have a given position that is not necessary.
 ;
 ;Input:
-;-X index: How many characters (8-bit), minus 1.
+;-X index: How many characters (8-bit).
 ;-$00 to $01: The position you want the string to be centered around on, relative
 ; to the border of the screen.
 ;Output:

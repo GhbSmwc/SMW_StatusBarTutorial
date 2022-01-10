@@ -161,9 +161,12 @@ if !Setting_RemoveOrInstall != 0
 					REP #$20
 					LDA $7E
 					CLC
-					ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+$04
+					ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+$08
 					STA $00
+					PHX
+					INX
 					JSL !GetStringXPositionCentered16Bit
+					PLX
 					REP #$20
 					LDA $80
 					CLC
@@ -256,7 +259,7 @@ if !Setting_RemoveOrInstall != 0
 							REP #$20
 							LDA $7E
 							CLC
-							ADC #!SpriteStatusBarPatchTest_DisplayXPos+8
+							ADC #!SpriteStatusBarPatchTest_DisplayXPos+$08
 							STA $00
 							LDA $80
 							CLC
@@ -347,11 +350,11 @@ if !Setting_RemoveOrInstall != 0
 							STA $02					;|/
 							SEP #$20				;/
 						elseif !SpriteStatusBarPatchTest_PositionMode == 1
-							LDX #$07+!Timer_HourCharacterCount	;MM:SS.CC is 8 characters
+							LDX #$08+!Timer_HourCharacterCount	;MM:SS.CC is 8 characters
 							REP #$20
 							LDA $7E
 							CLC
-							ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+$04
+							ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+$08
 							STA $00
 							JSL !GetStringXPositionCentered16Bit
 							REP #$20
