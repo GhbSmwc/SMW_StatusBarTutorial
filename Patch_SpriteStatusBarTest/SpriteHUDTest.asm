@@ -31,15 +31,19 @@
  !Freeram_SpriteStatusBarPatchTest_ValueToRepresent = $60
   ;^[2 bytes] for 16-bit numerical digit display
   ;^[1 byte] for repeated icons display (how many filled)
+  ;^[4 bytes] for timer display
  !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent = $62
   ;^[2 bytes] for 16-bit numerical digit display
   ;^[1 byte] for repeated icons display (how many total icons)
+  ; Not used when using timer display mode
 ;Settings
  !SpriteStatusBarPatchTest_Mode = 2
-  ;^0 = 16-bit numerical digit display
+  ;^0 = 16-bit numerical digits display
   ; 1 = same as above but for displaying 2 numbers ("200/300", for example)
   ; 2 = Percentage. Displays a percentage of ValueToRepresent out of SecondValueToRepresent.
-  ; 3 = repeated icons display
+  ; 3 = Timer display (MM:SS.CC), NOTE: This only DISPLAYS the timer, you need to have a code that increments the value every frame.
+  ; 4 = Timer display (HH:MM:SS.CC), same rule as above.
+  ; 5 = repeated icons display
  ;Percentage display settings.
   !SpriteStatusBarPatchTest_PercentagePrecision = 2
    ;^Number of digits after the decimal point when displaying the percentage, Use only values 0-2.
@@ -168,7 +172,7 @@ if !Setting_RemoveOrInstall != 0
 					SEP #$20
 				endif
 				JSL !WriteStringAsSpriteOAM_OAMOnly
-			elseif !SpriteStatusBarPatchTest_Mode == 2
+			elseif !SpriteStatusBarPatchTest_Mode == 2 ;Percentage display
 				.PercentageDisplay
 				;Display a percentage
 					REP #$20
@@ -240,7 +244,6 @@ if !Setting_RemoveOrInstall != 0
 					LDA #$0B					;\Percent symbol
 					STA !Scratchram_CharacterTileTable,x		;/
 					INX
-					wdm
 					;XY position
 						if !SpriteStatusBarPatchTest_PositionMode == 0
 							REP #$20
@@ -278,7 +281,103 @@ if !Setting_RemoveOrInstall != 0
 						STA $09					;/
 					;And done
 						JSL !WriteStringAsSpriteOAM_OAMOnly
-			elseif !SpriteStatusBarPatchTest_Mode == 3
+			elseif or(equal(!SpriteStatusBarPatchTest_Mode, 3), equal(!SpriteStatusBarPatchTest_Mode, 4)) ;Timer mode (MM:SS.CC/HH:MM:SS.CC)
+				!Timer_HourCharacterCount = 0
+				if !SpriteStatusBarPatchTest_Mode == 4
+					!Timer_HourCharacterCount = 3
+				endif
+				REP #$20
+				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+				STA $00
+				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+				STA $02
+				SEP #$20
+				JSL !Frames2Timer
+				.Hours
+					if !SpriteStatusBarPatchTest_Mode == 4
+						LDA !Scratchram_Frames2TimeOutput
+						JSL !EightBitHexDec
+						PHA					;STX $XXXXXX does not work.
+						TXA
+						STA !Scratchram_CharacterTileTable
+						PLA
+						STA !Scratchram_CharacterTileTable+1
+						..ColonAfterHour
+						LDA #$0E
+						STA !Scratchram_CharacterTileTable+2
+					endif
+				.Minutes
+					LDA !Scratchram_Frames2TimeOutput+1
+					JSL !EightBitHexDec
+					PHA					;STX $XXXXXX does not work.
+					TXA
+					STA !Scratchram_CharacterTileTable+!Timer_HourCharacterCount
+					PLA
+					STA !Scratchram_CharacterTileTable+1+!Timer_HourCharacterCount
+					..ColonAfterMinutes
+						LDA #$0E
+						STA !Scratchram_CharacterTileTable+2+!Timer_HourCharacterCount
+				.Seconds
+					LDA !Scratchram_Frames2TimeOutput+2
+					JSL !EightBitHexDec
+					PHA
+					TXA
+					STA !Scratchram_CharacterTileTable+3+!Timer_HourCharacterCount
+					PLA
+					STA !Scratchram_CharacterTileTable+4+!Timer_HourCharacterCount
+				.DecimalPoint
+					LDA #$0D
+					STA !Scratchram_CharacterTileTable+5+!Timer_HourCharacterCount
+				.CentiSeconds
+					wdm
+					LDA !Scratchram_Frames2TimeOutput+3
+					JSL !EightBitHexDec
+					PHA
+					TXA
+					STA !Scratchram_CharacterTileTable+6+!Timer_HourCharacterCount
+					PLA
+					STA !Scratchram_CharacterTileTable+7+!Timer_HourCharacterCount
+				.WriteToOAM
+					..Positions
+						if !SpriteStatusBarPatchTest_PositionMode == 0
+							REP #$20				;\XY position
+							LDA #$0000				;|
+							STA $00					;|
+							LDA #$FFFF				;|\Y position is shifted down for some reason...
+							STA $02					;|/
+							SEP #$20				;/
+						elseif !SpriteStatusBarPatchTest_PositionMode == 1
+							LDX #$07+!Timer_HourCharacterCount	;MM:SS.CC is 8 characters
+							REP #$20
+							LDA $7E
+							CLC
+							ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+$04
+							STA $00
+							JSL !GetStringXPositionCentered16Bit
+							REP #$20
+							LDA $80
+							CLC
+							ADC.w #!SpriteStatusBarPatchTest_DisplayYPos
+							STA $02
+							SEP #$20
+						endif
+					..NumberOfTiles
+						;MM:SS.CC is 8 characters
+						LDA #$07+!Timer_HourCharacterCount
+						STA $04
+						STZ $05
+					..Properties
+						LDA #!SpriteStatusBarPatchTest_NumberDisplayProperties
+						STA $06
+					..GraphicTable
+						LDA.b #DigitTable			;\Supply the table
+						STA $07					;|
+						LDA.b #DigitTable>>8			;|
+						STA $08					;|
+						LDA.b #DigitTable>>16			;|
+						STA $09					;/
+					JSL !WriteStringAsSpriteOAM_OAMOnly
+			elseif !SpriteStatusBarPatchTest_Mode == 5 ;Repeated icons
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_XDisp	;\Displacement for each tile
 				STA $04							;|
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_YDisp	;|
@@ -327,7 +426,7 @@ if !Setting_RemoveOrInstall != 0
 endif
 
 
-if lessequal(!SpriteStatusBarPatchTest_Mode, 2)
+if lessequal(!SpriteStatusBarPatchTest_Mode, 4) ;If !SpriteStatusBarPatchTest_Mode is a number display
 	DigitTable:
 		db $80				;>Index $00 = for the "0" graphic
 		db $81				;>Index $01 = for the "1" graphic
@@ -343,4 +442,5 @@ if lessequal(!SpriteStatusBarPatchTest_Mode, 2)
 		db $8B				;>Index $0B = for the "%" graphic
 		db $8C				;>Index $0C = for the "!" graphic
 		db $8D				;>Index $0D = for the "." graphic
+		db $8E				;>Index $0E = for the ":" graphic
 endif

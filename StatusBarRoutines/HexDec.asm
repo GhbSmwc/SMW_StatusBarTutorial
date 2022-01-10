@@ -882,7 +882,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	; -!Scratchram_Frames2TimeOutput+0 = hour
 	; -!Scratchram_Frames2TimeOutput+1 = minutes
 	; -!Scratchram_Frames2TimeOutput+2 = seconds
-	; -!Scratchram_Frames2TimeOutput+3 = centiseconds (display 00-99)
+	; -!Scratchram_Frames2TimeOutput+3 = centiseconds (display 00 to 99 (actually 00-98 because 59/60 = 0.98[3]))
 	;Overwritten:
 	;-$00 to $05 was used by division routine
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -37,6 +37,7 @@
 ;--$0B = "%"
 ;--$0C = "!"
 ;--$0D = "."
+;--$0E = ":"
 ; Note that all characters must be on the same page!
 ;Output:
 ;-Y index: The OAM index after writing the last tile character.
@@ -548,7 +549,7 @@ CheckIf8x8IsOffScreen:
 ;interactable sprites have a given position that is not necessary.
 ;
 ;Input:
-;-X index: How many characters (8-bit).
+;-X index: How many characters (8-bit), minus 1.
 ;-$00 to $01: The position you want the string to be centered around on, relative
 ; to the border of the screen.
 ;Output:

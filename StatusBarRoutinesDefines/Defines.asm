@@ -82,9 +82,9 @@
 		;  because "/"; 5 + 5 + 1 = 11)
 	;For 32-bit timer frame to Hours:Minutes:Seconds:Centiseconds format.
 		if !sa1 == 0
-			!Scratchram_Frames2TimeOutput = $7F844E
+			!Scratchram_Frames2TimeOutput = $7F8454
 		else
-			!Scratchram_Frames2TimeOutput = $40019C
+			!Scratchram_Frames2TimeOutput = $4001A2
 		endif
 		;^[4 bytes], the output in HH:MM:SS.CC format:
 		; !Scratchram_Frames2TimeOutput+0 = hour
