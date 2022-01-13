@@ -6,6 +6,8 @@
 ; -$00 = One number ("X")
 ; -$01 = Two numbers ("X/Y")
 ; -$02 = Percentage ("XXX%", "XXX.X%", or "XXX.XX%")
+; -$03 = Timer (MM:SS.CC (8 tiles on the timer itself))
+; -$04 = Timer (HH:MM:SS.CC (11 tiles on the timer itself))
 ;extra_byte_2: Percentage precision (if extra_byte_1 is $02):
 ; -$00 = whole percentage ("XXX%")
 ; -$01 = 1/10th of a percentage ("XXX.X%")
@@ -35,9 +37,11 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../SharedSub_Defines/SubroutineDefs.asm"
 
 !Default_RAMToDisplay = $60
-;^[2 bytes] Displays the decimal number of this RAM.
+;^[2 bytes] Displays the decimal number of this RAM when displaying X or X/Y.
+;^[4 bytes] A frame counter when set to display a timer.
 !Default_RAMToDisplay2 = $62
 ;^[2 bytes] Second number to display, if enabled by !NumberDisplayType
+;^[Not used] when using the timer display.
 
 ;character tile properties (applies to all characters). See GraphicTable for each character.
  !DigitProperties = %00110001
@@ -143,6 +147,10 @@ Graphics:
 	LDA !extra_byte_1,x
 	CMP #$02
 	BEQ .PercentageDisplayMode
+	CMP #$03
+	BNE +
+	JMP .TimerDisplayMode
+	+
 	.OneOrTwoDigitsMode
 		;PHX				;>Preserve sprite index
 		PHY				;>Preserve sprite OAM index
@@ -340,6 +348,99 @@ Graphics:
 			JSL !WriteStringAsSpriteOAM
 			LDX $15E9|!addr
 			;PLX				;>Restore sprite slot index
+			JML .DrawBodyOfSprite
+		;Display timer
+		.TimerDisplayMode
+			PHY							;>Preserve OAM Y index
+			LDA $00							;\Preserve OAM XY position relative to screen
+			PHA							;|
+			LDA $01							;|
+			PHA							;/
+			REP #$20
+			LDA !Default_RAMToDisplay
+			STA $00
+			LDA !Default_RAMToDisplay+2
+			STA $02
+			SEP #$20
+			JSL !Frames2Timer
+			..Hours
+				LDX $15E9|!addr
+				LDA !extra_byte_1,x
+				CMP #$03
+				BEQ ..Minutes
+				
+				LDA !Scratchram_Frames2TimeOutput
+				JSL !EightBitHexDec
+				PHA					;STX $XXXXXX does not work.
+				TXA
+				STA !Scratchram_CharacterTileTable
+				PLA
+				STA !Scratchram_CharacterTileTable+1
+				...ColonAfterHour
+					LDA #$0E
+					STA !Scratchram_CharacterTileTable+2
+				
+			..Minutes
+				LDA !Scratchram_Frames2TimeOutput+1
+				JSL !EightBitHexDec
+				PHA					;STX $XXXXXX does not work.
+				TXA
+				STA !Scratchram_CharacterTileTable
+				PLA
+				STA !Scratchram_CharacterTileTable+1
+				...ColonAfterMinutes
+					LDA #$0E
+					STA !Scratchram_CharacterTileTable+2
+			..Seconds
+				LDA !Scratchram_Frames2TimeOutput+2
+				JSL !EightBitHexDec
+				PHA
+				TXA
+				STA !Scratchram_CharacterTileTable+3
+				PLA
+				STA !Scratchram_CharacterTileTable+4
+			..DecimalPoint
+				LDA #$0D
+				STA !Scratchram_CharacterTileTable+5
+			..CentiSeconds
+				LDA !Scratchram_Frames2TimeOutput+3
+				JSL !EightBitHexDec
+				PHA
+				TXA
+				STA !Scratchram_CharacterTileTable+6
+				PLA
+				STA !Scratchram_CharacterTileTable+7
+			..PrepareOAM
+				PLA				;\Get back OAM XY pos
+				STA $01				;|
+				PLA				;|
+				STA $00				;/
+				PLY				;>Get back the Y index of OAM
+				...XYPos
+					LDA #$08
+					STA $03
+					LDX #$08
+					JSL !GetStringXPositionCentered
+					LDA $01					;\Y position
+					CLC					;|
+					ADC #$10				;/
+					STA $03					;>$03 = Y pos
+				..NumberOfTiles
+					LDA #$07
+					STA $04
+				..Properties
+					LDA.b #%00110001
+					STA $05
+				..TableGraphic
+					LDA.b #GraphicTable		;\conversion table from numbers to graphic numbers
+					STA $06				;|
+					LDA.b #GraphicTable>>8		;|
+					STA $07				;|
+					LDA.b #GraphicTable>>16		;|
+					STA $08				;/
+				JSL !WriteStringAsSpriteOAM
+			..Done
+				LDX $15E9|!addr
 	.DrawBodyOfSprite
 	;Draw the body of sprite
 		LDA $00			;\X position
@@ -385,3 +486,4 @@ GraphicTable:
 	db $8B				;>Index $0B = for the "%" graphic
 	db $8C				;>Index $0C = for the "!" graphic
 	db $8D				;>Index $0D = for the "." graphic
+	db $8E				;>Index $0E = for the ":" graphic

@@ -306,8 +306,8 @@ if !Setting_RemoveOrInstall != 0
 						PLA
 						STA !Scratchram_CharacterTileTable+1
 						..ColonAfterHour
-						LDA #$0E
-						STA !Scratchram_CharacterTileTable+2
+							LDA #$0E
+							STA !Scratchram_CharacterTileTable+2
 					endif
 				.Minutes
 					LDA !Scratchram_Frames2TimeOutput+1
@@ -332,7 +332,6 @@ if !Setting_RemoveOrInstall != 0
 					LDA #$0D
 					STA !Scratchram_CharacterTileTable+5+!Timer_HourCharacterCount
 				.CentiSeconds
-					wdm
 					LDA !Scratchram_Frames2TimeOutput+3
 					JSL !EightBitHexDec
 					PHA
