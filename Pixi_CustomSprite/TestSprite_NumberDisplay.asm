@@ -76,64 +76,80 @@ SpriteCode:
 	;Controls that adjust the number. NOTE: if multiple of this sprite are processing, this code will be executed
 	;by each of this sprite per frame (2 of this means increment/decrement by 2, for example.)
 		PHB : PHK : PLB
-		LDA $9D
-		BNE .SkipFreeze
+		LDA $9D						;\Don't do anything when the game is frozen
+		BNE .SkipFreeze					;/
+		LDA !extra_byte_1,x				;\Check state of the sprite to determine how the numbers are controlled.
+		CMP #$03					;/
+		BCS .TimerMode					
 		
-		.ControllerChangeNumberVert
-			LDA $15
-			BIT.b #%00001000
-			BNE ..Up
-			BIT.b #%00000100
-			BNE ..Down
-			BRA +
-		
-			..Up
-				REP #$20
-				LDA !Default_RAMToDisplay
-				CMP #$FFFF
-				BEQ ++
-				INC A
-				STA !Default_RAMToDisplay
-				++
-				SEP #$20
-				BRA +
-			..Down
-				REP #$20
-				LDA !Default_RAMToDisplay
-				BEQ ++
-				DEC A
-				STA !Default_RAMToDisplay
-				++
-				SEP #$20
-		+
-		.ControllerChangeNumberHoriz
-			LDA $15
-			BIT.b #%00000001
-			BNE ..Right
-			BIT.b #%00000010
-			BNE ..Left
-			BRA +
+		.ControllerFor2Numbers
+			..ControllerChangeNumberVert
+				LDA $15
+				BIT.b #%00001000		;\If UP is pressed
+				BNE ...Up			;/
+				BIT.b #%00000100		;\If DOWN is pressed
+				BNE ...Down			;/
+				BRA ...NoChange
 			
-			..Right
-				REP #$20
-				LDA !Default_RAMToDisplay2
-				CMP #$FFFF
-				BEQ ++
-				INC A
-				STA !Default_RAMToDisplay2
-				++
-				SEP #$20
-				BRA +
-			..Left
-				REP #$20
-				LDA !Default_RAMToDisplay2
-				BEQ ++
-				DEC A
-				STA !Default_RAMToDisplay2
-				++
-				SEP #$20
-		+
+				...Up
+					REP #$20			;\Increase 16-bit value by 1, unless if $FFFF, then don't increase
+					LDA !Default_RAMToDisplay	;|
+					CMP #$FFFF			;|
+					BEQ ....Maxed			;|
+					INC A				;|
+					STA !Default_RAMToDisplay	;|
+					....Maxed			;|
+					SEP #$20			;/
+					BRA ...NoChange
+				...Down
+					REP #$20			;\Same but decrease and not to decrease below $0000
+					LDA !Default_RAMToDisplay	;|
+					BEQ ....Zero			;|
+					DEC A				;|
+					STA !Default_RAMToDisplay	;|
+					....Zero			;|
+					SEP #$20			;/
+				...NoChange
+			..ControllerChangeNumberHoriz
+				LDA $15					
+				BIT.b #%00000001			;\If RIGHT is pressed
+				BNE ...Right				;/
+				BIT.b #%00000010			;\If LEFT is pressed
+				BNE ...Left				;/
+				BRA ...NoChange
+				
+				...Right
+					REP #$20			;\Increase 16-bit value by 1, unless if $FFFF, then don't increase
+					LDA !Default_RAMToDisplay2	;|
+					CMP #$FFFF			;|
+					BEQ ....Maxed			;|
+					INC A				;|
+					STA !Default_RAMToDisplay2	;|
+					....Maxed			;|
+					SEP #$20			;|
+					BRA ...NoChange			;/
+				...Left
+					REP #$20			;\Same but decrease and not to decrease below $0000
+					LDA !Default_RAMToDisplay2	;|
+					BEQ ....Zero			;|
+					DEC A				;|
+					STA !Default_RAMToDisplay2	;|
+					....Zero			;|
+					SEP #$20			;/
+				...NoChange
+					BRA .DoneWithControllingNumbers
+		.TimerMode
+			REP #$20					
+			LDA !Default_RAMToDisplay			;\Increase 16-bit number, if exceeds $FFFF, this will wrap around as expected, but also sets the carry bit
+			CLC						;|
+			ADC #$0001					;|
+			STA !Default_RAMToDisplay			;/
+			LDA !Default_RAMToDisplay2			;\And if that carry bit is set, increase this 16-bit number
+			ADC #$0000					;|
+			STA !Default_RAMToDisplay2			;/
+			SEP #$20					;>Therefore, we increase a 32-bit number with the use of the carry bit from ADC.
 		.SkipFreeze
+		.DoneWithControllingNumbers
 	;Handle graphics
 		JSR DrawSprite
 	;And done.

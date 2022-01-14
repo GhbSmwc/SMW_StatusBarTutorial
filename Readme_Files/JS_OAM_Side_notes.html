@@ -20,11 +20,9 @@
 		</style>
 	</head>
 <body onload="GenerateOAMTable()">
-<a href="../GraphicalBar_ReadmeDocumentation.html#OAMNotes">Back</a>
+<a href="../HowToUseTheStatusBar.html#OAMNotes">Back</a>
 
-<p>This is just a note for myself and potentially others stumbled across a glitch related to
-writing OAM and wanted to debug it. It just contains a conversion table cheatsheet between
-slot numbers, indexes, and the RAM to write.<p>
+<p>This list every byte the OAM slot corresponding to what RAM they use for SMW.<p>
 <ul>
 <li>Slot: Refers to which “unit” of a 1-increment index.</li><br>
 
@@ -36,11 +34,14 @@ use $15EA,x ($33A2,x under SA-1) which is an offset from <i>halfway</i> from the
 starting at $0300 and $0460 instead of $0200 and $0420)</li><br>
 </ul>
 
+<p>Keep in mind is that when 2 or more OAMs overlap, the tile with the lower OAM slot (also lower indexes in RAM) will have priority
+over the others (so OAM tile 0 will appear in front of OAM tile 1).</p>
+
 The majority of stuff uses OAM indexing of increment-4, but one RAM, $0420 uses increments of 1.
 To convert OAM indexing to 1-increment, take that index, transfer it to A, and perform LSR #2,
 which will divide the value by 4, and it converts the value into increments of 1, then transfer
 it back to either X or Y, example:
-<table><tr><td><pre>PHY		;>This likely will be in a loop and we do not want to lose our OAM index loop
+<table><tr><td><pre>PHY		;&gt;This likely will be in a loop and we do not want to lose our OAM index loop
 TYA
 LSR #2
 TAY
