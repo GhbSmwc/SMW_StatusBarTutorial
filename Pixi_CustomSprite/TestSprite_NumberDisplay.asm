@@ -1,13 +1,15 @@
 ;This is a test sprite to write a string of text (characters).
 ;This is useful for displaying numbers.
 ;
+;I strongly recommend using the "No More Sprite Tile Limits" or use SA-1 (and make sure they're up to date).
+;This can consume a lot of OAM tiles, especially the timer with the hours display.
 ;
 ;extra_byte_1: Display type:
 ; -$00 = One number ("X")
 ; -$01 = Two numbers ("X/Y")
 ; -$02 = Percentage ("XXX%", "XXX.X%", or "XXX.XX%")
 ; -$03 = Timer (MM:SS.CC (8 tiles on the timer itself))
-; -$04 = Timer (HH:MM:SS.CC (11 tiles on the timer itself))
+; -$04 = Timer (HH:MM:SS.CC (11 tiles on the timer itself)).
 ;extra_byte_2: Percentage precision (if extra_byte_1 is $02):
 ; -$00 = whole percentage ("XXX%")
 ; -$01 = 1/10th of a percentage ("XXX.X%")
@@ -71,7 +73,8 @@ print "MAIN ",pc
 	RTL
 
 SpriteCode:
-	;Controls that adjust the number
+	;Controls that adjust the number. NOTE: if multiple of this sprite are processing, this code will be executed
+	;by each of this sprite per frame (2 of this means increment/decrement by 2, for example.)
 		PHB : PHK : PLB
 		LDA $9D
 		BNE .SkipFreeze
@@ -388,6 +391,7 @@ Graphics:
 				STA !Scratchram_CharacterTileTable,x
 				INC $00
 				...ColonAfterHour
+					LDX $00
 					LDA #$0E
 					STA !Scratchram_CharacterTileTable,x
 					INC $00
@@ -404,6 +408,7 @@ Graphics:
 				STA !Scratchram_CharacterTileTable,x
 				INC $00
 				...ColonAfterMinutes
+					LDX $00
 					LDA #$0E
 					STA !Scratchram_CharacterTileTable,x
 					INC $00
@@ -420,6 +425,7 @@ Graphics:
 				STA !Scratchram_CharacterTileTable,x
 				INC $00
 			..DecimalPoint
+				LDX $00
 				LDA #$0D
 				STA !Scratchram_CharacterTileTable,x
 				INC $00
@@ -440,11 +446,13 @@ Graphics:
 				STA $01				;|
 				PLA				;|
 				STA $00				;/
-				PLY				;>Get back the Y index of OAM
 				...XYPos
-					LDA #$08
-					STA $03
-					LDX #$08
+					LDA #$08				;\Offset from origin of sprite
+					STA $03					;/
+					LDX $15E9|!addr
+					LDA !extra_byte_1,x
+					TAY
+					LDX TimerTileCountTable-3,y
 					JSL !GetStringXPositionCentered
 					LDA $01					;\Y position
 					CLC					;|
@@ -452,16 +460,13 @@ Graphics:
 					STA $03					;>$03 = Y pos
 				..NumberOfTiles ;MM:SS.CC is 8 characters, HH:MM:SS.CC is 11 characters
 					LDX $15E9|!addr
-					PHY
 					LDA !extra_byte_1,x
 					TAY
 					LDA TimerTileCountTable-3,y
-					STA $04
-					PLY
-					LDA #$07
+					DEC
 					STA $04
 				..Properties
-					LDA.b #%00110001
+					LDA.b #!DigitProperties
 					STA $05
 				..TableGraphic
 					LDA.b #GraphicTable		;\conversion table from numbers to graphic numbers
@@ -470,6 +475,8 @@ Graphics:
 					STA $07				;|
 					LDA.b #GraphicTable>>16		;|
 					STA $08				;/
+				..WriteTheOAM
+				PLY				;>Get back the Y index of OAM
 				JSL !WriteStringAsSpriteOAM
 			..Done
 				LDX $15E9|!addr
@@ -500,8 +507,8 @@ Graphics:
 	;Graphics done.
 	RTS
 TimerTileCountTable:
-	db 8-1
-	db 11-1
+	db 8
+	db 11
 PercentageMaximums:
 	dw 100		;>Index $00 ($00): 100%
 	dw 1000		;>Index $01 ($02): 100.0%
