@@ -146,8 +146,14 @@ Graphics:
 	;Draw the number string
 	LDA !extra_byte_1,x
 	CMP #$02
-	BEQ .PercentageDisplayMode
+	BNE +
+	JMP .PercentageDisplayMode
+	+
 	CMP #$03
+	BNE +			;>branch out of bounds
+	JMP .TimerDisplayMode
+	+
+	CMP #$04
 	BNE +
 	JMP .TimerDisplayMode
 	+
@@ -363,6 +369,7 @@ Graphics:
 			STA $02
 			SEP #$20
 			JSL !Frames2Timer
+			STZ $00						;>$00 = index of which byte in !Scratchram_CharacterTileTable.
 			..Hours
 				LDX $15E9|!addr
 				LDA !extra_byte_1,x
@@ -370,46 +377,64 @@ Graphics:
 				BEQ ..Minutes
 				
 				LDA !Scratchram_Frames2TimeOutput
-				JSL !EightBitHexDec
+				JSL !EightBitHexDec			;>Output:A: 1s, X: 10s
 				PHA					;STX $XXXXXX does not work.
 				TXA
-				STA !Scratchram_CharacterTileTable
+				LDX $00
+				STA !Scratchram_CharacterTileTable,x
+				INC $00
 				PLA
-				STA !Scratchram_CharacterTileTable+1
+				LDX $00
+				STA !Scratchram_CharacterTileTable,x
+				INC $00
 				...ColonAfterHour
 					LDA #$0E
-					STA !Scratchram_CharacterTileTable+2
-				
+					STA !Scratchram_CharacterTileTable,x
+					INC $00
 			..Minutes
 				LDA !Scratchram_Frames2TimeOutput+1
-				JSL !EightBitHexDec
+				JSL !EightBitHexDec			;>Output:A: 1s, X: 10s
 				PHA					;STX $XXXXXX does not work.
 				TXA
-				STA !Scratchram_CharacterTileTable
+				LDX $00
+				STA !Scratchram_CharacterTileTable,x
+				INC $00
 				PLA
-				STA !Scratchram_CharacterTileTable+1
+				LDX $00
+				STA !Scratchram_CharacterTileTable,x
+				INC $00
 				...ColonAfterMinutes
 					LDA #$0E
-					STA !Scratchram_CharacterTileTable+2
+					STA !Scratchram_CharacterTileTable,x
+					INC $00
 			..Seconds
 				LDA !Scratchram_Frames2TimeOutput+2
-				JSL !EightBitHexDec
+				JSL !EightBitHexDec			;>Output:A: 1s, X: 10s
 				PHA
 				TXA
-				STA !Scratchram_CharacterTileTable+3
+				LDX $00
+				STA !Scratchram_CharacterTileTable,x
+				INC $00
 				PLA
-				STA !Scratchram_CharacterTileTable+4
+				LDX $00
+				STA !Scratchram_CharacterTileTable,x
+				INC $00
 			..DecimalPoint
 				LDA #$0D
-				STA !Scratchram_CharacterTileTable+5
+				STA !Scratchram_CharacterTileTable,x
+				INC $00
 			..CentiSeconds
 				LDA !Scratchram_Frames2TimeOutput+3
-				JSL !EightBitHexDec
+				JSL !EightBitHexDec			;>Output:A: 1s, X: 10s
 				PHA
 				TXA
-				STA !Scratchram_CharacterTileTable+6
+				LDX $00
+				STA !Scratchram_CharacterTileTable,x
+				INC $00
 				PLA
-				STA !Scratchram_CharacterTileTable+7
+				LDX $00
+				STA !Scratchram_CharacterTileTable,x
+				INC $00
 			..PrepareOAM
 				PLA				;\Get back OAM XY pos
 				STA $01				;|
@@ -425,7 +450,14 @@ Graphics:
 					CLC					;|
 					ADC #$10				;/
 					STA $03					;>$03 = Y pos
-				..NumberOfTiles
+				..NumberOfTiles ;MM:SS.CC is 8 characters, HH:MM:SS.CC is 11 characters
+					LDX $15E9|!addr
+					PHY
+					LDA !extra_byte_1,x
+					TAY
+					LDA TimerTileCountTable-3,y
+					STA $04
+					PLY
 					LDA #$07
 					STA $04
 				..Properties
@@ -467,6 +499,9 @@ Graphics:
 		%FinishOAMWrite()
 	;Graphics done.
 	RTS
+TimerTileCountTable:
+	db 8-1
+	db 11-1
 PercentageMaximums:
 	dw 100		;>Index $00 ($00): 100%
 	dw 1000		;>Index $01 ($02): 100.0%
