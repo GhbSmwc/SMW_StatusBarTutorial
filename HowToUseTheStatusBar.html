@@ -2067,7 +2067,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 <h3>The OAM</h3>
 
-<p>Drawing sprites involve storing these following information.:</p>
+<p>Drawing sprites involve storing these following information:</p>
 
 <ul>
 	<li>9 bits for the X position</li>
@@ -2075,19 +2075,21 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	<li>a byte for the tile number to use</li>
 	<li>a byte for the tile number properties to use (YXPPCCCT)</li>
 </ul>
-<p>There are 128 (numbered 0-127) slots each given this information. Stored in RAM <kbd>$7E0200-$7E041F</kbd> and <kbd>$7E0420-$7E049F</kbd> (see <a href="Readme_Files/JS_OAM_Side_notes.html" id="OAMNotes">here for table and data format</a> for RAMs corresponding to which slot) before transfered into the PPU. SMW reserves the later half (OAM slots 64-127) for its main sprites. Unlike layer 3
-status bar handling:
+<p>There are 128 (numbered 0-127) slots each given this information. Stored in RAM <kbd>$7E0200-$7E041F</kbd> and <kbd>$7E0420-$7E049F</kbd>
+(see <a href="Readme_Files/JS_OAM_Side_notes.html" id="OAMNotes">here for table and data format</a> for RAMs corresponding to which slot)
+before transfered into the PPU. SMW reserves the later half (OAM slots 64-127) for its main sprites. Unlike layer 3 status bar handling:
 <ul>
-	<li>We have more information to write to display</li>
-	<li>We have to explicitly write their X/Y position, whereas the layer 3, each tile in a grid have their own address. This also means that OAM can overlap.</li>
-	<li>When writing tiles, we need to find out if the tile is used or not, and what's used can dynamically change, while the layer 3 status bar is mostly static</li>
+	<li>We have more information to write to display for sprite tiles.</li>
+	<li>We have to explicitly write their X/Y position, whereas the layer 3, each tile is placed in a grid and have their own address. This also means that OAM can overlap.</li>
+	<li>When writing tiles, we need to find out if the tile is used or not, and what's used can dynamically change, while the layer 3 status bar is mostly static.</li>
+	<li>When using aligned digits display, you no longer have to clear out the tiles prior drawing your digits, since at the beginning of each frame clears out the OAM by setting each OAM Y position to <kbd>$F0</kbd></li>
 </ul>
 </p>
 
 <p>The good news is that most of the stuff are handled by subroutines, so you only need to know the basics of programming sprites as well as the inputs/outputs of the subroutines.</p>
 
-<p>The very first thing you want to do is get the subroutines into shared subroutines. Here is the <a href="Readme_Files/GettingSharedSubToWork.html" id="SharedSubroutines">tutorial</a>. Don't ask why these could be on pixi's routines folder or uberasm tool's
-library folder. They have limitations that each ASM file are isolated and cannot reference each other from them. Plus, some of these subroutines may call each other within one.</p>
+<p>The very first thing you want to do is get the subroutines into shared subroutines. Here is the <a href="Readme_Files/GettingSharedSubToWork.html" id="SharedSubroutines">tutorial</a>. Don't ask why these could be on pixi's routines folder or uberasm
+tool's library folder. They have limitations that each ASM file are isolated and cannot reference each other from them. Plus, some of these subroutines may call each other within one.</p>
 
 <p>Don't forget the graphics, see <kbd>StatusBarTutorial/ExGFX</kbd>. Filenames are obvious.</p>
 
@@ -2097,7 +2099,7 @@ library folder. They have limitations that each ASM file are isolated and cannot
 like how the RAM defined in <kbd>!Scratchram_CharacterTileTable</kbd> is being used by <kbd>SupressLeadingZeros</kbd>. Almost everything is performed similarly to the layer 3 status bar, up until you are done writing to <kbd>!Scratchram_CharacterTileTable</kbd>
 (after the last time you write to <kbd>!SupressLeadingZeros</kbd>) is then you are dealing with OAM-related routines.</li>
 
-<li>For repeating icon routines, they OAM directly without conversions, it does merely a loop of writing a given tile numbers and properties.</li>
+<li>For repeating icon routines, they write to OAM directly without conversions, it does merely a loop of writing a given tile numbers and properties.</li>
 </ul>
 <h3 id="PixiSprite"><a href="#PixiSpriteBack">^</a>Pixi custom sprites</h3>
 <p>I coded some templates in the <kbd>Pixi_CustomSprite</kbd> folder. To play around with them, insert the sprite (make sure you use the shared subroutines prior to this), place it in a level and use the D-pad to test the values.</p>

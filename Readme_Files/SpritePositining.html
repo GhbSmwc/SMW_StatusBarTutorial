@@ -42,9 +42,11 @@ And then immediately call <kbd>WriteStringAsSpriteOAM</kbd> without using any ce
 is behind the first one).
 </p>
 
+<p>Do note that SMW and pixi sprites have a limit on how far a tile can be displaced from the origin. The tiles cannot be more than 128 pixels to the left or up and more than 127 pixels to the right or down. However, it is unlikely for anyone to have such display be that long.</p>
+
 <h2>Player's origin</h2>
 <p>The player character (Mario or Luigi)'s position, like most sprites, is on the top-left corner. However, on the vertical axis, his origin is always 32 (<kbd>$20</kbd>) pixels from where his feet is at, regardless if he is crouching, being small, or have super/cape/fire powerup, and
-any combination of it. If he is on yoshi, then his Y position is offset by an additional 16 (<kbd>$10</kbd>) pixels up (48 pixels (<kbd>$30</kbd>) pixels from yoshi's feet). As presented below, the red dots represents the player's origin (RAM address <kbd>X_Position: $94-$95</kbd>, <kbd>Y_Position: $96-$97</kbd> for level coordinates,
+any combinations of it. If he is on yoshi, then his Y position is offset by an additional 16 (<kbd>$10</kbd>) pixels up (48 pixels (<kbd>$30</kbd>) pixels from yoshi's feet). As presented below, the red dots represents the player's origin (RAM address <kbd>X_Position: $94-$95</kbd>, <kbd>Y_Position: $96-$97</kbd> for level coordinates,
 <kbd>X_Position: $7E-$7F</kbd>, <kbd>Y_Position: $80-$81</kbd> for position relative to the screen border):<br>
 <img src="MarioOriginDiagram.png">
 </p>
