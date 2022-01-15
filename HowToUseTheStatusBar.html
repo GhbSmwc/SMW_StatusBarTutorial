@@ -1236,6 +1236,67 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			DEX #2
 			BPL -
 		endif
+	RTL</pre></td></tr></table><br>
+	
+Alternatively, I developed a subroutine that you can supply any RAM addresses as the input for the subroutine <kbd>CountingAnimation16Bit</kbd> (both RAMs must be 16-bit) and it will increment/decrement
+the display value for you:
+<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address of the actual number
+!RAMToMeasure2 = $62			;&gt;RAM address of the displayed amount
+!StatusBarPosition = $7FA000		;&gt;Where to write on the status bar
+!NumberOfDigitsDisplayed = 5		;&gt;Number of digits shown.
+!ChangeDivisorRate = 60			;&gt;Scaling of increment/decrement rate. Higher number = slower.
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+	init:
+	LDA #$80
+	STA $7D
+	RTL
+	main:
+	.ChangeAnimation
+		LDA.b #!RAMToMeasure
+		STA $04
+		LDA.b #!RAMToMeasure&gt;&gt;8
+		STA $05
+		LDA.b #!RAMToMeasure&gt;&gt;16
+		STA $06
+		
+		LDA.b #!RAMToMeasure2
+		STA $07
+		LDA.b #!RAMToMeasure2&gt;&gt;8
+		STA $08
+		LDA.b #!RAMToMeasure2&gt;&gt;16
+		STA $09
+		
+		LDA #!ChangeDivisorRate
+		STA $0A
+		
+		JSL HexDec_CountingAnimation16Bit
+	.DisplayStatusBar
+		REP #$20
+		LDA !RAMToMeasure2
+		STA $00
+		SEP #$20
+		JSL HexDec_SixteenBitHexDecDivision
+		JSL HexDec_RemoveLeadingZeroes16Bit
+	
+	;Write to status bar
+		if !StatusbarFormat == $01
+			LDX.b #(!NumberOfDigitsDisplayed-1)
+			-
+			LDA.b !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1),x
+			STA !StatusBarPosition,x
+			DEX
+			BPL -
+		else
+			LDX.b #((!NumberOfDigitsDisplayed-1)*2)
+			LDY.b #(!NumberOfDigitsDisplayed-1)
+			-
+			LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
+			STA !StatusBarPosition,x
+			DEY
+			DEX #2
+			BPL -
+		endif
 	RTL</pre></td></tr></table>
 <hr>
 <h2 id="Frames2Timer"><a href="#Frames2TimerBack">^</a>Display a timer in Hours:Minutes:Seconds:Centiseconds format</h2>

@@ -31,6 +31,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ;Misc:
 ; -Frames2Timer
 ; -ConvertToPercentage
+; -CountingAnimation16Bit
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;General math routines.
 ;Due to the fact that registers have limitations and such.
@@ -1077,3 +1078,70 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				dw 100		;>Integer not scaled at all
 				dw 1000		;>Scaled by 1/10 to display the tenths place
 				dw 10000	;>Scaled by 1/100 to display the hundredths place.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Counting animation (uses "Mere display counting").
+;
+;Takes 2 numbers, "Actual" and "Gradual", and increments/decrements "Gradual"
+;towards "Actual" at a rate (e.g per frame) proportional to the difference
+;between actual and gradual (increments/decrements faster at greater differences).
+;Calculated like this per execution of this routine (e.g per frame):
+; To Increment (When Gradual is less than Actual):
+;  Gradual += floor((Actual - Gradual)/Rate) + 1
+; To decrement (when Gradual is greater than actual):
+;  Gradual += floor((Gradual - Actual)/Rate) + 1
+;
+;Input:
+;-$04-$06 (3 bytes): RAM address of the 16-bit number that is the "Actual"
+; amount
+;-$07-$09 (3 bytes): RAM address of the 16-bit number that is the "Gradual"
+; which increases or decreases to the actual amount at a rate proportional how big the difference.
+;-$0A (1 byte): The "change rate" per execution of this routine, higher
+; number written here = slower.
+;
+;Output:
+;RAM_stored_In_07: the updated display number
+;
+;Destroyed:
+;$00-$03: Used for the division routine.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CountingAnimation16Bit:
+	REP #$20
+	LDA [$04]
+	CMP [$07]
+	BEQ .NoChange
+	BCS .ActualBigger
+	
+	.GradualBigger
+		LDA [$07]						;\Difference (how far apart)
+		SEC							;|
+		SBC [$04]						;|
+		STA $00							;/
+		LDA $0A							;\The rate
+		AND #$00FF						;|
+		STA $02							;/
+		JSL MathDiv						;When this routine finishes, A is 8-bit
+		REP #$20
+		INC $00
+		LDA [$07]						;\Subtracting animation, subtracts faster
+		SEC							;|the more far apart "Actual" and "Gradual" are.
+		SBC $00							;|
+		STA [$07]						;/
+		BRA .NoChange
+	.ActualBigger
+		LDA [$04]						;\Difference (how far apart)
+		SEC							;|
+		SBC [$07]						;|
+		STA $00							;/
+		LDA $0A							;\The rate
+		AND #$00FF						;|
+		STA $02							;/
+		JSL MathDiv						;When this routine finishes, A is 8-bit
+		REP #$20
+		INC $00
+		LDA [$07]						;\Adding animation, subtracts faster
+		CLC							;|the more far apart "Actual" and "Gradual" are.
+		ADC $00							;|
+		STA [$07]						;/
+	.NoChange
+	SEP #$20
+	RTL
