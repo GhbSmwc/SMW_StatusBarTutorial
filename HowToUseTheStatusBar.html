@@ -1163,8 +1163,7 @@ CLC			;|
 ADC $13CC		;|
 STA $0DBF		;/
 STZ $13CC		;&gt;And stop adding even more (one coin count up is one adder down, until adder is zero).
-</pre></td></tr></table>
-.</p></li>
+</pre></td></tr></table></p></li>
 </ul>
 </p>
 For the &ldquo;Mere display counting&rdquo; you can alleviate the lengthy counting animation by taking the absolute difference of the display amount and actual amount, and check if the difference is too big, would
@@ -1261,31 +1260,31 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	RTL
 	main:
 	.ChangeAnimation
-		LDA.b #!RAMToMeasure
-		STA $04
-		LDA.b #!RAMToMeasure&gt;&gt;8
-		STA $05
-		LDA.b #!RAMToMeasure&gt;&gt;16
-		STA $06
+		LDA.b #!RAMToMeasure		;\$04-$06: A RAM address containing the Actual number
+		STA $04				;|
+		LDA.b #!RAMToMeasure&gt;&gt;8		;|
+		STA $05				;|
+		LDA.b #!RAMToMeasure&gt;&gt;16	;|
+		STA $06				;/
 		
-		LDA.b #!RAMToMeasure2
-		STA $07
-		LDA.b #!RAMToMeasure2&gt;&gt;8
-		STA $08
-		LDA.b #!RAMToMeasure2&gt;&gt;16
-		STA $09
+		LDA.b #!RAMToMeasure2		;\$07-$09: A RAM address containing the gradually changing number
+		STA $07				;|
+		LDA.b #!RAMToMeasure2&gt;&gt;8	;|
+		STA $08				;|
+		LDA.b #!RAMToMeasure2&gt;&gt;16	;|
+		STA $09				;/
 		
-		LDA #!ChangeDivisorRate
-		STA $0A
+		LDA #!ChangeDivisorRate		;\$0A: Rate
+		STA $0A				;/
 		
-		JSL HexDec_CountingAnimation16Bit
+		JSL HexDec_CountingAnimation16Bit	;&gt;Perform gradual counting animation (This uses $00-$03 for division routine, therefore destroyed)
 	.DisplayStatusBar
 		REP #$20
 		LDA !RAMToMeasure2
 		STA $00
 		SEP #$20
 		JSL HexDec_SixteenBitHexDecDivision
-		JSL HexDec_RemoveLeadingZeroes16Bit
+		JSL HexDec_RemoveLeadingZeroes16Bit	;&gt;Remove if you want leading zeroes.
 	
 	;Write to status bar
 		if !StatusbarFormat == $01
