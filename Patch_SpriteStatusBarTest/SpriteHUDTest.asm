@@ -114,6 +114,9 @@ endif
 if !Setting_RemoveOrInstall != 0
 	freecode
 	DrawHUD:
+		.RestoreOverwrittenCode
+			JSL $028AB1		;>Restore the JSL (we write our own OAM after all sprite OAM of SMW are finished)
+		.MainCode
 		PHB		;\In case if you are going to use tables using 16-bit addressing
 		PHK		;|
 		PLB		;/
@@ -425,24 +428,24 @@ if !Setting_RemoveOrInstall != 0
 			SEP #$30
 			PLB
 			JML $00A2EA		;>Continue onwards
-endif
 
 
-if lessequal(!SpriteStatusBarPatchTest_Mode, 4) ;If !SpriteStatusBarPatchTest_Mode is a number display
-	DigitTable:
-		db $80				;>Index $00 = for the "0" graphic
-		db $81				;>Index $01 = for the "1" graphic
-		db $82				;>Index $02 = for the "2" graphic
-		db $83				;>Index $03 = for the "3" graphic
-		db $84				;>Index $04 = for the "4" graphic
-		db $85				;>Index $05 = for the "5" graphic
-		db $86				;>Index $06 = for the "6" graphic
-		db $87				;>Index $07 = for the "7" graphic
-		db $88				;>Index $08 = for the "8" graphic
-		db $89				;>Index $09 = for the "9" graphic
-		db $8A				;>Index $0A = for the "/" graphic
-		db $8B				;>Index $0B = for the "%" graphic
-		db $8C				;>Index $0C = for the "!" graphic
-		db $8D				;>Index $0D = for the "." graphic
-		db $8E				;>Index $0E = for the ":" graphic
+	if lessequal(!SpriteStatusBarPatchTest_Mode, 4) ;If !SpriteStatusBarPatchTest_Mode is a number display
+		DigitTable:
+			db $80				;>Index $00 = for the "0" graphic
+			db $81				;>Index $01 = for the "1" graphic
+			db $82				;>Index $02 = for the "2" graphic
+			db $83				;>Index $03 = for the "3" graphic
+			db $84				;>Index $04 = for the "4" graphic
+			db $85				;>Index $05 = for the "5" graphic
+			db $86				;>Index $06 = for the "6" graphic
+			db $87				;>Index $07 = for the "7" graphic
+			db $88				;>Index $08 = for the "8" graphic
+			db $89				;>Index $09 = for the "9" graphic
+			db $8A				;>Index $0A = for the "/" graphic
+			db $8B				;>Index $0B = for the "%" graphic
+			db $8C				;>Index $0C = for the "!" graphic
+			db $8D				;>Index $0D = for the "." graphic
+			db $8E				;>Index $0E = for the ":" graphic
+	endif
 endif
