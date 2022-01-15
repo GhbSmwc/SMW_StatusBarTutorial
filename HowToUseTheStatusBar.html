@@ -1155,8 +1155,16 @@ Note that there are a major drawback:
 <ul>
 <li><p>If the amount adds or subtract by a very large value, the counting animation will take a very long time to finally display the final amount.</p></li>
 <li><p>Make sure when you do things that would &ldquo;clear memory&rdquo; (or simply &rdquo;reset/initialize values&rdquo;) such as going to another level, make sure when using &ldquo;Actual amount counting&rdquo;, not to have the
-adder/subtractor be reset during transitions, otherwise the amount change gets cut off, which stops the counter prematurely and therefore not get the total or difference properly. You can make this &ldquo;skip the
-animation&rdquo; by taking the current value, and add by the remaing values to be added (like taking the coin counter (<kbd>$0DBF</kbd>), add <kbd>CLC : ADC</kbd> by <kbd>$13CC</kbd>, and then store the total back to <kbd>$0DBF</kbd>).</p></li>
+adder/subtractor be reset during transitions, otherwise the amount change gets cut off, which stops the counter prematurely and therefore not get the total or difference properly. You can &ldquo;skip the
+animation&rdquo; (instantly add) by taking the current value, add by the remaining values to be added (like taking the coin counter (<kbd>$0DBF</kbd>), add <kbd>CLC : ADC</kbd> by <kbd>$13CC</kbd>, store the total back to <kbd>$0DBF</kbd>) and then
+set the adder to zero (since it is already added and we do not want to add even more):
+<table><tr><td><pre>LDA $0DBF		;\Instantly add
+CLC			;|
+ADC $13CC		;|
+STA $0DBF		;/
+STZ $13CC		;&gt;And stop adding even more (one coin count up is one adder down, until adder is zero).
+</pre></td></tr></table>
+.</p></li>
 </ul>
 </p>
 For the &ldquo;Mere display counting&rdquo; you can alleviate the lengthy counting animation by taking the absolute difference of the display amount and actual amount, and check if the difference is too big, would
