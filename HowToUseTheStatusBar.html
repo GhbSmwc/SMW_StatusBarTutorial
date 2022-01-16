@@ -122,9 +122,13 @@ to edit:<br>
 <li>Create an ASM file to run under <a href="https://www.smwcentral.net/?p=section&a=details&id=19982">uberasm tool</a> as <kbd>level</kbd> under <kbd>main:</kbd> label, and just use <kbd>LDA #$xx : STA $xxxxxx</kbd>.</li>
 </ul>
 
-Now, for the RAM address, each byte is each 8x8 tile, meaning each time you go to the next address, its the next 8x8 tile number:<br>
-<input type="radio" name="GameType" id="NormalROM" onclick="Calculate()" checked><label for="NormalROM">Normal game</label><br>
-<input type="radio" name="GameType" id="SA1ROM" onclick="Calculate()"><label for="SA1ROM">SA-1</label>
+Now, for the RAM address, each byte is each 8x8 tile, meaning each time you go to the next address, its the next 8x8 tile number:<br><br>
+Ram mode:
+<ul>
+<li><input type="radio" name="GameType" id="NormalROM" onclick="Calculate()" checked><label for="NormalROM">Normal game (in bank <kbd>$7E</kbd>)</label></li>
+<li><input type="radio" name="GameType" id="SA1ROM" onclick="Calculate()"><label for="SA1ROM">SA-1 using <kbd>$xxxx</kbd> addressing (after applying <kbd>|!addr</kbd>, in bank <kbd>$00</kbd>)</label></li>
+<li><input type="radio" name="GameType" id="SA1ROM_Long" onclick="Calculate()"><label for="SA1ROM_Long">SA-1 using long (bank <kbd>$40</kbd>) addressing (no need <kbd>|!addr</kbd>)</label></li>
+</ul>
 <span id="SMWStatusBarTable"></span><br>
 All of these bytes stored in RAM <kbd>$7E0EF9-$7E0F2E</kbd> are <kbd>TTTTTTTT</kbd>, which means you can only modify the tile number through RAM in-game. You may be wondering, if I wanted to edit the tiles here,
 what value should I put? Well, <kbd>TTTTTTTT</kbd> is actually <i>what tile number to use</i>, from the tile data. When viewing the tile data stored in <kbd>GFX28</kbd> via <a href="https://www.smwcentral.net/?p=section&a=details&id=15671">YY-CHR</a>,
@@ -2192,7 +2196,10 @@ before transfered into the PPU. SMW reserves the later half (OAM slots 64-127) f
 </ul>
 </p>
 
-<p>The good news is that most of the stuff are handled by subroutines, so you only need to know the basics of programming sprites as well as the inputs/outputs of the subroutines.</p>
+<p>The good news is that most of the stuff are handled by subroutines from here, so you only need to know the basics of programming sprites as well as the inputs/outputs of the subroutines.</p>
+
+<p>Note: These stuff here always handle HUD tiles as 8x8s, and very likely your sprite be composed 16x16 tiles, this means you have to manually set the size bit and have Y = <kbd>$FF</kbd> before calling
+<kbd>%FinishOAMWrite()</kbd> (or <kbd>JSL $01B7B3</kbd>). To do that, see the previously link about the format</p>
 
 <p>The very first thing you want to do is get the subroutines into shared subroutines. Here is the <a href="Readme_Files/GettingSharedSubToWork.html" id="SharedSubroutines">tutorial</a>. Don't ask why these could be on pixi's routines folder or uberasm
 tool's library folder. They have limitations that each ASM file are isolated and cannot reference each other from them. Plus, some of these subroutines may call each other within one.</p>
@@ -2558,7 +2565,9 @@ as it would make this tutorial unnecessarily long.</p>
 		<p>Writes repeated icons into OAM.</p>
 		<p>Horizontal and vertical displacement refers to each displacement (in pixels) of each tile starting from the first tile being written. Negative numbers (<kbd>$80-$FF</kbd>) would write each tile to the left or up and positive numbers (<kbd>$01-$7F</kbd>)
 		would write each to the right or down. This also means it affects the &ldquo;fill direction&rdquo; (e.g if horizontal displacement is <kbd>$F8</kbd>, the icons fill right-to-left) A displacement of <kbd>$00</kbd> means all the icons will be on
-		the vertical and/or horizontal axis. Normally, you'll want a displacement value of <kbd>$F8</kbd> or <kbd>$08</kbd> on one axis with the other being <kbd>$00</kbd>.</p>
+		the vertical and/or horizontal axis. Normally, you'll want a displacement value of <kbd>$F8</kbd> or <kbd>$08</kbd> on one axis with the other being <kbd>$00</kbd>. Examples follows:
+		<img src="Readme_Files/RepeatedIconsDisplacements.png">
+		</p>
 	</td>
 </tr>
 <tr>
@@ -2723,29 +2732,31 @@ left to right is much faster).</p>
 <script>
 	function Calculate() {
 		//SMW status bar table
-			var LoopCount = 0
-			var CurrentRowYPos = 2
-			var StartOfLineXPos = 2
-			var OnSecondRow = 0
-			var StatusBarAddress = parseInt("0EF9", 16)
+			let LoopCount = 0n
+			let CurrentRowYPos = 2n
+			let StartOfLineXPos = 2n
+			let OnSecondRow = 0n
+			let StatusBarAddress = ParseBigIntValue("0EF9", 16)
 			if (document.getElementById("SA1ROM").checked == true) {
-				StatusBarAddress = parseInt("6EF9", 16)
+				StatusBarAddress = ParseBigIntValue("6EF9", 16)
+			} else if (document.getElementById("SA1ROM_Long").checked == true) {
+				StatusBarAddress = ParseBigIntValue("400EF9", 16)
 			}
 			var Output = ""
 			Output += "<table>"
 			Output += "<tr><th>Tile number/index</th><th>Coordinate</th><th>RAM address</th><th>default tiles and properties ROM address (%TTTTTTTT, %YXPCCCTT)</th></tr>"
-			for (LoopCount = 0; LoopCount < 55; LoopCount++) {
-				if (LoopCount == 28) {
+			for (LoopCount = 0n; LoopCount < 55n; LoopCount++) {
+				if (LoopCount == 28n) {
 					Output += "<tr><th colspan='4'>Second line</th></tr>"
-					CurrentRowYPos = 3
-					StartOfLineXPos = 3
-					OnSecondRow = 28
+					CurrentRowYPos = 3n
+					StartOfLineXPos = 3n
+					OnSecondRow = 28n
 				}
 				Output += "<tr>"
 				Output += "<td><kbd>" + LoopCount.toString(10) + "</kbd> (<kbd>$" + LoopCount.toString(16).toUpperCase() + "</kbd>)</td>"
 				Output += "<td><kbd>(" + (StartOfLineXPos+(LoopCount-OnSecondRow)).toString(10) + "," + CurrentRowYPos.toString(10) + ")</kbd> (<kbd>($" + (StartOfLineXPos+(LoopCount-OnSecondRow)).toString(16).toUpperCase() + ",$" + CurrentRowYPos.toString(16).toUpperCase() + ")</kbd>)</td>"
 				Output += "<td><kbd>$" + pad((StatusBarAddress+LoopCount).toString(16).toUpperCase(), 4) + "</kbd></td>"
-				Output += "<td><kbd>$00" + (parseInt("8C89", 16)+(LoopCount*2)).toString(16).toUpperCase() + "</kbd>, <kbd>$00" + ((parseInt("8C89", 16)+(LoopCount*2))+1).toString(16).toUpperCase() + "</kbd></td>"
+				Output += "<td><kbd>$00" + (ParseBigIntValue("8C89", 16)+(LoopCount*2n)).toString(16).toUpperCase() + "</kbd>, <kbd>$00" + ((ParseBigIntValue("8C89", 16)+(LoopCount*2n))+1n).toString(16).toUpperCase() + "</kbd></td>"
 				Output += "</tr>"
 			}
 			Output += "<table>"
@@ -2756,5 +2767,40 @@ left to right is much faster).</p>
 		var s = num+"";
 		while (s.length < size) s = "0" + s;
 		return s;
+	}
+	function ParseBigIntValue(string, radix) {
+		//Acts more closely to parseInt, unlike other methods (other functions, like CorrectBinBigIntValue)
+		//this works with bigInt.
+		let Output = 0n
+		let NegativeNumber = 1n
+		if ((/^-/).test(string)) {
+			NegativeNumber = -1n
+		}
+		let DigitPart = string.substring((string.search(/[0-9a-zA-Z]/)))
+		switch (radix) {
+			//decimal
+				default:
+				if ((/^-?\d+$/).test(string)) {
+					Output = BigInt(string)
+				}
+				break
+			//Hexadecimal
+				case 16:
+				case "0x":
+				case "0X":
+				if ((/^-?[0-9A-Fa-f]+$/).test(string)) {
+					Output = BigInt("0x" + DigitPart) * NegativeNumber
+				}
+				break
+			//Binary
+				case 2:
+				case "0b":
+				case "0B":
+				if ((/^-?[01]+$/).test(string)) {
+					Output = BigInt("0b" + DigitPart) * NegativeNumber
+				}
+		
+		}
+		return Output
 	}
 </script>

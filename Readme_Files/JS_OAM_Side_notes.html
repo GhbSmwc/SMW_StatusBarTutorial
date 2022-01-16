@@ -47,7 +47,94 @@ LSR #2
 TAY
 &lt;do something&gt;
 STA $0420,y
-PLY</pre></td></tr></table><br><br>
+PLY</pre></td></tr></table><br>
+And when we are done with writing OAM, before calling <kbd>%FinishOAMWrite()</kbd> (or <kbd>JSL $01B7B3</kbd>), have the accumulator (<kbd>A</kbd>) be a value representing how many tiles, minus 1, and have Y be <kbd>$FF</kbd> to indicate that the sprite has both 8x8 and 16x16 sizes.<br><br>
+
+The reason for the increment-4 is because the data is formatted like this:
+<table>
+	<tr>
+		<th>Relative address</th>
+		<th>OAM number</th>
+		<th>Byte containing info</th>
+	</tr>
+	<tr>
+		<td><kbd>Address+0</kbd></td>
+		<td rowspan="4">OAM tile 0</td>
+		<td>low 8-bit X position</td>
+	</tr>
+	<tr>
+		<td><kbd>Address+1</kbd></td>
+		<td>8-bit Y position</td>
+	</tr>
+	<tr>
+		<td><kbd>Address+2</kbd></td>
+		<td>Tile number</td>
+	</tr>
+	<tr>
+		<td><kbd>Address+3</kbd></td>
+		<td>Properties (YXPPCCCT)</td>
+	</tr>
+	<tr>
+		<td><kbd>Address+4</kbd></td>
+		<td rowspan="4">OAM tile 1</td>
+		<td>low 8-bit X position</td>
+	</tr>
+	<tr>
+		<td><kbd>Address+5</kbd></td>
+		<td>8-bit Y position</td>
+	</tr>
+	<tr>
+		<td><kbd>Address+6</kbd></td>
+		<td>Tile number</td>
+	</tr>
+	<tr>
+		<td><kbd>Address+7</kbd></td>
+		<td>Properties (YXPPCCCT)</td>
+	</tr>
+	<tr>
+		<td colspan="3">Continues until...</td>
+	</tr>
+	<tr>
+		<td><kbd>Address+508</kbd></td>
+		<td rowspan="4">OAM tile 127</td>
+		<td>low 8-bit X position</td>
+	</tr>
+	<tr>
+		<td><kbd>Address+509</kbd></td>
+		<td>8-bit Y position</td>
+	</tr>
+	<tr>
+		<td><kbd>Address+510</kbd></td>
+		<td>Tile number</td>
+	</tr>
+	<tr>
+		<td><kbd>Address+511</kbd></td>
+		<td>Properties (YXPPCCCT)</td>
+	</tr>
+</table><br>
+Which means assuming the RAM data stored in SMW (<kbd>$7E0200-$7E03FF </kbd>) and using the second half (<kbd>$7E0300-$7E03FF</kbd>), we use data like this:
+<table><tr><td><pre>STA $0300|!addr,y	;&gt;low 8-bit X position
+...
+STA $0301|!addr,y	;&gt;Y position
+...
+STA $0302|!addr,y	;&gt;Tile number
+...
+STA $0303|!addr,y	;&gt;Properties (YXPPCCCT)
+...
+INY			;\Next OAM index (increment by 4 for the whole OAM slot)
+INY			;|
+INY			;|
+INY			;/
+&lt;Loop condition to check if all tiles written&gt;
+</pre></td></tr></table><br>
+
+But what about the OAM extra bits (X position high bit and the size)? Well, they're stored in a separate table, <kbd>$7E0400-$7E041F</kbd> for the compressed version (same format as the
+PPU register format (each byte contains 4 OAM slot: <kbd>%SXSXSXSX</kbd> where each <kbd>SX</kbd> starting from the low bits corresponds to each OAM index starting at the lowest OAM slot
+number), and <kbd>$7E0420-$7E049F</kbd> (each byte is an OAM slot, formatted as <kbd>%000000SX</kbd>).<kbd>X</kbd> here means the high bit of the X position, and <kbd>S</kbd> is the size bit<br><br>
+
+You really don't have to worry about the high bit X position since after finishing your OAM write and calling <kbd>%FinishOAMWrite()</kbd> (or <kbd>JSL $01B7B3</kbd>) will automatically handle the high bit X position for you.
+However, we still need to worry about the size bit as previously mentioned.
+
 <span id="Output"></span>
 
 <script>

@@ -257,7 +257,7 @@ Graphics:
 			LDX $15E9|!addr
 			LDA !extra_byte_2,x
 			STA !Scratchram_PercentageFixedPointPrecision
-			JSL !ConvertToPercentage			;>$00-$03: Percentage (fixed point)
+			JSL !ConvertToPercentage			;>$00-$03: Percentage (fixed point), Y: round to 0 (Y = 1), round to 100 (Y = 2)
 			LDX $15E9|!addr
 		;Cap at 100
 			LDA !extra_byte_3,x
@@ -290,7 +290,7 @@ Graphics:
 			LDX $15E9|!addr					;>Not sure if changing the index 8/16bit mode would destroy this, but here just in case.
 			LDA !extra_byte_3,x
 			AND.b #%00000010
-			BNE +
+			BEQ +
 			
 			CPY #$01					;\Avoid rounding to 0
 			BNE +						;|
@@ -303,7 +303,7 @@ Graphics:
 			
 			LDA !extra_byte_3,x
 			AND.b #%00000100
-			BNE +
+			BEQ +
 			
 			CPY #$02					;\Avoid rounding to 100
 			BNE +						;|

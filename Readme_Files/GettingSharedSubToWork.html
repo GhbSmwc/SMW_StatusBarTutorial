@@ -44,7 +44,7 @@ incsrc "SharedSub_Defines/SubroutineDefs.asm"
 		</ol>
 		<li>Copy and pasting the code</li>
 		<ol>
-			<li>Copy the codes, as text, <b>inside</b> the ASM files in <kbd>StatusBarTutorial/StatusBarRoutines</kbd>.</li>
+			<li>Copy the codes, as text, <b>inside</b> each ASM file in <kbd>StatusBarTutorial/StatusBarRoutines</kbd>, and paste them in <kbd>subroutinecode.asm</kbd> (therefore <kbd>subroutinecode</kbd> will contain all the subroutines in one ASM file).</li>
 			<li>Get rid of the <kbd>incsrc "../StatusBarRoutinesDefines/Defines.asm"</kbd> in those pasted code, since it is now referenced in <kbd>sharedsub.asm</kbd>.</li>
 			<li>Add the subroutines into the JML list:
 <table><tr><td><pre>autoclean JML MathDiv

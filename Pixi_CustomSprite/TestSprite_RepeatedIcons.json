@@ -17,7 +17,7 @@
     "Disable fireball killing": false,
     "Disable cape killing": false,
     "Disable water splash": false,
-    "Don't interact with Layer 2": false
+    "Don't interact with Layer 2": true
   },
   "$167A": {
     "Don't disable cliping when starkilled": false,
@@ -55,8 +55,41 @@
   "Extra Property Byte 1": 0,
   "Extra Property Byte 2": 0,
   "Additional Byte Count (extra bit clear)": 4,
-  "Additional Byte Count (extra bit set)": 0,
+  "Additional Byte Count (extra bit set)": 4,
   "Map16": "",
-  "Displays": [],
-  "Collection": []
+  "Displays": [
+    {
+      "Description": "Undefined Sprite",
+      "ExtraBit": false,
+      "Tiles": [
+        {
+          "X offset": 0,
+          "Y offset": 0,
+          "map16 tile": 0
+        }
+      ],
+      "X": 0,
+      "Y": 0,
+      "DisplayText": "",
+      "UseText": false
+    }
+  ],
+  "Collection": [
+    {
+      "Name": "Test Sprite Repeated Icons",
+      "ExtraBit": false,
+      "Extra Property Byte 1": 0,
+      "Extra Property Byte 2": 0,
+      "Extra Property Byte 3": 0,
+      "Extra Property Byte 4": 0,
+      "Extra Property Byte 5": 0,
+      "Extra Property Byte 6": 0,
+      "Extra Property Byte 7": 0,
+      "Extra Property Byte 8": 0,
+      "Extra Property Byte 9": 0,
+      "Extra Property Byte 10": 0,
+      "Extra Property Byte 11": 0,
+      "Extra Property Byte 12": 0
+    }
+  ]
 }

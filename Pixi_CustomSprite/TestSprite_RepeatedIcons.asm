@@ -3,7 +3,13 @@
 ;NOTE! If too many tiles are drawn, exceeding the maximum set by the
 ;sprite memory header (in "Change Properties in Sprite Header (in hex)"),
 ;tile wraparound can occur, starting with the last tile written (any tile
-;that has the highest Y OAM index).
+;that has the highest Y OAM index). I recommend using
+;"No More Sprite Tile limits" or use SA-1.
+;
+;Displacement for each icon (8-bit signed), in pixels. Negative is going (filling) left or up, positive is right or down.
+; extra_byte_1: Horizontal displacement
+; extra_byte_2: Vertical displacement
+;
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../SharedSub_Defines/SubroutineDefs.asm"
@@ -19,10 +25,6 @@ incsrc "../SharedSub_Defines/SubroutineDefs.asm"
  !RepeatIconEmpty_TileProp = %00110001 ;>YXPPCCCT
  !RepeatIconFull_TileNumb = $91
  !RepeatIconFull_TileProp = %00110001 ;>YXPPCCCT
-;Other settings
- !IconDisplacementX = $08
- !IconDisplacementY = $00
-  ;^Displacement for each icon (8-bit signed), in pixels. Negative is going (filling) left or up, positive is right or down.
 print "INIT ",pc
 	RTL
 
@@ -127,9 +129,9 @@ Graphics:
 			CLC				;|
 			ADC #$10			;|
 			STA $03				;/
-			LDA #!IconDisplacementX		;\Displacement between each icon
+			LDA !extra_byte_1,x		;\Displacement between each icon
 			STA $04				;|
-			LDA #!IconDisplacementY		;|
+			LDA !extra_byte_2,x		;|
 			STA $05				;/
 			LDA !Default_RAMToDisplay2	;\max number of icons
 			STA $06				;/

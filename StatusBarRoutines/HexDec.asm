@@ -990,7 +990,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	; $00-$03: Percentage, using fixed-point notation (an integer here, then scaled by 1/(10**!Scratchram_PercentageFixedPointPrecision)),
 	;          rounded 1/2 up to the nearest 1*10**(-!Scratchram_PercentageFixedPointPrecision). Using 32-bit unsigned integer to prevent
 	;          potential overflow (mainly going beyond 65535) if your hack allows going higher than 100% and with higher
-	;          !Scratchram_PercentageFixedPointPrecision precision.
+	;          !Scratchram_PercentageFixedPointPrecision precision. If the denominator is zero, will be 0% or 100% (division by zero).
 	; Y register: Detect rounding to 0 or 100. Can be used to display 1% if exclusively between 0 and 1%
 	;             and 99% if exclusively between 99 and 100%. This is useful for avoid misleading 0 and 100% displays when actually close
 	;             to such numbers. This also applies to higher precision, but instead of by the ones place, it is actually the
