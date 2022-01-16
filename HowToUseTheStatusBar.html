@@ -1869,20 +1869,20 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	!FullTile = $2E
 
 	main:
-	LDA !RAMToMeasure
-	STA $00
-	LDA #!MaxNumberOfSymbols
-	STA $01
-	LDA #!EmptyTile
-	STA $02
-	LDA #!FullTile
-	STA $03
-	LDA.b #!StatusBarPosition
-	STA $04
-	LDA.b #!StatusBarPosition>>8
-	STA $05
-	LDA.b #!StatusBarPosition>>16
-	STA $06
+	LDA !RAMToMeasure		;\$00: How many filled icons
+	STA $00				;/
+	LDA #!MaxNumberOfSymbols	;\$01: How many total icons
+	STA $01				;/
+	LDA #!EmptyTile			;\$02: Empty tile number
+	STA $02				;/
+	LDA #!FullTile			;\$03: Full tile number
+	STA $03				;/
+	LDA.b #!StatusBarPosition	;\$04-$06: Address of where to write to the HUD
+	STA $04				;|
+	LDA.b #!StatusBarPosition>>8	;|
+	STA $05				;|
+	LDA.b #!StatusBarPosition>>16	;|
+	STA $06				;/
 	if !StatusbarFormat == $01
 		if !Leftwards == 0
 			JSL RepeatedSymbols_WriteRepeatedSymbols
@@ -2219,7 +2219,9 @@ See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>. Again, use shared su
 <p>Routines-based inputs is almost the same as the layer 3 status bar, you just have to read the comments and description in the code as well as the info in the subroutines to fully understands how this works and how to use it. I do not want to explain everything
 as it would make this tutorial unnecessarily long.</p>
 
-<p>Here are the subroutines to use. There are 2 varations, with the first one being for pixi sprites and the other with the <kbd>OAMOnly</kbd> (and 16-bit centering) in the name which writes OAM directly without using sprite slots at all.</p>
+<p>Here are the subroutines to use. There are 2 variations, with the first one being for pixi sprites and the other with the <kbd>OAMOnly</kbd> (and 16-bit centering) in the name which writes OAM directly without using sprite slots at all.</p>
+
+<p>Note: For pixi sprites, obviously <kbd>%GetDrawInfo()</kbd> must be used before calling subroutines that writes to the OAM table.</p>
 <table>
 <tr><th>Subroutine name</th><th>Input</th><th>Output</th><th>Description</th></tr>
 <tr>
