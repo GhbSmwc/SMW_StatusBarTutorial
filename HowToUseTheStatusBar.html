@@ -1156,14 +1156,52 @@ Note that there are a major drawback:
 <li><p>If the amount adds or subtract by a very large value, the counting animation will take a very long time to finally display the final amount.</p></li>
 <li><p>Make sure when you do things that would &ldquo;clear memory&rdquo; (or simply &rdquo;reset/initialize values&rdquo;) such as going to another level, make sure when using &ldquo;Actual amount counting&rdquo;, not to have the
 adder/subtractor be reset during transitions, otherwise the amount change gets cut off, which stops the counter prematurely and therefore not get the total or difference properly. You can &ldquo;skip the
-animation&rdquo; (instantly add) by taking the current value, add by the remaining values to be added (like taking the coin counter (<kbd>$0DBF</kbd>), add <kbd>CLC : ADC</kbd> by <kbd>$13CC</kbd>, store the total back to <kbd>$0DBF</kbd>) and then
+animation&rdquo; (&ldquo;fast-foward&rdquo;, instantly add) by taking the current value, add by the remaining values to be added (like taking the coin counter (<kbd>$0DBF</kbd>), add <kbd>CLC : ADC</kbd> by <kbd>$13CC</kbd>, store the total back to <kbd>$0DBF</kbd>) and then
 set the adder to zero (since it is already added and we do not want to add even more):
 <table><tr><td><pre>LDA $0DBF		;\Instantly add
 CLC			;|
 ADC $13CC		;|
 STA $0DBF		;/
 STZ $13CC		;&gt;And stop adding even more (one coin count up is one adder down, until adder is zero).
-</pre></td></tr></table></p></li>
+</pre></td></tr></table>
+Now note that the above is just a mock up, and does not handle a 100-coin rollover (going over 100 would subtract by 100 simulating a wraparound). Use this code instead for real coin handling (has a strong failsafe measure) (call it during fade outs, like gamemode <kbd>$0F<kbd> for example):
+<table><tr><td><pre>AddNCoinsWithRollOver:
+	LDA $0DBF|!addr		;\Instantly add
+	CLC			;|
+	ADC $13CC|!addr		;|
+	STA $0DBF|!addr		;/
+	STZ $13CC|!addr		;&gt;And stop adding even more (one coin count up is one adder down, until adder is zero).
+
+	.CheckEnoughCoinsForLife
+		LDA $0DBF|!addr
+		SEC
+		SBC.b #100		;\If coins subtracted by 100 results negative (or if coins is less than 100), then do nothing
+		BCC .NotEnoughCoins	;/(CMP and SBC are the same except SBC modifies the accumulator register, A - B and it underflows, carry clear)
+
+	.EnoughCoinsForLife
+		STA $0DBF|!addr			;&gt;Wrap the coin count to 0-99 (MOD by 100)
+		INC $18E4|!addr			;&gt;Increase life + sound effect (again if over 200 coins). Note that this also can get cut off, therefore the coin count would be right while the lives may be canceled.
+		BRA .CheckEnoughCoinsForLife	;&gt;Check back again if after deducting 100 coins for extra life still have at least 100 coins (e.g if you get 200 coins instantly, grant another extra life)
+
+	.NotEnoughCoins
+AddLivesInstantly:
+	LDA $0DBE|!addr		;\Instantly add
+	CLC			;|
+	ADC $18E4|!addr		;|
+	STA $0DBE|!addr		;/
+	STZ $18E4|!addr		;&gt;And stop adding even more (one life count up is one adder down, until adder is zero).
+	
+	.CheckIfLivesMaxed
+		LDA.b #99
+		CMP $0DBE|!addr
+		BCS ..NotMaxed	;&gt;If 99 is greater than lives (or Lives less than 99), skip
+		..Maxed
+			STA $0DBE|!addr
+		..NotMaxed
+	Done:
+	RTL</pre></td></tr></table>
+
+</p></li>
 </ul>
 </p>
 For the &ldquo;Mere display counting&rdquo; you can alleviate the lengthy counting animation by taking the absolute difference of the display amount and actual amount, and check if the difference is too big, would
