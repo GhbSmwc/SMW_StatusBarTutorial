@@ -1,3 +1,6 @@
+;NOTE: Not for use on uberasm tool, for shared subroutines called by custom sprites or
+;Patch_SpriteStatusBarTest.asm
+
 ;List of routines. Note: "OAMOnly" means only directly writing to OAM without using sprite slots.
 ;-WriteStringAsSpriteOAM
 ;-GetStringXPositionCentered
