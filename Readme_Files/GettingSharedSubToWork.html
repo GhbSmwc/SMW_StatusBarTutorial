@@ -30,7 +30,8 @@
 	<ol>
 		<li>Defines</li>
 		<ol>
-			<li>Copy the folder <kbd>StatusBarRoutinesDefines</kbd> (not individually or these items themselves, the folder containing it), and have it be placed at Shared Subroutine's parent directory (the directory you see <kbd>sharedsub.asm</kbd>)</li>
+			<li>Copy the folder <kbd>StatusBarRoutinesDefines</kbd> (not individually or these items themselves, the folder containing it), and have it be placed at Shared Subroutine's parent directory (the directory you see <kbd>sharedsub.asm</kbd>). Do the same
+			but on <kbd>SharedSub_Defines</kbd> (you also have to copy this to anywhere that uses the shared subroutines patch, mainly because these ASM files uses <kbd>JSL</kbd> to jump to one of SharedSub's JML in the JML list).</li>
 			<li>
 				Open <kbd>sharedsub.asm</kbd>, and add this:
 <table><tr><td><pre>

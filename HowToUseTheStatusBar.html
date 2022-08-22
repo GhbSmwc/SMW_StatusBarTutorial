@@ -102,8 +102,8 @@ on something simple as how to write a value to memory. You should also know abou
 </ul>
 <p>Other</p>
 <ul>
-<li><a href="https://www.smwcentral.net/?p=section&a=details&id=19545">Shared Subroutines</a>, strongly recommend if you are going to use them on multiple types of HUD (like one as a sprite and other is layer 3).
-The sprite tutorials here however requires it, unless you dramatically edit the code. Here is the <a href="Readme_Files/GettingSharedSubToWork.html" id="SharedSubroutinesBackToTOC">template here you can copy</a>.</li>
+<li><a href="https://www.smwcentral.net/?p=section&a=details&id=19545">Shared Subroutines</a>, if you are going to use them on multiple types of HUD (like one as a sprite and other is layer 3).
+The sprite tutorials requires it, unless you dramatically edit the code. Here is the <a href="Readme_Files/GettingSharedSubToWork.html" id="SharedSubroutinesBackToTOC">template here you can copy</a>.</li>
 </ul>
 <hr>
 <p>I have provided several routines to make writing codes much user-friendly as possible. So lets begin.</p>
@@ -2221,7 +2221,7 @@ like how the RAM defined in <kbd>!Scratchram_CharacterTileTable</kbd> is being u
 
 <h3 id="HUDSprites"><a href="#HUDSpritesBack">^</a>HUD-like sprites</h3>
 <p>I provided a patch that merely writes OAM tiles to the screen (does not occupy any types of sprite slots (sprite slots for normal sprites (the ones that take 12/22 slots, by smw's enemies and pixi), cluster, extended, minor extended, bounce sprite, etc.)).
-See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>. Again, use shared subroutines.</p>
+See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>. Again, use shared subroutines, and don't forget to have the folder <kbd>SharedSub_Defines</kbd> in the same place as the patch.</p>
 <h3>Subroutines in OAMBasedHUD.asm</h3>
 <p>Routines-based inputs is almost the same as the layer 3 status bar, you just have to read the comments and description in the code as well as the info in the subroutines to fully understands how this works and how to use it. I do not want to explain everything
 as it would make this tutorial unnecessarily long.</p>
