@@ -285,11 +285,11 @@ GetStringXPositionCentered:
 ;
 ;Formula:
 ;
-;XOrYPositionOfFirstIcon = InputCenter - (((TotalIcons-1)*Displacement)/2)
+; PositionOfFirstIcon = ((Input_Center_X - ((TotalIcons-1)*X_displacement)/2), (Input_Center_Y - ((TotalIcons-1)*Y_displacement)/2))
 ;
-;Which is processed in this order:
+;Which is processed in this order for optimization purposes:
 ;
-;XOrYPositionOfFirstIcon = ((((TotalIcons-1)*Displacement)/2) * -1) + InputCenter
+; XOrYPositionOfFirstIcon = ((((TotalIcons-1)*Displacement)/2) * -1) + InputCenter
 ;
 ;InputCenter = Given center point as the input.
 ;TotalIcons = Total number of icons (max).
@@ -717,11 +717,13 @@ WriteRepeatedIconsAsOAM_OAMOnly:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Same as CenterRepeatingIcons, but in 16-bit mode.
 ;
-;XOrYPositionOfFirstIcon = InputCenter - (((TotalIcons-1)*Displacement)/2)
+;Formula:
 ;
-;Which is processed in this order:
+; PositionOfFirstIcon = ((((TotalIcons-1)*X_displacement)/2), (((TotalIcons-1)*Y_displacement)/2))
 ;
-;XOrYPositionOfFirstIcon = ((((TotalIcons-1)*Displacement)/2) * -1) + InputCenter
+;Which is processed in this order for optimization purposes:
+;
+; XOrYPositionOfFirstIcon = ((((TotalIcons-1)*Displacement)/2) * -1) + InputCenter
 ;
 ;InputCenter = Given center point as the input.
 ;TotalIcons = Total number of icons (max).

@@ -30,7 +30,7 @@ bounding box for most non-object-interacting sprites:<br>
 <img src="SpritePositionPoints.png">
 </p>
 
-<p>Not all custom sprites are like this due to it being coded by different people. An easy way to find its origin is to simply use <kbd>$00</kbd> and <kbd>$01</kbd> (after calling <kbd>GetDrawInfo</kbd>) and write to <kbd>$02</kbd> and <kbd>$03</kbd> (do this before drawing the body of the sprite*),
+<p>Not all custom sprites are like this due to it being coded by different people. An easy way to find its origin is to simply use <kbd>$00</kbd> and <kbd>$01</kbd> after calling <kbd>GetDrawInfo</kbd> (these are the X and Y position of the sprite relative to the screen border), and write to <kbd>$02</kbd> and <kbd>$03</kbd> (do this before drawing the body of the sprite*),
 like this:
 <table><tr><td><pre>	LDA $00
 	STA $02
@@ -51,7 +51,7 @@ any combinations of it. If he is on yoshi, then his Y position is offset by an a
 <img src="MarioOriginDiagram.png">
 </p>
 
-<h2>Calculating the center position</h2>
+<h2>Calculating the center position of the sprite</h2>
 <p>If the sprite have an origin point at the left edge of its minimum bounding box of its image, then finding the midpoint on the horizontal axis is very easy: divide the width by 2. The quotient will be the offset from the origin. For example, if the sprite is 16x16, you
 do 16/2 which is 8, then take RAM <kbd>$00</kbd>, add by <kbd>#$08</kbd>, and write to <kbd>$03</kbd>, then call <kbd>GetStringXPositionCentered</kbd>.</p>
 
@@ -62,7 +62,7 @@ each icon depending on the displacement). In the test sprite <kbd>StatusBarTutor
 			ADC #$04			;|
 			STA $02				;/</pre></td></tr></table><br>
 Because of this:<br>
-<img src="CenterRepeatingIcons.png"><br>
+<img src="Center8x8sRow.png"><br>
 The icons themselves have an origin at their top-left corner as well. While 8-pixel itself is halfway of a 16x16 sprite, this would place the left edge of the icon in the center of the body rather than the icon's center (this isn't a problem for <kbd>GetStringXPositionCentered</kbd> because
 it already handles 8x8 tile-wise than point-wise):<br>
 <img src="IncorrectCentering.png"><br>
@@ -72,4 +72,19 @@ the formula would have to be <kbd>IconCenterPlacement = GetToCenterOfSpriteFromO
 Here is an example of what I mean using the giant masked koopa boss in its &ldquo;mask&rdquo; form:<br>
 <img src="WhenSprHaveOriginNotAtLeftEdge.png"><br>
 This applies both the <kbd>GetStringXPositionCentered</kbd> and <kbd>CenterRepeatingIcons</kbd>, since we are trying to find the center of the sprite's body.
+</p>
+<h2>Calculating the position of repeated icons centered around a sprite</h2>
+<p>Because repeated icons may have a displacement of other than 8 pixels to the right on each tile, the formula to find where to place the repeated icons is this:
+<table><tr><td><pre>
+Formula (ordered pair: (x, y)):
+	PositionOfFirstIcon = ((Input_Center_X - ((TotalIcons-1)*X_displacement)/2), (Input_Center_Y - ((TotalIcons-1)*Y_displacement)/2))
+	
+	Reason for TotalIcons-1 is due to a <a href="https://en.wikipedia.org/wiki/Off-by-one_error#Fencepost_error">fencepost-like situation</a> 
+Handled internally for optimization purposeses:
+	XOrYPositionOfFirstIcon = ((((TotalIcons-1)*Displacement)/2) * -1) + InputCenter
+</pre></td></tr></table><br>
+Visual on how it works:<br>
+<img src="CenterRepeatingIcons.png"><br>
+
+The subroutine: <kbd>CenterRepeatingIcons </kbd> and <kbd>CenterRepeatingIcons_OAMOnly</kbd> will perform this calculation to find the coordinate of the first icon in the series.
 </p>
