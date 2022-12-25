@@ -556,7 +556,7 @@ if !Setting_RemoveOrInstall != 0
 			db $8D				;>Index $0D = for the "." graphic
 			db $8E				;>Index $0E = for the ":" graphic
 	endif
-endif
 	incsrc "../StatusBarRoutines/HexDec.asm"
 	incsrc "../StatusBarRoutines/OAMBasedHUD.asm"
 	incsrc "../StatusBarRoutines/RepeatedSymbols.asm"
+endif

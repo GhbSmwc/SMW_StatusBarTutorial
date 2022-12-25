@@ -36,7 +36,6 @@
 ;And writes them to OAM.
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
-incsrc "../SharedSub_Defines/SubroutineDefs.asm"
 
 !Default_RAMToDisplay = $60
 ;^[2 bytes] Displays the decimal number of this RAM when displaying X or X/Y.
@@ -89,7 +88,7 @@ SpriteCode:
 				BNE ...Up			;/
 				BIT.b #%00000100		;\If DOWN is pressed
 				BNE ...Down			;/
-				BRA ...NoChange
+				BRA ...Done
 			
 				...Up
 					REP #$20			;\Increase 16-bit value by 1, unless if $FFFF, then don't increase
@@ -100,7 +99,7 @@ SpriteCode:
 					STA !Default_RAMToDisplay	;|
 					....Maxed			;|
 					SEP #$20			;/
-					BRA ...NoChange
+					BRA ...Done
 				...Down
 					REP #$20			;\Same but decrease and not to decrease below $0000
 					LDA !Default_RAMToDisplay	;|
@@ -109,14 +108,14 @@ SpriteCode:
 					STA !Default_RAMToDisplay	;|
 					....Zero			;|
 					SEP #$20			;/
-				...NoChange
+				...Done
 			..ControllerChangeNumberHoriz
 				LDA $15					
 				BIT.b #%00000001			;\If RIGHT is pressed
 				BNE ...Right				;/
 				BIT.b #%00000010			;\If LEFT is pressed
 				BNE ...Left				;/
-				BRA ...NoChange
+				BRA ...Done
 				
 				...Right
 					REP #$20			;\Increase 16-bit value by 1, unless if $FFFF, then don't increase
@@ -127,7 +126,7 @@ SpriteCode:
 					STA !Default_RAMToDisplay2	;|
 					....Maxed			;|
 					SEP #$20			;|
-					BRA ...NoChange			;/
+					BRA ...Done			;/
 				...Left
 					REP #$20			;\Same but decrease and not to decrease below $0000
 					LDA !Default_RAMToDisplay2	;|
@@ -136,7 +135,18 @@ SpriteCode:
 					STA !Default_RAMToDisplay2	;|
 					....Zero			;|
 					SEP #$20			;/
-				...NoChange
+				...Done
+					...CheckIfMaxExceed
+						LDA !extra_byte_1
+						CMP #$01
+						BNE .DoneWithControllingNumbers
+						REP #$20
+						LDA !Default_RAMToDisplay2
+						CMP !Default_RAMToDisplay
+						BCS ...NotExceed
+						STA !Default_RAMToDisplay
+						...NotExceed
+						SEP #$20
 					BRA .DoneWithControllingNumbers
 		.TimerMode
 			REP #$20					
@@ -187,9 +197,9 @@ Graphics:
 		LDA !Default_RAMToDisplay	;|
 		STA $00				;|
 		SEP #$20			;/
-		JSL !SixteenBitHexDecDivision	
+		%SixteenBitHexDecDivision()	
 		LDX #$00			;>Start the string at position 0 for suppressing leading zeroes in string
-		JSL !SupressLeadingZeros	;We have the string at !Scratchram_CharacterTileTable and we have X acting as how many characters/sprite tiles so far written.
+		%SupressLeadingZeros()	;We have the string at !Scratchram_CharacterTileTable and we have X acting as how many characters/sprite tiles so far written.
 		PHX
 		LDX $15E9|!addr
 		LDA !extra_byte_1,x
@@ -209,9 +219,9 @@ Graphics:
 				LDA !Default_RAMToDisplay2
 				STA $00
 				SEP #$20
-				JSL !SixteenBitHexDecDivision
+				%SixteenBitHexDecDivision()
 				PLX					;>Restore string character position
-				JSL !SupressLeadingZeros
+				%SupressLeadingZeros()
 		..SkipSecondNumber
 		PLA				;\Restore XY position
 		STA $01				;|
@@ -220,7 +230,7 @@ Graphics:
 		PLY				;We need the Y index for OAM indexing
 		LDA #$08			;\Center X position (this egg sprite is 16px wide, with origin position at the top-left edge, add 8 from there and you'll be at the midpoint)
 		STA $03				;/
-		JSL !GetStringXPositionCentered	;>$02 is now the X position of the string centered.
+		%GetStringXPositionCentered()	;>$02 is now the X position of the string centered.
 		LDA $01				;\Y position
 		CLC				;|
 		ADC #$10			;|
@@ -236,7 +246,7 @@ Graphics:
 		STA $07				;|
 		LDA.b #GraphicTable>>16		;|
 		STA $08				;/
-		JSL !WriteStringAsSpriteOAM	;>Write to OAM, we also have Y as the OAM index.
+		%WriteStringAsSpriteOAM()	;>Write to OAM, we also have Y as the OAM index.
 		;PLX				;>Restore sprite index
 		LDX $15E9|!addr
 		JMP .DrawBodyOfSprite
@@ -257,7 +267,7 @@ Graphics:
 			LDX $15E9|!addr
 			LDA !extra_byte_2,x
 			STA !Scratchram_PercentageFixedPointPrecision
-			JSL !ConvertToPercentage			;>$00-$03: Percentage (fixed point), Y: round to 0 (Y = 1), round to 100 (Y = 2)
+			%ConvertToPercentage()			;>$00-$03: Percentage (fixed point), Y: round to 0 (Y = 1), round to 100 (Y = 2)
 			LDX $15E9|!addr
 		;Cap at 100
 			LDA !extra_byte_3,x
@@ -313,7 +323,7 @@ Graphics:
 			SEP #$20					;/
 			+
 		;Display the number
-			JSL !SixteenBitHexDecDivision
+			%SixteenBitHexDecDivision()
 			;Since we are dealing with OAM, and at the start of each frame, it clears the OAM (Ypos = $F0),
 			;we don't need to clear a space since it is already done.
 			LDX $15E9|!addr
@@ -327,17 +337,17 @@ Graphics:
 			BEQ ..DisplayOneHundredths
 			
 			..DisplayWhole100
-				JSL !SupressLeadingZeros
+				%SupressLeadingZeros()
 				BRA +
 			..DisplayOneTenths
 				LDA #$0D
 				STA $09
-				JSL !SupressLeadingZerosPercentageLeaveLast2
+				%SupressLeadingZerosPercentageLeaveLast2()
 				BRA +
 			..DisplayOneHundredths
 				LDA #$0D
 				STA $09
-				JSL !SupressLeadingZerosPercentageLeaveLast3
+				%SupressLeadingZerosPercentageLeaveLast3()
 			+
 			;X = number of characters
 			LDA #$0B					;\Percent symbol
@@ -351,7 +361,7 @@ Graphics:
 		;Center X position
 			LDA #$08				;\Center to sprite
 			STA $03					;/
-			JSL !GetStringXPositionCentered		;>$02 = center X pos
+			%GetStringXPositionCentered()		;>$02 = center X pos
 		;Y position
 			LDA $01					;\Y position
 			CLC					;|
@@ -370,7 +380,7 @@ Graphics:
 		;Write to OAM
 			DEX
 			STX $04
-			JSL !WriteStringAsSpriteOAM
+			%WriteStringAsSpriteOAM()
 			LDX $15E9|!addr
 			;PLX				;>Restore sprite slot index
 			JML .DrawBodyOfSprite
@@ -387,7 +397,7 @@ Graphics:
 			LDA !Default_RAMToDisplay+2
 			STA $02
 			SEP #$20
-			JSL !Frames2Timer
+			%Frames2Timer()
 			STZ $00						;>$00 = index of which byte in !Scratchram_CharacterTileTable.
 			..Hours
 				LDX $15E9|!addr
@@ -396,7 +406,7 @@ Graphics:
 				BEQ ..Minutes
 				
 				LDA !Scratchram_Frames2TimeOutput
-				JSL !EightBitHexDec			;>Output:A: 1s, X: 10s
+				%EightBitHexDec()			;>Output:A: 1s, X: 10s
 				PHA					;STX $XXXXXX does not work.
 				TXA
 				LDX $00
@@ -413,7 +423,7 @@ Graphics:
 					INC $00
 			..Minutes
 				LDA !Scratchram_Frames2TimeOutput+1
-				JSL !EightBitHexDec			;>Output:A: 1s, X: 10s
+				%EightBitHexDec()			;>Output:A: 1s, X: 10s
 				PHA					;STX $XXXXXX does not work.
 				TXA
 				LDX $00
@@ -430,7 +440,7 @@ Graphics:
 					INC $00
 			..Seconds
 				LDA !Scratchram_Frames2TimeOutput+2
-				JSL !EightBitHexDec			;>Output:A: 1s, X: 10s
+				%EightBitHexDec()			;>Output:A: 1s, X: 10s
 				PHA
 				TXA
 				LDX $00
@@ -447,7 +457,7 @@ Graphics:
 				INC $00
 			..CentiSeconds
 				LDA !Scratchram_Frames2TimeOutput+3
-				JSL !EightBitHexDec			;>Output:A: 1s, X: 10s
+				%EightBitHexDec()			;>Output:A: 1s, X: 10s
 				PHA
 				TXA
 				LDX $00
@@ -469,7 +479,7 @@ Graphics:
 					LDA !extra_byte_1,x
 					TAY
 					LDX TimerTileCountTable-3,y
-					JSL !GetStringXPositionCentered
+					%GetStringXPositionCentered()
 					LDA $01					;\Y position
 					CLC					;|
 					ADC #$10				;/
@@ -493,7 +503,7 @@ Graphics:
 					STA $08				;/
 				..WriteTheOAM
 				PLY				;>Get back the Y index of OAM
-				JSL !WriteStringAsSpriteOAM
+				%WriteStringAsSpriteOAM()
 			..Done
 				LDX $15E9|!addr
 	.DrawBodyOfSprite
