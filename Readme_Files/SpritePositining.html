@@ -76,8 +76,8 @@ This applies both the <kbd>GetStringXPositionCentered</kbd> and <kbd>CenterRepea
 <h2>Calculating the position of repeated icons centered around a sprite</h2>
 <p>Because repeated icons may have a displacement of other than 8 pixels to the right on each tile, the formula to find where to place the repeated icons is this:
 <table><tr><td><pre>
-Formula (ordered pair: (x, y)):
-	PositionOfFirstIcon = ((Input_Center_X - ((TotalIcons-1)*X_displacement)/2), (Input_Center_Y - ((TotalIcons-1)*Y_displacement)/2))
+Formula:
+	PositionOfFirstIcon(X, Y) = ((Input_Center_X - ((TotalIcons-1)*X_displacement)/2), (Input_Center_Y - ((TotalIcons-1)*Y_displacement)/2))
 	
 	Reason for TotalIcons-1 is due to a <a href="https://en.wikipedia.org/wiki/Off-by-one_error#Fencepost_error">fencepost-like situation</a> 
 Handled internally for optimization purposeses:

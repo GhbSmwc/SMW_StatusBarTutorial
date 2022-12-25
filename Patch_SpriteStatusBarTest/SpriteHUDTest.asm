@@ -19,8 +19,7 @@
 ;-Insert this patch
 
 ;Don't touch:
-	incsrc "StatusBarRoutinesDefines/Defines.asm"
-	incsrc "SharedSub_Defines/SubroutineDefs.asm"
+	incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 ;Defines:
 ;Remove or install?:
@@ -117,6 +116,115 @@ if !Setting_RemoveOrInstall != 0
 		.RestoreOverwrittenCode
 			JSL $028AB1		;>Restore the JSL (we write our own OAM after all sprite OAM of SMW are finished)
 		.MainCode
+			if !SpriteStatusBarPatchTest_Mode <= 2
+				;Number display:
+				;x
+				;x/y
+				;x%
+				..ControllerValueTest
+					LDA $15
+					BIT.b #%00001000
+					BNE ...Up
+					BIT.b #%00000100
+					BNE ...Down
+					if !SpriteStatusBarPatchTest_Mode != 0
+						BIT.b #%00000010
+						BNE ...Left
+						BIT.b #%00000001
+						BNE ...Right
+					endif
+					BRA ...Done
+					
+					...Up
+						REP #$20
+						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						CMP #$FFFF
+						BEQ ...Done
+						INC
+						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						BRA ...Done
+					...Down
+						REP #$20
+						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						BEQ ...Done
+						DEC
+						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+					if !SpriteStatusBarPatchTest_Mode != 0
+						BRA ...Done
+						...Left
+							REP #$20
+							LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+							BEQ ...Done
+							DEC
+							STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+							BRA ...Done
+						...Right
+							REP #$20
+							LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+							CMP #$FFFF
+							BEQ ...Done
+							INC
+							STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+							BRA ...Done
+					endif
+					...Done
+						if !SpriteStatusBarPatchTest_Mode != 0
+							REP #$20
+							LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+							CMP !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							BCS ....MaxNotExceed
+							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							....MaxNotExceed
+						endif
+						SEP #$20
+			elseif !SpriteStatusBarPatchTest_Mode == 5
+				;Repeated icons
+				..ControllerValueTest
+					LDA $16
+					BIT.b #%00001000
+					BNE ...Up
+					BIT.b #%00000100
+					BNE ...Down
+					BIT.b #%00000010
+					BNE ...Left
+					BIT.b #%00000001
+					BNE ...Right
+					BRA ...Done
+					
+					...Up
+						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						CMP #$0A
+						BEQ ...Done
+						INC
+						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						BRA ...Done
+					...Down
+						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						BEQ ...Done
+						DEC
+						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						BRA ...Done
+					...Left
+						LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+						BEQ ...Done
+						DEC
+						STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+						BRA ...Done
+					...Right
+						LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+						CMP #$0A
+						BEQ ...Done
+						INC
+						STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+						BRA ...Done
+					...Done
+						LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+						CMP !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						BCS ....MaxNotExceed
+						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						....MaxNotExceed
+					
+			endif
 		PHB		;\In case if you are going to use tables using 16-bit addressing
 		PHK		;|
 		PLB		;/
@@ -126,9 +234,9 @@ if !Setting_RemoveOrInstall != 0
 				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
 				STA $00
 				SEP #$20
-				JSL !SixteenBitHexDecDivision		;>Convert to decimal digits
+				JSL SixteenBitHexDecDivision		;>Convert to decimal digits
 				LDX #$00				;>Start the string position
-				JSL !SupressLeadingZeros		;>Rid out the leading zeroes (X = number of characters/tiles written)
+				JSL SupressLeadingZeros			;>Rid out the leading zeroes (X = number of characters/tiles written)
 				if !SpriteStatusBarPatchTest_Mode == 1
 					LDA #$0A							;\#$0A will be converted to the "/" graphic in the digit table
 					STA !Scratchram_CharacterTileTable,x				;/
@@ -138,9 +246,9 @@ if !Setting_RemoveOrInstall != 0
 					LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;|
 					STA $00								;|
 					SEP #$20							;|
-					JSL !SixteenBitHexDecDivision					;/
+					JSL SixteenBitHexDecDivision					;/
 					PLX								;>Restore.
-					JSL !SupressLeadingZeros					;>Remove leading zeroes of the second number.
+					JSL SupressLeadingZeros						;>Remove leading zeroes of the second number.
 				endif
 				LDA.b #DigitTable			;\Supply the table
 				STA $07					;|
@@ -168,7 +276,7 @@ if !Setting_RemoveOrInstall != 0
 					STA $00
 					PHX
 					INX
-					JSL !GetStringXPositionCentered16Bit
+					JSL GetStringXPositionCentered16Bit
 					PLX
 					REP #$20
 					LDA $80
@@ -177,7 +285,7 @@ if !Setting_RemoveOrInstall != 0
 					STA $02
 					SEP #$20
 				endif
-				JSL !WriteStringAsSpriteOAM_OAMOnly
+				JSL WriteStringAsSpriteOAM_OAMOnly
 			elseif !SpriteStatusBarPatchTest_Mode == 2 ;Percentage display
 				.PercentageDisplay
 				;Display a percentage
@@ -189,7 +297,7 @@ if !Setting_RemoveOrInstall != 0
 					SEP #$20
 					LDA #!SpriteStatusBarPatchTest_PercentagePrecision
 					STA !Scratchram_PercentageFixedPointPrecision
-					JSL !ConvertToPercentage
+					JSL ConvertToPercentage
 					if !SpriteStatusBarPatchTest_PercentageDisplayCap != 0
 						..CapAt100
 							REP #$30
@@ -231,20 +339,20 @@ if !Setting_RemoveOrInstall != 0
 						SEP #$20
 					..Normal
 				.Display ;Write to OAM
-					JSL !SixteenBitHexDecDivision
+					JSL SixteenBitHexDecDivision
 					;Since we are dealing with OAM, and at the start of each frame, it clears the OAM (Ypos = $F0),
 					;we don't need to clear a space since it is already done.
 					LDX #$00
 					if !SpriteStatusBarPatchTest_PercentagePrecision == 0
-						JSL !SupressLeadingZeros
+						JSL SupressLeadingZeros
 					elseif !SpriteStatusBarPatchTest_PercentagePrecision == 1
 						LDA #$0D						;\Decimal symbol
 						STA $09							;/
-						JSL !SupressLeadingZerosPercentageLeaveLast2
+						JSL SupressLeadingZerosPercentageLeaveLast2
 					elseif !SpriteStatusBarPatchTest_PercentagePrecision == 2
 						LDA #$0D						;\Decimal symbol
 						STA $09							;/
-						JSL !SupressLeadingZerosPercentageLeaveLast3
+						JSL SupressLeadingZerosPercentageLeaveLast3
 					endif
 					;X = number of characters
 					LDA #$0B					;\Percent symbol
@@ -269,7 +377,7 @@ if !Setting_RemoveOrInstall != 0
 							ADC #!SpriteStatusBarPatchTest_DisplayYPos
 							STA $02
 							SEP #$20
-							JSL !GetStringXPositionCentered16Bit
+							JSL GetStringXPositionCentered16Bit
 						endif
 					;Number of chars
 						DEX
@@ -286,7 +394,7 @@ if !Setting_RemoveOrInstall != 0
 						LDA.b #DigitTable>>16			;|
 						STA $09					;/
 					;And done
-						JSL !WriteStringAsSpriteOAM_OAMOnly
+						JSL WriteStringAsSpriteOAM_OAMOnly
 			elseif or(equal(!SpriteStatusBarPatchTest_Mode, 3), equal(!SpriteStatusBarPatchTest_Mode, 4)) ;Timer mode (MM:SS.CC/HH:MM:SS.CC)
 				!Timer_HourCharacterCount = 0
 				if !SpriteStatusBarPatchTest_Mode == 4
@@ -298,11 +406,11 @@ if !Setting_RemoveOrInstall != 0
 				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
 				STA $02
 				SEP #$20
-				JSL !Frames2Timer
+				JSL Frames2Timer
 				.Hours
 					if !SpriteStatusBarPatchTest_Mode == 4
 						LDA !Scratchram_Frames2TimeOutput
-						JSL !EightBitHexDec
+						JSL EightBitHexDec
 						PHA					;STX $XXXXXX does not work.
 						TXA
 						STA !Scratchram_CharacterTileTable
@@ -314,7 +422,7 @@ if !Setting_RemoveOrInstall != 0
 					endif
 				.Minutes
 					LDA !Scratchram_Frames2TimeOutput+1
-					JSL !EightBitHexDec
+					JSL EightBitHexDec
 					PHA					;STX $XXXXXX does not work.
 					TXA
 					STA !Scratchram_CharacterTileTable+!Timer_HourCharacterCount
@@ -325,7 +433,7 @@ if !Setting_RemoveOrInstall != 0
 						STA !Scratchram_CharacterTileTable+2+!Timer_HourCharacterCount
 				.Seconds
 					LDA !Scratchram_Frames2TimeOutput+2
-					JSL !EightBitHexDec
+					JSL EightBitHexDec
 					PHA
 					TXA
 					STA !Scratchram_CharacterTileTable+3+!Timer_HourCharacterCount
@@ -336,7 +444,7 @@ if !Setting_RemoveOrInstall != 0
 					STA !Scratchram_CharacterTileTable+5+!Timer_HourCharacterCount
 				.CentiSeconds
 					LDA !Scratchram_Frames2TimeOutput+3
-					JSL !EightBitHexDec
+					JSL EightBitHexDec
 					PHA
 					TXA
 					STA !Scratchram_CharacterTileTable+6+!Timer_HourCharacterCount
@@ -358,7 +466,7 @@ if !Setting_RemoveOrInstall != 0
 							CLC
 							ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+$08
 							STA $00
-							JSL !GetStringXPositionCentered16Bit
+							JSL GetStringXPositionCentered16Bit
 							REP #$20
 							LDA $80
 							CLC
@@ -381,7 +489,7 @@ if !Setting_RemoveOrInstall != 0
 						STA $08					;|
 						LDA.b #DigitTable>>16			;|
 						STA $09					;/
-					JSL !WriteStringAsSpriteOAM_OAMOnly
+					JSL WriteStringAsSpriteOAM_OAMOnly
 			elseif !SpriteStatusBarPatchTest_Mode == 5 ;Repeated icons
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_XDisp	;\Displacement for each tile
 				STA $04							;|
@@ -407,7 +515,7 @@ if !Setting_RemoveOrInstall != 0
 					SEP #$20
 					LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;\Number of icons
 					STA $06								;/
-					JSL !CenterRepeatingIcons_OAMOnly
+					JSL CenterRepeatingIcons_OAMOnly
 				endif
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_EmptyNumb	;\Tile numbers to use
 				STA $06							;|
@@ -421,7 +529,7 @@ if !Setting_RemoveOrInstall != 0
 				STA $0A								;|
 				LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;|
 				STA $0B								;/
-				JSL !WriteRepeatedIconsAsOAM_OAMOnly			;>Write.
+				JSL WriteRepeatedIconsAsOAM_OAMOnly				;>Write.
 			endif
 		
 		.Done		;>We are done here.
@@ -449,3 +557,6 @@ if !Setting_RemoveOrInstall != 0
 			db $8E				;>Index $0E = for the ":" graphic
 	endif
 endif
+	incsrc "../StatusBarRoutines/HexDec.asm"
+	incsrc "../StatusBarRoutines/OAMBasedHUD.asm"
+	incsrc "../StatusBarRoutines/RepeatedSymbols.asm"

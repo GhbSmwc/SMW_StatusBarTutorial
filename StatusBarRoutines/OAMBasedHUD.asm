@@ -285,7 +285,7 @@ GetStringXPositionCentered:
 ;
 ;Formula:
 ;
-; PositionOfFirstIcon = ((Input_Center_X - ((TotalIcons-1)*X_displacement)/2), (Input_Center_Y - ((TotalIcons-1)*Y_displacement)/2))
+; PositionOfFirstIcon(X, Y) = ((Input_Center_X - ((TotalIcons-1)*X_displacement)/2), (Input_Center_Y - ((TotalIcons-1)*Y_displacement)/2))
 ;
 ;Which is processed in this order for optimization purposes:
 ;
@@ -719,7 +719,7 @@ WriteRepeatedIconsAsOAM_OAMOnly:
 ;
 ;Formula:
 ;
-; PositionOfFirstIcon = ((((TotalIcons-1)*X_displacement)/2), (((TotalIcons-1)*Y_displacement)/2))
+; PositionOfFirstIcon(X, Y) = ((((TotalIcons-1)*X_displacement)/2), (((TotalIcons-1)*Y_displacement)/2))
 ;
 ;Which is processed in this order for optimization purposes:
 ;
