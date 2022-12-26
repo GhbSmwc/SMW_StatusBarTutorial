@@ -29,7 +29,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Defines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;Status bar type
+	;Status bar types and base address
 		!StatusbarFormat = $02
 		;^Number of grouped bytes per 8x8 tile:
 		; $01 = Minimalist/SMB3 [TTTTTTTT, TTTTTTTT]...[YXPCCCTT, YXPCCCTT]
@@ -43,6 +43,21 @@
 		; have to edit "!Default_GraphicalBarProperties" in order for it to work though.).
 		; This define is needed to prevent writing what it assumes tile properties into invalid
 		; RAM addresses.
+	;Status bar/overworld border starting addresses.
+	;                    Normal ROM   SA-1
+	;Vanilla SMW:        $7E0EF9      $400EF9
+	;Super status bar:   $7FA000      $404000
+	;OWB+ patch:         $7FEC00      $41EC00
+		if !sa1 == 0
+			!StatusBar_StartingAddress = $7FA000
+		else
+			!StatusBar_StartingAddress = $404000
+		endif
+		if !sa1 == 0
+			!OverworldBorder_StartingAddress = $7FEC00
+		else
+			!OverworldBorder_StartingAddress = $41EC00
+		endif
 		
 	;Status bar and OWB tiles:
 		;Status bar tiles
@@ -60,7 +75,7 @@
 		if !sa1 == 0
 			!Scratchram_32bitHexDecOutput = $7F844E
 		else
-			!Scratchram_32bitHexDecOutput = $404000
+			!Scratchram_32bitHexDecOutput = $404140
 		endif
 		;^[bytes_used = !MaxNumberOfDigits] The output
 		; formatted each byte is each digit 0-9.
@@ -69,7 +84,7 @@
 		if !sa1 == 0
 			!Scratchram_CharacterTileTable = $7F844A
 		else
-			!Scratchram_CharacterTileTable = $40400A
+			!Scratchram_CharacterTileTable = $40414A
 		endif
 		;^[X bytes] A table containing strings of "characters"
 		; (more specifically digits). The number of bytes used
@@ -84,7 +99,7 @@
 		if !sa1 == 0
 			!Scratchram_Frames2TimeOutput = $7F8454
 		else
-			!Scratchram_Frames2TimeOutput = $404015
+			!Scratchram_Frames2TimeOutput = $404159
 		endif
 		;^[4 bytes], the output in HH:MM:SS.CC format:
 		; !Scratchram_Frames2TimeOutput+0 = hour
@@ -95,19 +110,19 @@
 		if !sa1 == 0
 			!Scratchram_PercentageQuantity = $7F844E
 		else
-			!Scratchram_PercentageQuantity = $404019
+			!Scratchram_PercentageQuantity = $40415D
 		endif
 		;^[2 bytes] The quantity
 		if !sa1 == 0
 			!Scratchram_PercentageMaxQuantity = $7F8450
 		else
-			!Scratchram_PercentageMaxQuantity = $40401B
+			!Scratchram_PercentageMaxQuantity = $40415F
 		endif
 		;^[2 bytes] The max quantity.
 		if !sa1 == 0
 			!Scratchram_PercentageFixedPointPrecision = $7F8452
 		else
-			!Scratchram_PercentageFixedPointPrecision = $40401D
+			!Scratchram_PercentageFixedPointPrecision = $404161
 		endif
 		;^[1 byte] Determines how many digits of display via percentage fixed point:
 		;  $00 = XXX%. Overflows if over 65535%.
