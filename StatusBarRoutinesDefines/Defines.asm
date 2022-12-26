@@ -60,7 +60,7 @@
 		if !sa1 == 0
 			!Scratchram_32bitHexDecOutput = $7F844E
 		else
-			!Scratchram_32bitHexDecOutput = $40019C
+			!Scratchram_32bitHexDecOutput = $404000
 		endif
 		;^[bytes_used = !MaxNumberOfDigits] The output
 		; formatted each byte is each digit 0-9.
@@ -69,7 +69,7 @@
 		if !sa1 == 0
 			!Scratchram_CharacterTileTable = $7F844A
 		else
-			!Scratchram_CharacterTileTable = $400198
+			!Scratchram_CharacterTileTable = $40400A
 		endif
 		;^[X bytes] A table containing strings of "characters"
 		; (more specifically digits). The number of bytes used
@@ -84,7 +84,7 @@
 		if !sa1 == 0
 			!Scratchram_Frames2TimeOutput = $7F8454
 		else
-			!Scratchram_Frames2TimeOutput = $4001A2
+			!Scratchram_Frames2TimeOutput = $404015
 		endif
 		;^[4 bytes], the output in HH:MM:SS.CC format:
 		; !Scratchram_Frames2TimeOutput+0 = hour
@@ -95,19 +95,19 @@
 		if !sa1 == 0
 			!Scratchram_PercentageQuantity = $7F844E
 		else
-			!Scratchram_PercentageQuantity = $40019C
+			!Scratchram_PercentageQuantity = $404019
 		endif
 		;^[2 bytes] The quantity
 		if !sa1 == 0
 			!Scratchram_PercentageMaxQuantity = $7F8450
 		else
-			!Scratchram_PercentageMaxQuantity = $40019E
+			!Scratchram_PercentageMaxQuantity = $40401B
 		endif
 		;^[2 bytes] The max quantity.
 		if !sa1 == 0
 			!Scratchram_PercentageFixedPointPrecision = $7F8452
 		else
-			!Scratchram_PercentageFixedPointPrecision = $4001A0
+			!Scratchram_PercentageFixedPointPrecision = $40401D
 		endif
 		;^[1 byte] Determines how many digits of display via percentage fixed point:
 		;  $00 = XXX%. Overflows if over 65535%.
