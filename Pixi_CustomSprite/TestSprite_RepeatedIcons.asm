@@ -15,10 +15,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../SharedSub_Defines/SubroutineDefs.asm"
 
 
-!Default_RAMToDisplay = $60
-;^[1 byte] Displays the number of filled icons
-!Default_RAMToDisplay2 = $61
-;^[1 byte] Displays the total (or maximum) of icons.
+;Sprite table for displaying:
+ !SpriteTable_HowManyFilled = !1504
+ !SpriteTable_HowManyTotal = !1510
 
 ;Repeated icons tile data.
  !RepeatIconEmpty_TileNumb = $90
@@ -48,18 +47,18 @@ SpriteCode:
 		BRA +
 	
 		..Up
-			LDA !Default_RAMToDisplay
+			LDA !SpriteTable_HowManyFilled,x
 			CMP #$09
 			BEQ ++
 			INC A
-			STA !Default_RAMToDisplay
+			STA !SpriteTable_HowManyFilled,x
 			++
 			BRA +
 		..Down
-			LDA !Default_RAMToDisplay
+			LDA !SpriteTable_HowManyFilled,x
 			BEQ ++
 			DEC A
-			STA !Default_RAMToDisplay
+			STA !SpriteTable_HowManyFilled,x
 			++
 	+
 	.ControllerChangeNumberHoriz
@@ -71,20 +70,26 @@ SpriteCode:
 		BRA +
 		
 		..Right
-			LDA !Default_RAMToDisplay2
+			LDA !SpriteTable_HowManyTotal,x
 			CMP #$09
 			BEQ ++
 			INC A
-			STA !Default_RAMToDisplay2
+			STA !SpriteTable_HowManyTotal,x
 			++
 			BRA +
 		..Left
-			LDA !Default_RAMToDisplay2
+			LDA !SpriteTable_HowManyTotal,x
 			BEQ ++
 			DEC A
-			STA !Default_RAMToDisplay2
+			STA !SpriteTable_HowManyTotal,x
 			++
 	+
+	.MaxCheck
+		LDA !SpriteTable_HowManyTotal,x
+		CMP !SpriteTable_HowManyFilled,x
+		BCS ..NotExceed
+		STA !SpriteTable_HowManyFilled,x
+		..NotExceed
 	.SkipFreeze
 	JSR DrawSprite
 	PLB
@@ -96,7 +101,7 @@ DrawSprite:
 	
 Graphics:
 	%GetDrawInfo()		;>We need: Y: OAM index, $00 and $01: Position. It does not mess with any other data in $02-$0F. Like I said, don't push, then call this without pulling in between pushing and calling GetDrawInfo.
-		LDA !Default_RAMToDisplay2
+		LDA !SpriteTable_HowManyTotal,x
 		BEQ .NoRepeatingIcons
 	;Draw repeated icons
 		PHX
@@ -121,21 +126,21 @@ Graphics:
 		;
 		;Now note: If you are using an existing sprite, its origin may not always be the top-left of the bounding
 		;box of the sprite (such as thwomps).
-			LDA $00				;\X position, the body of the sprite is 16x16, and each icon is 8x8.
-			CLC				;|
-			ADC #$04			;|
-			STA $02				;/
-			LDA $01				;\Y position
-			CLC				;|
-			ADC #$10			;|
-			STA $03				;/
-			LDA !extra_byte_1,x		;\Displacement between each icon
-			STA $04				;|
-			LDA !extra_byte_2,x		;|
-			STA $05				;/
-			LDA !Default_RAMToDisplay2	;\max number of icons
-			STA $06				;/
-			JSL !CenterRepeatingIcons	;>Center
+			LDA $00					;\X position, the body of the sprite is 16x16, and each icon is 8x8.
+			CLC					;|
+			ADC #$04				;|
+			STA $02					;/
+			LDA $01					;\Y position
+			CLC					;|
+			ADC #$10				;|
+			STA $03					;/
+			LDA !extra_byte_1,x			;\Displacement between each icon
+			STA $04					;|
+			LDA !extra_byte_2,x			;|
+			STA $05					;/
+			LDA !SpriteTable_HowManyTotal,x		;\max number of icons
+			STA $06					;/
+			%CenterRepeatingIcons()			;>Center
 		;Draw repeating icons
 			LDA #!RepeatIconEmpty_TileNumb		;\Empty and full tile numbers and properties
 			STA $06					;|
@@ -145,11 +150,11 @@ Graphics:
 			STA $08					;|
 			LDA #!RepeatIconFull_TileProp		;|
 			STA $09					;/
-			LDA !Default_RAMToDisplay		;\How many filled
+			LDA !SpriteTable_HowManyFilled,x	;\How many filled
 			STA $0A					;/
-			LDA !Default_RAMToDisplay2		;\How much maxed
+			LDA !SpriteTable_HowManyTotal,x		;\How much maxed
 			STA $0B					;/
-			JSL !WriteRepeatedIconsAsOAM
+			%WriteRepeatedIconsAsOAM()
 			PLX
 		.NoRepeatingIcons
 	;Draw the body of sprite
@@ -171,8 +176,8 @@ Graphics:
 		STA $0460|!addr,y	;|
 		PLY			;/
 	;Finish OAM writing
-		LDA !Default_RAMToDisplay2	;>Max number of characters. Since we write a static 16x16 tile and repeated icons, that is [TotalIcons + 1 - 1], we don't need a DEC.
-		LDY #$FF			;>We write both 8x8 and 16x16.
+		LDA !SpriteTable_HowManyTotal,x		;>Max number of characters. Since we write a static 16x16 tile and repeated icons, that is [TotalIcons + 1 - 1], we don't need a DEC.
+		LDY #$FF				;>We write both 8x8 and 16x16.
 		%FinishOAMWrite()
 	;Graphics done.
 	RTS
