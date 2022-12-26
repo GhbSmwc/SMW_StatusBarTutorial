@@ -43,22 +43,32 @@
 		; have to edit "!Default_GraphicalBarProperties" in order for it to work though.).
 		; This define is needed to prevent writing what it assumes tile properties into invalid
 		; RAM addresses.
-	;Status bar/overworld border starting addresses.
-	;                    Normal ROM   SA-1
-	;Vanilla SMW:        $7E0EF9      $400EF9
-	;Super status bar:   $7FA000      $404000
-	;OWB+ patch:         $7FEC00      $41EC00
-		if !sa1 == 0
-			!StatusBar_StartingAddress = $7FA000
-		else
-			!StatusBar_StartingAddress = $404000
-		endif
-		if !sa1 == 0
-			!OverworldBorder_StartingAddress = $7FEC00
-		else
-			!OverworldBorder_StartingAddress = $41EC00
-		endif
-		
+	;Status bar starting addresses.
+		;RAM address of the first TTTTTTTT byte.
+			if !sa1 == 0
+				!StatusBar_StartingAddress = $7FA000
+			else
+				!StatusBar_StartingAddress = $404000
+			endif
+		;RAM address of the first YXPCCCTT byte.
+			if !sa1 == 0
+				!StatusBar_StartingAddressProp = $7FA001
+			else
+				!StatusBar_StartingAddressProp = $404001
+			endif
+	;Overworld border starting addresses
+		;RAM address of the first TTTTTTTT byte.
+			if !sa1 == 0
+				!OverworldBorder_StartingAddress = $7FEC00
+			else
+				!OverworldBorder_StartingAddress = $41EC00
+			endif
+		;RAM address of the first YXPCCCTT byte.
+			if !sa1 == 0
+				!OverworldBorder_StartingAddressProp = $7FEC01
+			else
+				!OverworldBorder_StartingAddressProp = $41EC01
+			endif
 	;Status bar and OWB tiles:
 		;Status bar tiles
 			!StatusBarSlashCharacterTileNumb = $29		;>Slash tile number (status bar, now OWB!)

@@ -790,11 +790,11 @@ When written to the status bar:<br>
 <img src="Readme_Files/StatusBarStringTransfer.png">
 </p>
 <p>To use the routine, here is the code template:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
-!StatusBarPosition = !StatusBar_StartingAddress+$00	;&gt;Where to write on the status bar
-!NumberOfDigitsDisplayed = 5				;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
-!StatusBarPositionProps = !StatusBar_StartingAddress+1	;&gt;Same as above but tile props (when enabled).
-!DigitProps = %00111000					;&gt;Properties of the digits (when enabled).
+<table><tr><td><pre>!RAMToMeasure = $60				;&gt;RAM address you what to show
+!StatusBarPosition = !StatusBar_StartingAddress+$00		;&gt;Where to write on the status bar
+!NumberOfDigitsDisplayed = 5					;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!StatusBarPositionProps = !StatusBar_StartingAddressProp+$00	;&gt;Same as above but tile props (when enabled).
+!DigitProps = %00111000						;&gt;Properties of the digits (when enabled).
 
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -860,12 +860,12 @@ But what if I wanted to display 2 numbers &ldquo;X/Y&rdquo; (for example: &ldquo
 </ol>
 Here is an example using 2 16-bit numbers:
 <table><tr><td><pre>
-!RAMToMeasure = $60					;&gt;RAM address you what to show
-!RAMToMeasure2 = $62					;&gt;Same as above
-!StatusBarPosition = !StatusBar_StartingAddress+$00	;&gt;Where to write on the status bar
-!NumberOfDigitsDisplayed = 5				;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
-!StatusBarPositionProps = !StatusBar_StartingAddress+1	;&gt;Same as above but tile props (when enabled).
-!DigitProps = %00111000					;&gt;Properties of the digits (when enabled).
+!RAMToMeasure = $60						;&gt;RAM address you what to show
+!RAMToMeasure2 = $62						;&gt;Same as above
+!StatusBarPosition = !StatusBar_StartingAddress+$00		;&gt;Where to write on the status bar
+!NumberOfDigitsDisplayed = 5					;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!StatusBarPositionProps = !StatusBar_StartingAddressProp+$00	;&gt;Same as above but tile props (when enabled).
+!DigitProps = %00111000						;&gt;Properties of the digits (when enabled).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -1863,14 +1863,24 @@ SMW actually does this with its yoshi coin counter (some or all of them shows a 
 &ldquo;<kbd>RepeatedSymbols.asm</kbd>&rdquo; into uberasm tool's library as well):
 <table><tr><td><pre>!MaxNumberOfSymbols = 5			;&gt;Total number of symbols (maximum)
 !StatusBarPosition = !StatusBar_StartingAddress+$00		;&gt;Where to write on the status bar
+!StatusBarPositionProps = !StatusBar_StartingAddressProp+$00	;&gt;Same as above but for tile properties
 !RAMToMeasure = $60						;&gt;RAM address you what to show
 !Leftwards = 0							;&gt;0 = left-to-right when filling, 1 = right-to-left when filling.
 
-;Tile numbers
+;Tile
 	!EmptyTile = $26
+	!EmptyTileProp = %00111000	;&gt;Only used when using SB patches that allows modifications to tile properties
 	!FullTile = $2E
+	!FullTileProp = %00111000	;&gt;Only used when using SB patches that allows modifications to tile properties
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+;Don't touch these, due to input layout differents between 2 formats:
+	!RepeatedIconsInput_AmountFilled = $00
+	!RepeatedIconsInput_AmountMax = $01
+	if !StatusbarFormat == $02
+		
+	endif
 
 	main:
 	LDA !RAMToMeasure		;\$00: How many filled icons
@@ -1881,12 +1891,24 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	STA $02				;/
 	LDA #!FullTile			;\$03: Full tile number
 	STA $03				;/
-	LDA.b #!StatusBarPosition	;\$04-$06: Address of where to write to the HUD
+	LDA.b #!StatusBarPosition	;\$04-$06: Address of tile numbers to write to the HUD
 	STA $04				;|
 	LDA.b #!StatusBarPosition>>8	;|
 	STA $05				;|
 	LDA.b #!StatusBarPosition>>16	;|
 	STA $06				;/
+	if !StatusBar_UsingCustomProperties
+		LDA #!EmptyTileProp		;\$07: Empty tile properties
+		STA $07				;/
+		LDA #!FullTileProp		;\$08: Full tile properties
+		STA $08				;/
+		LDA.b #!StatusBarPositionProps		;\$09-$0B: Address of tile properties to write to the HUD
+		STA $09					;|
+		LDA.b #!StatusBarPositionProps>>8	;|
+		STA $0A					;|
+		LDA.b #!StatusBarPositionProps>>16	;|
+		STA $0B					;/
+	endif
 	if !StatusbarFormat == $01
 		if !Leftwards == 0
 			JSL RepeatedSymbols_WriteRepeatedSymbols
