@@ -628,7 +628,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		endif
 	RTL</pre></td></tr></table><br>
 	
-	<p>Greater than 65535? (unlikely for other stuff besides a huge currency counter or custom score). This one is a 32-bit HexDec, up to
+	<p>Greater than 65535? (unlikely for other stuff besides a huge currency counter or custom score). This one is a 32-bit (4 bytes) HexDec, up to
 	4,294,967,295 (<kbd>$FFFFFFFF</kbd>) can be properly displayed. Remember, this is little endian, for example: a number
 	<abbr title="287454020 in decimal">$11223344</abbr> must be inputted as
 	<kbd>[$44, $33, $22, $11]</kbd> into <kbd>$00-$03</kbd> and should output as <kbd>[$02, $08, $07, $04, $05, $04, $00, $02, $00]</kbd> in
@@ -639,20 +639,20 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	the 1s place, regardless of <kbd>!MaxNumberOfDigits</kbd>'s value)
 	<table>
 	<tr><th>Define relative address</th><th>Default RAM address (normal/Sa-1)</th><th>Output value</th></tr>
-	<tr><td><kbd>!Scratchram_32bitHexDecOutput+0</kbd></td><td><kbd>$7F844E/$40019C</kbd></td><td><kbd>$02</kbd> (represents &ldquo;2&rdquo; for 100000000s)</td></tr>
-	<tr><td><kbd>!Scratchram_32bitHexDecOutput+1</kbd></td><td><kbd>$7F844F/$40019D</kbd></td><td><kbd>$08</kbd> (represents &ldquo;8&rdquo; for 10000000s)</td></tr>
-	<tr><td><kbd>!Scratchram_32bitHexDecOutput+2</kbd></td><td><kbd>$7F8450/$40019E</kbd></td><td><kbd>$07</kbd> (represents &ldquo;7&rdquo; for 1000000s)</td></tr>
-	<tr><td><kbd>!Scratchram_32bitHexDecOutput+3</kbd></td><td><kbd>$7F8451/$40019F</kbd></td><td><kbd>$04</kbd> (represents &ldquo;4&rdquo; for 100000s)</td></tr>
-	<tr><td><kbd>!Scratchram_32bitHexDecOutput+4</kbd></td><td><kbd>$7F8452/$4001A0</kbd></td><td><kbd>$05</kbd> (represents &ldquo;5&rdquo; for 10000s)</td></tr>
-	<tr><td><kbd>!Scratchram_32bitHexDecOutput+5</kbd></td><td><kbd>$7F8453/$4001A1</kbd></td><td><kbd>$04</kbd> (represents &ldquo;4&rdquo; for 1000s)</td></tr>
-	<tr><td><kbd>!Scratchram_32bitHexDecOutput+6</kbd></td><td><kbd>$7F8454/$4001A2</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; for 100s)</td></tr>
-	<tr><td><kbd>!Scratchram_32bitHexDecOutput+7</kbd></td><td><kbd>$7F8455/$4001A3</kbd></td><td><kbd>$02</kbd> (represents &ldquo;2&rdquo; for 10s)</td></tr>
-	<tr><td><kbd>!Scratchram_32bitHexDecOutput+8</kbd></td><td><kbd>$7F8456/$4001A4</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; for 1s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+0</kbd></td><td><kbd>$7F844E/$404140</kbd></td><td><kbd>$02</kbd> (represents &ldquo;2&rdquo; for 100000000s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+1</kbd></td><td><kbd>$7F844F/$404141</kbd></td><td><kbd>$08</kbd> (represents &ldquo;8&rdquo; for 10000000s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+2</kbd></td><td><kbd>$7F8450/$404142</kbd></td><td><kbd>$07</kbd> (represents &ldquo;7&rdquo; for 1000000s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+3</kbd></td><td><kbd>$7F8451/$404143</kbd></td><td><kbd>$04</kbd> (represents &ldquo;4&rdquo; for 100000s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+4</kbd></td><td><kbd>$7F8452/$404144</kbd></td><td><kbd>$05</kbd> (represents &ldquo;5&rdquo; for 10000s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+5</kbd></td><td><kbd>$7F8453/$404145</kbd></td><td><kbd>$04</kbd> (represents &ldquo;4&rdquo; for 1000s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+6</kbd></td><td><kbd>$7F8454/$404146</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; for 100s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+7</kbd></td><td><kbd>$7F8455/$404147</kbd></td><td><kbd>$02</kbd> (represents &ldquo;2&rdquo; for 10s)</td></tr>
+	<tr><td><kbd>!Scratchram_32bitHexDecOutput+8</kbd></td><td><kbd>$7F8456/$404148</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; for 1s)</td></tr>
 	
 	</table><br>
 	
 	Code in question:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
+<table><tr><td><pre>!RAMToMeasure = $60			;&gt;[4 bytes] RAM address you what to show
 !StatusBarPosition = !StatusBar_StartingAddress+$00	;&gt;Where to write on the status bar
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -672,9 +672,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		endif
 	main:
 	REP #$20
-	LDA $60			;\Low word (example: $3344 -> [$44, $33] in $00, $01)
+	LDA !RAMToMeasure	;\Low word (example: $3344 -> [$44, $33] in $00, $01)
 	STA $00			;/
-	LDA $62			;\High word (example: $1122 -> [$22, $11] in $02, $03)
+	LDA !RAMToMeasure+2	;\High word (example: $1122 -> [$22, $11] in $02, $03)
 	STA $02			;/
 	SEP #$20
 	JSL HexDec_Convert32bitIntegerToDecDigits	;&gt;Should Output example as: [$02, $08, $07, $04, $05, $04, $00, $02, $00] on !Scratchram_32bitHexDecOutput.
@@ -693,7 +693,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			-
 			PHX
 			TYX												;&gt;Sigh, LDA $xxxxxx,y does not exist.
-			LDA (!Scratchram_32bitHexDecOutput)+(!MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1)|!dp,x
+			LDA (!Scratchram_32bitHexDecOutput)+(!MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
 			PLX
 			STA !StatusBarPosition,x
 			DEY
