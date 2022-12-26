@@ -655,11 +655,11 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 <table><tr><td><pre>!RAMToMeasure = $60			;&gt;[4 bytes] RAM address you what to show
 !StatusBarPosition = !StatusBar_StartingAddress+$00	;&gt;Where to write on the status bar
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
-
 ;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !MaxNumberOfDigits
 ;(the number digits stored in each byte in !Scratchram_32bitHexDecOutput), else garbage will appear.
 	!NumberOfDigitsDisplayed = 9		;&gt;How many digits, enter 1-10 (pointless if you enter less than 5).
+
+	incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	;Don't change this.
 		if defined("sa1") == 0
@@ -1295,6 +1295,7 @@ the display value for you:
 !ChangeDivisorRate = 60					;&gt;Scaling of increment/decrement rate. Higher number = slower.
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
 	init:
 	LDA #$80
 	STA $7D
@@ -1865,11 +1866,11 @@ SMW actually does this with its yoshi coin counter (some or all of them shows a 
 !RAMToMeasure = $60						;&gt;RAM address you what to show
 !Leftwards = 0							;&gt;0 = left-to-right when filling, 1 = right-to-left when filling.
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
-
 ;Tile numbers
 	!EmptyTile = $26
 	!FullTile = $2E
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	main:
 	LDA !RAMToMeasure		;\$00: How many filled icons
@@ -2072,11 +2073,11 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 !OverworldBorderPosition = !OverworldBorder_StartingAddress+$00	;&gt;Where to write on the overworld border
 !RemoveLeadingZeroes = 0					;&gt;0 = Have leading zeroes, 1 = no (leading spaces)
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
-
 ;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !MaxNumberOfDigits
 ;(the number digits stored in each byte in !Scratchram_32bitHexDecOutput), else garbage will appear.
 	!NumberOfDigitsDisplayed = 9		;&gt;How many digits, enter 1-10 (pointless if you enter less than 5).
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	;Don't change this.
 		if defined("sa1") == 0
