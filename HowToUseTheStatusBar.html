@@ -102,8 +102,10 @@ on something simple as how to write a value to memory. You should also know abou
 </ul>
 <p>Other</p>
 <ul>
-<li><a href="https://www.smwcentral.net/?p=section&a=details&id=19545">Shared Subroutines</a>, if you are going to use them on multiple types of HUD (like one as a sprite and other is layer 3).
-The sprite tutorials requires it, unless you dramatically edit the code. Here is the <a href="Readme_Files/GettingSharedSubToWork.html" id="SharedSubroutinesBackToTOC">template here you can copy</a>.</li>
+<li><a href="https://www.smwcentral.net/?p=section&a=details&id=19545">Shared Subroutines</a>, if you are running low on space in your hack. Currently, they work on its own without the shared subroutines. To migrate,
+Here is the <a href="Readme_Files/GettingSharedSubToWork.html" id="SharedSubroutinesBackToTOC">template here you can copy</a>.</li>
+<li><a href="https://www.smwcentral.net/?p=section&a=details&id=24816">No More Sprite Tile Limits</a>, unless you installed SA-1. Vanilla SMW had horrible sprite tile limits resulting tiles going missing when having
+certain sprite combinations on screen.</li>
 </ul>
 <hr>
 <p>I have provided several routines to make writing codes much user-friendly as possible. So lets begin.</p>
@@ -714,7 +716,7 @@ unused digits always showing 0 on the millions (1000000s) and beyond (so don't d
 
 <h4 id="RemoveLeadingZeroes"><a href="#RemoveLeadingZeroesBack">^</a>Removing leading zeroes (leading spaces)</h4>
 	<p>I've also provided routines that removes leading zeroes by simply replacing the first n digits with tile $FC in the digits table (I call this &ldquo;leading spaces&rdquo;). After calling the the JSL routines to convert them into decimal
-	digits, you then call <kbd>RemoveLeadingZeroes16Bit</kbd> or <kbd>RemoveLeadingZeroes32Bit</kbd> before writing to the status bar. Make sure you match the 16 and 32 bits. For the 8-bit versions,
+	digits, you then call <kbd>RemoveLeadingZeroes16Bit</kbd> or <kbd>RemoveLeadingZeroes32Bit</kbd> before writing to the status bar. Make sure you match the 16 and 32 bits between hexdec and removing leading zeroes routines. For the 8-bit versions,
 	a routine isn't necessary:
 	<ul>
 		<li>For 2-digit numbers, just replace the 10s place digit with tile #$FC if it is 0:
@@ -2201,10 +2203,7 @@ before transfered into the PPU. SMW reserves the later half (OAM slots 64-127) f
 <p>Note: These stuff here always handle HUD tiles as 8x8s, and very likely your sprite be composed 16x16 tiles, this means you have to manually set the size bit and have Y = <kbd>$FF</kbd> before calling
 <kbd>%FinishOAMWrite()</kbd> (or <kbd>JSL $01B7B3</kbd>). To do that, see the previously link about the format</p>
 
-<p>The very first thing you want to do is get the subroutines into shared subroutines. Here is the <a href="Readme_Files/GettingSharedSubToWork.html" id="SharedSubroutines">tutorial</a>. Don't ask why these could be on pixi's routines folder or uberasm
-tool's library folder. They have limitations that each ASM file are isolated and cannot reference each other from them. Plus, some of these subroutines may call each other within one.</p>
-
-<p>Don't forget the graphics, see <kbd>StatusBarTutorial/ExGFX</kbd>. Filenames are obvious.</p>
+<p>The first thing is to insert the graphics, see <kbd>StatusBarTutorial/ExGFX</kbd>. Filenames are obvious.</p>
 
 <h3>Notes</h3>
 <ul>
@@ -2215,13 +2214,12 @@ like how the RAM defined in <kbd>!Scratchram_CharacterTileTable</kbd> is being u
 <li>For repeating icon routines, they write to OAM directly without conversions, it does merely a loop of writing a given tile numbers and properties.</li>
 </ul>
 <h3 id="PixiSprite"><a href="#PixiSpriteBack">^</a>Pixi custom sprites</h3>
-<p>I coded some templates in the <kbd>Pixi_CustomSprite</kbd> folder. To play around with them, insert the sprite (make sure you use the shared subroutines prior to this), place it in a level and use the D-pad to test the values.</p>
+<p>I coded some templates in the <kbd>Pixi_CustomSprite</kbd> folder. To play around with them, insert the sprite (obviously you should insert the routines as well), place it in a level and use the D-pad to test the values.</p>
 <p>For existing custom sprites, you'll have to edit them to display values.</p>
-<p>I provided a template/example, see the ASM files in <kbd>StatusBarTutorial/Pixi_CustomSprite</kbd>.</p>
 
 <h3 id="HUDSprites"><a href="#HUDSpritesBack">^</a>HUD-like sprites</h3>
 <p>I provided a patch that merely writes OAM tiles to the screen (does not occupy any types of sprite slots (sprite slots for normal sprites (the ones that take 12/22 slots, by smw's enemies and pixi), cluster, extended, minor extended, bounce sprite, etc.)).
-See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>. Again, use shared subroutines, and don't forget to have the folder <kbd>SharedSub_Defines</kbd> in the same place as the patch.</p>
+See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>.</p>
 <h3>Subroutines in OAMBasedHUD.asm</h3>
 <p>Routines-based inputs is almost the same as the layer 3 status bar, you just have to read the comments and description in the code as well as the info in the subroutines to fully understands how this works and how to use it. I do not want to explain everything
 as it would make this tutorial unnecessarily long.</p>
