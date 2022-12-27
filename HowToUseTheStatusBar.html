@@ -494,7 +494,7 @@ for the tens and <kbd><font color="blue">$02</font>+$22 = $24</kbd> for the ones
 
 
 <p>Create a text file, name it <kbd>StatusBarTest.asm</kbd>. Edit that text file to include this code:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
+<table><tr><td><pre>!RAMToMeasure = $60							;&gt;RAM address you what to show
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -535,7 +535,8 @@ other than digits. This is because of how the routine works, is that the 10s pla
 &ldquo;digits&rdquo; greater than 9 (98, 99, A0, A1, A2...).</p>
 
 <p>You can fix this problem and make it allow the full range of the 8-bit value by after writing the ones digit, TXA, then call the routine again, and after that, A is the 10s, and X is the 100s place:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;RAM address you what to show
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -563,7 +564,8 @@ will be able to glitch out at 1000. For more information how base conversion wor
 digits outputted, not really harsh since this is 8-bit, so up to 25 iterations for a 2-digit (plus up to 2 more for 10s and 100s by calling the HexDec routine again). However, if you
 DO want speed/performance, do this instead. This works from left-to-right by repeatedly subtracting 100 until A is 0-99. The number of subtractions is now how many 100s for the 100s digit, after
 that, with A being 0-99, we do the same but with 10s (how many 10s) instead of 100s to find how many 10s. After that, A is 0-9 which is already the ones place:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;RAM address you what to show
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -595,9 +597,10 @@ As a side note, all &ldquo;bigger number&rdquo; (handles more bytes to handle la
 the higher byte(s). For example: using a 16-bit hexdec, an 8-bit number #$FF, when supplied into the input, you then zero out the high byte (<kbd>STZ $01</kbd>) so that it treats the value as <kbd>#$00FF</kbd>.
 
 Here is the code in question for you to test:</p>
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;RAM address you what to show
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
-!NumberOfDigitsDisplayed = 5		;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!NumberOfDigitsDisplayed = 5						;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -652,7 +655,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	</table><br>
 	
 	Code in question:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;[4 bytes] RAM address you what to show
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;[4 bytes] RAM address you what to show
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
 
 ;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !MaxNumberOfDigits
@@ -720,7 +724,8 @@ unused digits always showing 0 on the millions (1000000s) and beyond (so don't d
 	a routine isn't necessary:
 	<ul>
 		<li>For 2-digit numbers, just replace the 10s place digit with tile #$FC if it is 0:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;RAM address you what to show
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -740,7 +745,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	RTL</pre></td></tr></table>
 		</li>
 		<li>For 3-digit numbers, use this code template:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;RAM address you what to show
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -790,11 +796,12 @@ When written to the status bar:<br>
 <img src="Readme_Files/StatusBarStringTransfer.png">
 </p>
 <p>To use the routine, here is the code template:
-<table><tr><td><pre>!RAMToMeasure = $60				;&gt;RAM address you what to show
+<table><tr><td><pre>
+!RAMToMeasure = $60								;&gt;RAM address you what to show
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar
-!NumberOfDigitsDisplayed = 5					;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 !StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above but tile props (when enabled).
-!DigitProps = %00111000						;&gt;Properties of the digits (when enabled).
+!DigitProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -860,12 +867,12 @@ But what if I wanted to display 2 numbers &ldquo;X/Y&rdquo; (for example: &ldquo
 </ol>
 Here is an example using 2 16-bit numbers:
 <table><tr><td><pre>
-!RAMToMeasure = $60						;&gt;RAM address you what to show
-!RAMToMeasure2 = $62						;&gt;Same as above
+!RAMToMeasure = $60								;&gt;RAM address you what to show
+!RAMToMeasure2 = $62								;&gt;Same as above
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar
-!NumberOfDigitsDisplayed = 5					;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 !StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above but tile props (when enabled).
-!DigitProps = %00111000						;&gt;Properties of the digits (when enabled).
+!DigitProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -932,10 +939,11 @@ is automatically right-aligned, therefore only use these routines if you are dis
 into $00-$02 (little endian), call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedFormat2</kbd> if using the [TTTTTTTT, YXPCCCTT] format), which will modify the position of where to write the digits based
 on how long the string are (loop-writes are based on the starting byte of an array, not the last) by taking the position, subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the
 routine to write to the HUD:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address you what to show
-!RAMToMeasure2 = $62					;&gt;Same as above
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;RAM address you what to show
+!RAMToMeasure2 = $62							;&gt;Same as above
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$3E	;&gt;Where to write on the status bar. NOTE: This is now the position of the rightmost/last tile (tiles will be written here and before it).
-!NumberOfDigitsDisplayed = 5				;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!NumberOfDigitsDisplayed = 5						;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -1029,9 +1037,10 @@ I usually call this a &ldquo;record effect&rdquo; on my older ASM works, but thi
 <tr><th>Actual amount counting</th><th>Mere display counting</th></tr>
 <tr>
 <td>
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address of the actual number
-!Freeram_Adder = $62					;&gt;RAM address that adds to !RAMToMeasure
-!Freeram_Subtractor = $0DC3				;&gt;RAM address that subtracts to !RAMToMeasure
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;RAM address of the actual number
+!Freeram_Adder = $62							;&gt;RAM address that adds to !RAMToMeasure
+!Freeram_Subtractor = $0DC3						;&gt;RAM address that subtracts to !RAMToMeasure
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -1099,8 +1108,9 @@ take <kbd>!Freeram_Adder</kbd>, then add <kbd>CLC : ADC.b &lt;AdderAmount&gt;</k
 <kbd>SetToAmount - AdderAmountLeft</kbd> instead where in this example that <kbd>SetToAmount = 30</kbd> and <kbd>AdderAmountLeft</kbd> is the current amount to add up to <kbd>!RAMToMeasure</kbd>).
 </td>
 <td>
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address of the actual number
-!RAMToMeasure2 = $62					;&gt;RAM address of the displayed amount
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;RAM address of the actual number
+!RAMToMeasure2 = $62							;&gt;RAM address of the displayed amount
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -1209,11 +1219,12 @@ AddLivesInstantly:
 </p>
 For the &ldquo;Mere display counting&rdquo; you can alleviate the lengthy counting animation by taking the absolute difference of the display amount and actual amount, and check if the difference is too big, would
 subtract/add by a larger amount, therefore instead of subtracting by a set amount per frame, you subtract by the proportion of the difference size. Here is an example using 16-bit number:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address of the actual number
-!RAMToMeasure2 = $62					;&gt;RAM address of the displayed amount
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;RAM address of the actual number
+!RAMToMeasure2 = $62							;&gt;RAM address of the displayed amount
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
-!NumberOfDigitsDisplayed = 5				;&gt;Number of digits shown.
-!ChangeDivisorRate = 60					;&gt;Scaling of increment/decrement rate. Higher number = slower.
+!NumberOfDigitsDisplayed = 5						;&gt;Number of digits shown.
+!ChangeDivisorRate = 60							;&gt;Scaling of increment/decrement rate. Higher number = slower.
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -1288,11 +1299,12 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	
 Alternatively, I developed a subroutine that you can supply any RAM addresses as the input for the subroutine <kbd>CountingAnimation16Bit</kbd> (both RAMs must be 16-bit) and it will increment/decrement
 the display value for you:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;RAM address of the actual number
-!RAMToMeasure2 = $62					;&gt;RAM address of the displayed amount
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;RAM address of the actual number
+!RAMToMeasure2 = $62							;&gt;RAM address of the displayed amount
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
-!NumberOfDigitsDisplayed = 5				;&gt;Number of digits shown.
-!ChangeDivisorRate = 60					;&gt;Scaling of increment/decrement rate. Higher number = slower.
+!NumberOfDigitsDisplayed = 5						;&gt;Number of digits shown.
+!ChangeDivisorRate = 60							;&gt;Scaling of increment/decrement rate. Higher number = slower.
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -1350,12 +1362,13 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 <hr>
 <h2 id="Frames2Timer"><a href="#Frames2TimerBack">^</a>Display a timer in Hours:Minutes:Seconds:Centiseconds format</h2>
 Perhaps, if you wanted to display a timer on the HUD in HH:MM:SS.CC (or MM:SS.CC) format, I've provided a routine for that and this code to use it:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;[4 bytes] the 32-bit frame counter
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;[4 bytes] the 32-bit frame counter
 
 ;Settings
  !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
- !Decrement = 0						;&gt;0 = increment, 1 = decrement
- !ShowHours = 0						;&gt;0 = MM:SS.CC, 1 = HH:MM:SS.CC
+ !Decrement = 0								;&gt;0 = increment, 1 = decrement
+ !ShowHours = 0								;&gt;0 = MM:SS.CC, 1 = HH:MM:SS.CC
 ;Start timer (used only when set to decrement):
  !StartTimerHour = 0
  !StartTimerMinute = 3
@@ -1618,13 +1631,14 @@ Example:
 <kbd>PercentagePrecision</kbd> is 100, 1000, or 10000. The reason of this is to allow a more precise display by showing decimal fractions of a percentage (example: 50.03%). This works by using
 <a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point arithmetic</a>. Meaning that a value <kbd>5003</kbd> stored in memory means 50.03 when using 10000 scaling. Here is a sample template
 code to display a percentage:
-<table><tr><td><pre>!RAMToMeasure = $60			;&gt;[2 bytes] RAM address you what to show (Quantity)
-!RAMToMeasure2 = $62			;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;[2 bytes] RAM address you what to show (Quantity)
+!RAMToMeasure2 = $62							;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
 !Default_PercentagePrecision = 0
  ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
  ; with !Scratchram_PercentageFixedPointPrecision.
-!CapAt100 = 1				;&gt;0 = allow percentage to display values greater than 100, 1 = cap at 100.
-!DigitDisplayAlignment = 0		;&gt;0 = left-aligned, 1 = right-aligned.
+!CapAt100 = 1								;&gt;0 = allow percentage to display values greater than 100, 1 = cap at 100.
+!DigitDisplayAlignment = 0						;&gt;0 = left-aligned, 1 = right-aligned.
 
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
 
@@ -1861,11 +1875,11 @@ You may be wondering, why am I using 16-bit on some areas (including within the 
 <font size="10">&#9642;&#9642;&#9642;&#9642;&#9643;</font><br>
 SMW actually does this with its yoshi coin counter (some or all of them shows a coin symbol with the rest showing tile $FC). This is often used whenever a number of something is a small amount. Code follows (make sure you insert
 &ldquo;<kbd>RepeatedSymbols.asm</kbd>&rdquo; into uberasm tool's library as well):
-<table><tr><td><pre>!MaxNumberOfSymbols = 5			;&gt;Total number of symbols (maximum)
+<table><tr><td><pre>!MaxNumberOfSymbols = 5								;&gt;Total number of symbols (maximum)
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar
 !StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above but for tile properties
-!RAMToMeasure = $60						;&gt;RAM address you what to show
-!Leftwards = 0							;&gt;0 = left-to-right when filling, 1 = right-to-left when filling.
+!RAMToMeasure = $60								;&gt;RAM address you what to show
+!Leftwards = 0									;&gt;0 = left-to-right when filling, 1 = right-to-left when filling.
 
 ;Tile
 	!EmptyTile = $26
@@ -1957,9 +1971,9 @@ that the provided examples assumes you've installed the overworld border plus pa
 
 
 8-bit 2-digit:
-<table><tr><td><pre>!RAMToMeasure = $60						;&gt;RAM address you what to show
+<table><tr><td><pre>!RAMToMeasure = $60								;&gt;RAM address you what to show
 !OverworldBorderPosition = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border
-!RemoveLeadingZeroes = 0					;&gt;0 = Always show 10s digit, 1 = If value less than 10, replace 10s with blank.
+!RemoveLeadingZeroes = 0							;&gt;0 = Always show 10s digit, 1 = If value less than 10, replace 10s with blank.
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -1993,9 +2007,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		STA !OverworldBorderPosition+1+(1*2)
 	RTL</pre></td></tr></table>
 8-bit 3-digit:
-<table><tr><td><pre>!RAMToMeasure = $60						;&gt;RAM address you what to show
+<table><tr><td><pre>!RAMToMeasure = $60								;&gt;RAM address you what to show
 !OverworldBorderPosition = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border
-!RemoveLeadingZeroes = 0					;&gt;0 = Have leading zeroes, 1 = no (leading spaces)
+!RemoveLeadingZeroes = 0							;&gt;0 = Have leading zeroes, 1 = no (leading spaces)
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -2051,10 +2065,10 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			STA !OverworldBorderPosition+1+(2*2)
 		RTL</pre></td></tr></table>
 16-bit n-digit:
-<table><tr><td><pre>!RAMToMeasure = $60						;&gt;RAM address you what to show
+<table><tr><td><pre>!RAMToMeasure = $60								;&gt;RAM address you what to show
 !OverworldBorderPosition = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border
-!NumberOfDigitsDisplayed = 5					;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
-!RemoveLeadingZeroes = 0					;&gt;0 = Have leading zeroes, 1 = no (leading spaces)
+!NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!RemoveLeadingZeroes = 0							;&gt;0 = Have leading zeroes, 1 = no (leading spaces)
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -2084,9 +2098,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	RTL
 </pre></td></tr></table>
 32-bit n-digit:
-<table><tr><td><pre>!RAMToMeasure = $60						;&gt;RAM address you what to show
+<table><tr><td><pre>!RAMToMeasure = $60								;&gt;RAM address you what to show
 !OverworldBorderPosition = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border
-!RemoveLeadingZeroes = 0					;&gt;0 = Have leading zeroes, 1 = no (leading spaces)
+!RemoveLeadingZeroes = 0							;&gt;0 = Have leading zeroes, 1 = no (leading spaces)
 
 ;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !MaxNumberOfDigits
 ;(the number digits stored in each byte in !Scratchram_32bitHexDecOutput), else garbage will appear.
