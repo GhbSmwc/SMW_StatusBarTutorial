@@ -177,8 +177,7 @@ if !Setting_RemoveOrInstall != 0
 							....MaxNotExceed
 						endif
 						SEP #$20
-			elseif !SpriteStatusBarPatchTest_Mode == 5
-				;Repeated icons
+			elseif !SpriteStatusBarPatchTest_Mode == 5 ;Repeated icons
 				..ControllerValueTest
 					LDA $16
 					BIT.b #%00001000
@@ -230,6 +229,9 @@ if !Setting_RemoveOrInstall != 0
 		PLB		;/
 		;Draw HUD code here
 			if or(equal(!SpriteStatusBarPatchTest_Mode, 0), equal(!SpriteStatusBarPatchTest_Mode, 1))
+				;Number display:
+				;X
+				;X/Y
 				REP #$20
 				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
 				STA $00
@@ -531,7 +533,6 @@ if !Setting_RemoveOrInstall != 0
 				STA $0B								;/
 				JSL WriteRepeatedIconsAsOAM_OAMOnly				;>Write.
 			endif
-		
 		.Done		;>We are done here.
 			SEP #$30
 			PLB
