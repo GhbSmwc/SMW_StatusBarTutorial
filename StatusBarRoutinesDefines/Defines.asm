@@ -46,15 +46,15 @@
 	;Status bar starting addresses.
 		;RAM address of the first TTTTTTTT byte.
 			if !sa1 == 0
-				!StatusBar_StartingAddress = $7FA000
+				!FreeramFromAnotherPatch_StatusBarTileStart = $7FA000
 			else
-				!StatusBar_StartingAddress = $404000
+				!FreeramFromAnotherPatch_StatusBarTileStart = $404000
 			endif
 		;RAM address of the first YXPCCCTT byte.
 			if !sa1 == 0
-				!StatusBar_StartingAddressProp = $7FA001
+				!FreeramFromAnotherPatch_StatusBarPropStart = $7FA001
 			else
-				!StatusBar_StartingAddressProp = $404001
+				!FreeramFromAnotherPatch_StatusBarPropStart = $404001
 			endif
 	;Overworld border starting addresses
 		;RAM address of the first TTTTTTTT byte.
