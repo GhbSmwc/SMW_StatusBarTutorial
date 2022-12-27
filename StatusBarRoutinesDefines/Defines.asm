@@ -59,15 +59,15 @@
 	;Overworld border starting addresses
 		;RAM address of the first TTTTTTTT byte.
 			if !sa1 == 0
-				!OverworldBorder_StartingAddress = $7FEC00
+				!FreeramFromAnotherPatch_OWBorderTileStart = $7FEC00
 			else
-				!OverworldBorder_StartingAddress = $41EC00
+				!FreeramFromAnotherPatch_OWBorderTileStart = $41EC00
 			endif
 		;RAM address of the first YXPCCCTT byte.
 			if !sa1 == 0
-				!OverworldBorder_StartingAddressProp = $7FEC01
+				!FreeramFromAnotherPatch_OWBorderPropStart = $7FEC01
 			else
-				!OverworldBorder_StartingAddressProp = $41EC01
+				!FreeramFromAnotherPatch_OWBorderPropStart = $41EC01
 			endif
 	;Status bar and OWB tiles:
 		;Status bar tiles
