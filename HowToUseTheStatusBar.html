@@ -437,7 +437,7 @@ should increment the highword), before calling the routine, and also write the m
 		</td>
 	</tr>
 	<tr>
-		<td><kbd>SupressLeadingZeros</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast2</kbd>, and <kbd>SupressLeadingZerosPercentageLeaveLast3</kbd></td>
+		<td><kbd>SupressLeadingZeros</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast2</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast3</kbd>, and <kbd>SupressLeadingZeros32Bit</kbd></td>
 		<td>5 digits</td>
 		<td>
 			<table>
@@ -446,7 +446,16 @@ should increment the highword), before calling the routine, and also write the m
 					<th>Description</th>
 				</tr>
 				<tr>
-					<td><kbd>!Scratchram_16bitHexDecOutput</kbd> to <kbd>!Scratchram_16bitHexDecOutput+4</kbd> (5 bytes)</td>
+					<td>
+						<ul>
+							<li>For <kbd>SupressLeadingZeros</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast2</kbd>, and <kbd>SupressLeadingZerosPercentageLeaveLast3</kbd>:
+							<kbd>!Scratchram_16bitHexDecOutput</kbd> to <kbd>!Scratchram_16bitHexDecOutput+4</kbd> (5 bytes)
+							</li><br>
+							<li>For <kbd>SupressLeadingZeros32Bit</kbd>:
+							<kbd>!Scratchram_32bitHexDecOutput</kbd> to <kbd>!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)</kbd> (<kbd>!MaxNumberOfDigits</kbd> bytes)
+							</li>
+						</ul>
+					</td>
 					<td>A string of characters.</td>
 				</tr>
 				<tr>
@@ -845,6 +854,59 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		endif
 	..TooMuchDigits
 	RTL</pre></td></tr></table><br>
+32-bit? Here you go:
+<table><tr><td><pre>
+!RAMToMeasure = $60								;&gt;RAM address you what to show
+!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar
+!NumberOfDigitsDisplayed = 9							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above but tile props (when enabled).
+!DigitProps = %00111000								;&gt;Properties of the digits (when enabled).
+
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.NumberDisplayTest
+	;Clear the tiles. To prevent leftover "ghost" tiles that should've
+	;disappear when the number of digits decreases (so when "10" becomes "9",
+	;won't display "90"). Also setup tile properties when enabled.
+		LDX.b #(!NumberOfDigitsDisplayed-1)*!StatusbarFormat
+		-
+		LDA #!StatusBarBlankTile
+		STA !StatusBarPosition,x
+		if !StatusBar_UsingCustomProperties != 0
+			LDA.b #!DigitProps
+			STA !StatusBarPositionProps,x
+		endif
+		DEX #!StatusbarFormat
+		BPL -
+	;Number to string.
+		;Process HexDec
+			REP #$20					;\Convert a given number to decimal digits.
+			LDA !RAMToMeasure				;|
+			STA $00						;|
+			LDA !RAMToMeasure+2				;|
+			STA $02						;|
+			SEP #$20					;|
+			JSL HexDec_Convert32bitIntegerToDecDigits	;/
+		;Remove leading zeroes and have it as a character table
+			LDX #$00					;&gt;Start at character position 0.
+			JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+		;Prevent writing too much characters.
+			CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
+			BCS ..TooMuchDigits				;/not being cleared from the previous code.
+	;Write to status bar
+		LDA.b #!StatusBarPosition : STA $00
+		LDA.b #!StatusBarPosition>>8 : STA $01
+		LDA.b #!StatusBarPosition>>16 : STA $02
+		if !StatusbarFormat == $01
+			JSL HexDec_WriteStringDigitsToHUD
+		else
+			JSL HexDec_WriteStringDigitsToHUDFormat2
+		endif
+	..TooMuchDigits
+	RTL</pre></td></tr></table><br>
+
 But what if I wanted to display 2 numbers &ldquo;X/Y&rdquo; (for example: &ldquo;260/300&rdquo;)? Well, you just have the codes be (loosely) called twice under &ldquo;<kbd>Number to string</kbd>&rdquo; but like this instead:
 <ol>
 	<li>
@@ -2202,7 +2264,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
 				BCS ..TooMuchDigits				;/not being cleared from the previous code.
 			;Convert to OWB digits
-				JSL HexDec_Convert16BitAlignedDigitToOWB	;&gt;Convert to OWB digits (aligned digits)
+				JSL HexDec_ConvertAlignedDigitToOWB		;&gt;Convert to OWB digits (aligned digits)
 	else
 		;First number
 			;Process HexDec
@@ -2233,7 +2295,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
 				BCS ..TooMuchDigits				;/not being cleared from the previous code.
 			;Convert to OWB digits
-				JSL HexDec_Convert16BitAlignedDigitToOWB	;&gt;Convert to OWB digits (aligned digits)
+				JSL HexDec_ConvertAlignedDigitToOWB		;&gt;Convert to OWB digits (aligned digits)
 	endif
 	;Write to OWB
 		LDA.b #!OverworldBorderPosition     : STA $00

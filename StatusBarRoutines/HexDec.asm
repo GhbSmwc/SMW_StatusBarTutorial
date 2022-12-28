@@ -21,10 +21,11 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ; -SupressLeadingZeros
 ; -SupressLeadingZerosPercentageLeaveLast2
 ; -SupressLeadingZerosPercentageLeaveLast3
+; -SupressLeadingZeros32Bit
 ; -ConvertToRightAligned
 ; -ConvertToRightAlignedFormat2
 ;Aligned digit to OWB digits:
-; -Convert16BitAlignedDigitToOWB
+; -ConvertAlignedDigitToOWB
 ;Write to status bar or overworld border:
 ; -WriteStringDigitsToHUD
 ; -WriteStringDigitsToHUDFormat2
@@ -645,6 +646,37 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				BCC .Loop		;/
 				INX			;>Next item in table
 				RTL
+	SupressLeadingZeros32Bit:
+		LDY #$00				;>Start looking at the leftmost (highest) digit
+		LDA #$00				;\When the value is 0, display it as single digit as zero
+		STA !Scratchram_CharacterTileTable,x	;/(gets overwritten should nonzero input exist)
+
+		.Loop
+			PHX						;>Had to do PHX : TYX : LDA $xxxxxx,x because LDA $xxxxxx,y does not exist.
+			TYX
+			LDA !Scratchram_32bitHexDecOutput,x		;\If there is a leading zero, move to the next digit to check without moving the position to
+			PLX
+			CMP #$00					;>Compare A, not X.
+			BEQ ..NextDigit					;/place the tile in the table
+		
+			..FoundDigit
+				PHX					;>...Again, LDA $xxxxxx,y does not exist
+				TYX
+				LDA !Scratchram_32bitHexDecOutput,x	;\Place digit
+				PLX
+				STA !Scratchram_CharacterTileTable,x	;/
+				INX					;>Next string position in table
+				INY					;\Next digit
+				CPY.b #!MaxNumberOfDigits		;|
+				BCC ..FoundDigit			;/
+				RTL
+		
+			..NextDigit
+				INY				;>1 digit to the right
+				CPY.b #!MaxNumberOfDigits	;\Loop until no digits left (minimum is 1 digit)
+				BCC .Loop			;/
+				INX				;>Next item in table
+				RTL
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Convert left-aligned to right-aligned.
 	;
@@ -722,36 +754,33 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;Input:
 	;X = Number of characters in the string
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	Convert16BitAlignedDigitToOWB:
+	ConvertAlignedDigitToOWB:
 		PHX
 		DEX
 		.Loop
-		LDA !Scratchram_CharacterTileTable,x
-		CMP #$0A
-		BCC .Digits
-		CMP #!StatusBarBlankTile
-		BEQ .Blank
-		CMP #!StatusBarSlashCharacterTileNumb
-		BEQ .Slash
+			LDA !Scratchram_CharacterTileTable,x
+			CMP #$0A
+			BCC .Digits
+			CMP #!StatusBarBlankTile
+			BEQ .Blank
+			CMP #!StatusBarSlashCharacterTileNumb
+			BEQ .Slash
 		
 		.Slash
-		LDA #!OverWorldBorderSlashCharacterTileNumb
-		BRA .Write
+			LDA #!OverWorldBorderSlashCharacterTileNumb
+			BRA .Write
 		
 		.Blank
-		LDA #!OverWorldBorderBlankTile
-		BRA .Write
-		
+			LDA #!OverWorldBorderBlankTile
+			BRA .Write
 		.Digits
-		CLC
-		ADC #$22
-		
+			CLC
+			ADC #$22
 		.Write
-		STA !Scratchram_CharacterTileTable,x
-		
+			STA !Scratchram_CharacterTileTable,x
 		..Next
-		DEX
-		BPL .Loop
+			DEX
+			BPL .Loop
 		PLX
 		RTL
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

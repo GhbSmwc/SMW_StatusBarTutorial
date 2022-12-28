@@ -37,7 +37,7 @@
 		;
 		;For use on making status bar codes that have hybrid format support.
 		
-		!StatusBar_UsingCustomProperties           = 0
+		!StatusBar_UsingCustomProperties           = 1
 		;^Set this to 0 if you are using the vanilla SMW status bar or any status bar patches
 		; that doesn't enable editing the tile properties, otherwise set this to 1 (you may
 		; have to edit "!Default_GraphicalBarProperties" in order for it to work though.).
@@ -77,18 +77,19 @@
 		;Overworld border tiles
 			!OverWorldBorderSlashCharacterTileNumb = $91
 			!OverWorldBorderBlankTile = $1F
-	;For [Convert32bitIntegerToDecDigits]
-		!MaxNumberOfDigits = 9
-		;^Number of digits to be stored (fixed). Use values 1-10 because maximum
-		; 32-bit unsigned integer is 4,294,967,295.
-	
-		if !sa1 == 0
-			!Scratchram_32bitHexDecOutput = $7F844E
-		else
-			!Scratchram_32bitHexDecOutput = $404140
-		endif
-		;^[bytes_used = !MaxNumberOfDigits] The output
-		; formatted each byte is each digit 0-9.
+	;32-bit Number display
+		;For [Convert32bitIntegerToDecDigits]
+			!MaxNumberOfDigits = 9
+			;^Number of digits to be stored (fixed) to be allowed to display up to. Use values 1-10
+			; because maximum 32-bit unsigned integer is 4,294,967,295.
+		
+			if !sa1 == 0
+				!Scratchram_32bitHexDecOutput = $7F844E
+			else
+				!Scratchram_32bitHexDecOutput = $404140
+			endif
+			;^[bytes_used = !MaxNumberOfDigits] The output
+			; formatted each byte is each digit 0-9.
 
 	;For [WriteStringDigitsToHUD]
 		if !sa1 == 0
