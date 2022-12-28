@@ -8,7 +8,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ; -EightBitHexDec
 ; -EightBitHexDec3Digits
 ; -SixteenBitHexDecDivision
-; -Convert32bitIntegerToDecDigits
+; -ThirtyTwoBitHexDecDivision
 ;Leading zeroes remover (leading spaces):
 ; -RemoveLeadingZeroes16Bit
 ; -RemoveLeadingZeroes32Bit
@@ -346,7 +346,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;Overwritten
 	;-$04 to $05: because remainder of the division.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-			Convert32bitIntegerToDecDigits:
+			ThirtyTwoBitHexDecDivision:
 			LDX.b #!MaxNumberOfDigits-1
 			
 			.Loop
@@ -369,7 +369,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ;Example: 00123 ([$00, $00, $01, $02, $03]) becomes
 ; __123 ([$FC, $FC, $01, $02, $03])
 ;
-;Call this routine after using: [Convert32bitIntegerToDecDigits]
+;Call this routine after using: [ThirtyTwoBitHexDecDivision]
 ;or [SixteenBitHexDecDivision].
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -420,7 +420,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		
 		.NonZero
 		RTL
-	;32-bit version, use after [Convert32bitIntegerToDecDigits]
+	;32-bit version, use after [ThirtyTwoBitHexDecDivision]
 		RemoveLeadingZeroes32Bit:
 		LDX #$00				;>Start at the leftmost digit
 		
@@ -749,7 +749,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ;Aligned digit to OWB digits
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;Convert 16-bit number that has its leading zeroes suppressed (also left-aligned)
+	;Convert string that has its leading zeroes suppressed (also left-aligned)
 	;to OWB digits
 	;Input:
 	;X = Number of characters in the string
@@ -781,44 +781,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		..Next
 			DEX
 			BPL .Loop
-		PLX
-		RTL
-	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;Convert 32-bit number that has its leading zeroes suppressed (also left-aligned)
-	;to OWB digits
-	;Input:
-	;X = Number of characters in the string
-	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	Convert32BitAlignedDigitToOWB:
-		PHX
-		DEX
-		.Loop
-		LDA !Scratchram_CharacterTileTable,x
-		CMP #$0A
-		BCC .Digits
-		CMP #!StatusBarBlankTile
-		BEQ .Blank
-		CMP #$29
-		BEQ .Slash
-		
-		.Slash
-		LDA #$91
-		BRA .Write
-		
-		.Blank
-		LDA #$1F
-		BRA .Write
-		
-		.Digits
-		CLC
-		ADC #$22
-		
-		.Write
-		STA !Scratchram_CharacterTileTable,x
-		
-		..Next
-		DEX
-		BPL .Loop
 		PLX
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
