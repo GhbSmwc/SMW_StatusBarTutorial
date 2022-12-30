@@ -416,13 +416,13 @@ should increment the highword), before calling the routine, and also write the m
 	</tr>
 	<tr>
 		<td><kbd>ThirtyTwoBitHexDecDivision</kbd></td>
-		<td><kbd>1</kbd>-<kbd>10</kbd> digits, defined as <kbd>!MaxNumberOfDigits</kbd></td>
+		<td><kbd>1</kbd>-<kbd>10</kbd> digits, defined as <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd></td>
 		<td><kbd>$00</kbd>-<kbd>$03</kbd> (32-bit/4-byte)</td>
 		<td>
-			<kbd>!Scratchram_32bitHexDecOutput</kbd> to <kbd>!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)</kbd>: Contains value 0-9 on every byte,
-			in decreasing significant digits (last byte is always the 1s place). Formula to get what RAM of a given digit:<br><br><kbd>!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)-(DigitIndex)</kbd><br><br>
-			Where <kbd>!MaxNumberOfDigits</kbd> indicates the largest number of digits in your entire hack, up to 10.<br>
-			Where <kbd>DigitIndex</kbd>, ranging from 0 to <kbd>!MaxNumberOfDigits-1</kbd> represent which digit in positional notation:
+			<kbd>!Scratchram_32bitHexDecOutput</kbd> to <kbd>!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)</kbd>: Contains value 0-9 on every byte,
+			in decreasing significant digits (last byte is always the 1s place). Formula to get what RAM of a given digit:<br><br><kbd>!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(DigitIndex)</kbd><br><br>
+			Where <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> indicates the largest number of digits in your entire hack, up to 10.<br>
+			Where <kbd>DigitIndex</kbd>, ranging from 0 to <kbd>!Setting_32bitHexDec_MaxNumberOfDigits-1</kbd> represent which digit in positional notation:
 			<ul>
 				<li>DigitIndex = 0: 1s</li>
 				<li>DigitIndex = 1: 10s</li>
@@ -452,7 +452,7 @@ should increment the highword), before calling the routine, and also write the m
 							<kbd>!Scratchram_16bitHexDecOutput</kbd> to <kbd>!Scratchram_16bitHexDecOutput+4</kbd> (5 bytes)
 							</li><br>
 							<li>For <kbd>SupressLeadingZeros32Bit</kbd>:
-							<kbd>!Scratchram_32bitHexDecOutput</kbd> to <kbd>!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)</kbd> (<kbd>!MaxNumberOfDigits</kbd> bytes)
+							<kbd>!Scratchram_32bitHexDecOutput</kbd> to <kbd>!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)</kbd> (<kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> bytes)
 							</li>
 						</ul>
 					</td>
@@ -647,9 +647,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	<kbd>[$44, $33, $22, $11]</kbd> into <kbd>$00-$03</kbd> and should output as <kbd>[$02, $08, $07, $04, $05, $04, $00, $02, $00]</kbd> in
 	<kbd>!Scratchram_32bitHexDecOutput</kbd>.<br>
 	
-	Here is an example using the previously mentioned number, with <kbd>!MaxNumberOfDigits</kbd> set to <kbd>9</kbd>, using default <kbd>!Scratchram_32bitHexDecOutput</kbd>.
-	Again, the digits stored in each bytes are ordered in decreasing significant decimal digits (<abbr title="!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)">last byte</abbr> is always
-	the 1s place, regardless of <kbd>!MaxNumberOfDigits</kbd>'s value)
+	Here is an example using the previously mentioned number, with <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> set to <kbd>9</kbd>, using default <kbd>!Scratchram_32bitHexDecOutput</kbd>.
+	Again, the digits stored in each bytes are ordered in decreasing significant decimal digits (<abbr title="!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)">last byte</abbr> is always
+	the 1s place, regardless of <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd>'s value)
 	<table>
 	<tr><th>Define relative address</th><th>Default RAM address (normal/Sa-1)</th><th>Output value</th></tr>
 	<tr><td><kbd>!Scratchram_32bitHexDecOutput+0</kbd></td><td><kbd>$7F844E/$404140</kbd></td><td><kbd>$02</kbd> (represents &ldquo;2&rdquo; for 100000000s)</td></tr>
@@ -669,7 +669,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 !RAMToMeasure = $60							;&gt;[4 bytes] RAM address you what to show
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
 
-;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !MaxNumberOfDigits
+;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !Setting_32bitHexDec_MaxNumberOfDigits
 ;(the number digits stored in each byte in !Scratchram_32bitHexDecOutput), else garbage will appear.
 	!NumberOfDigitsDisplayed = 9		;&gt;How many digits, enter 1-10 (pointless if you enter less than 5).
 
@@ -697,7 +697,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		if !StatusbarFormat == $01
 			LDX.b #(!NumberOfDigitsDisplayed-1)
 			-
-			LDA !Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
+			LDA !Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
 			STA !StatusBarPosition,x
 			DEX
 			BPL -
@@ -707,7 +707,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			-
 			PHX
 			TYX												;&gt;Sigh, LDA $xxxxxx,y does not exist.
-			LDA (!Scratchram_32bitHexDecOutput)+(!MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
+			LDA (!Scratchram_32bitHexDecOutput)+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
 			PLX
 			STA !StatusBarPosition,x
 			DEY
@@ -718,9 +718,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	
 Don't ask me to make an even larger number display, because not many games would ever display 10 digits at once, plus, it takes up space on the HUD.</p>
 
-<p>Also note that <kbd>!NumberOfDigitsDisplayed</kbd> and <kbd>!MaxNumberOfDigits</kbd> are different. <kbd>!NumberOfDigitsDisplayed</kbd> refers to only the low (rightmost digits) n digits being
-displayed, while <kbd>!MaxNumberOfDigits</kbd> is the fixed number of digits (uses leading zeroes if fewer digits) stored in the digit table (you can set this to a
-<abbr title="If you have multiple number displays and they are using the 32-bit HexDec each with different maximums (example: 99,999 and 999,999), then set !MaxNumberOfDigits to whatever number using this routine uses the most digits
+<p>Also note that <kbd>!NumberOfDigitsDisplayed</kbd> and <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> are different. <kbd>!NumberOfDigitsDisplayed</kbd> refers to only the low (rightmost digits) n digits being
+displayed, while <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> is the fixed number of digits (uses leading zeroes if fewer digits) stored in the digit table (you can set this to a
+<abbr title="If you have multiple number displays and they are using the 32-bit HexDec each with different maximums (example: 99,999 and 999,999), then set !Setting_32bitHexDec_MaxNumberOfDigits to whatever number using this routine uses the most digits
 (in this case, 6, not 5).">lower number to save space</abbr>).
 Having both in case if you want to only display up to n digits less than the routine can output. For example, a counter to display 6 digits, 0-999999. You wouldn't want display
 unused digits always showing 0 on the millions (1000000s) and beyond (so don't display &ldquo;0000999999&rdquo;, those first 4 digits are always 0 and therefore redundant).</p>
@@ -2308,7 +2308,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 !OverworldBorderPosition = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border
 !RemoveLeadingZeroes = 0							;&gt;0 = Have leading zeroes, 1 = no (leading spaces)
 
-;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !MaxNumberOfDigits
+;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !Setting_32bitHexDec_MaxNumberOfDigits
 ;(the number digits stored in each byte in !Scratchram_32bitHexDecOutput), else garbage will appear.
 	!NumberOfDigitsDisplayed = 9		;&gt;How many digits, enter 1-10 (pointless if you enter less than 5).
 
@@ -2342,7 +2342,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		-
 		PHX
 		TYX												;&gt;Sigh, LDA $xxxxxx,y does not exist.
-		LDA (!Scratchram_32bitHexDecOutput)+(!MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
+		LDA (!Scratchram_32bitHexDecOutput)+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
 		PLX
 		STA !OverworldBorderPosition,x
 		LDA.b #%00111001

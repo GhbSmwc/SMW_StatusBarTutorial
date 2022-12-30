@@ -26,7 +26,7 @@
 	<h1>32-bit Hex-dec RAM calculator</h1>
 	Input: <kbd>$00-$03</kbd> (32-bit/4 bytes), little endian<br><br>
 	<kbd>!Scratchram_32bitHexDecOutput</kbd> RAM to use: <kbd>$</kbd><input id="RAMAddressOfOutputDigits" type="text" class="AnyRadixNumberInput" data-input_number_radix="16" value="7F844E" onchange="ComputeDataUsage()"> (Default RAM usage: <kbd>$7F844E</kbd> for normal and <kbd>$40019C</kbd> for SA-1)<br>
-	<kbd>!MaxNumberOfDigits</kbd>: <input id="MaxNumberOfDigits" type="number" min="1" max="10" value="10" onchange="ComputeDataUsage()"><br>
+	<kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd>: <input id="MaxNumberOfDigits" type="number" min="1" max="10" value="10" onchange="ComputeDataUsage()"><br>
 	<button onclick="Reset()">Reset</button>
 	<hr>
 	<span id="OutputDisplay"></span>

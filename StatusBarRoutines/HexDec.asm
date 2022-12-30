@@ -328,13 +328,13 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	; $11223344 ([$44,$33,$22,$11]) should output 287454020.
 	; Maximum value is 4,294,967,295.
 	;output:
-	;-[!Scratchram_32bitHexDecOutput] to [!Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)]:
+	;-[!Scratchram_32bitHexDecOutput] to [!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)]:
 	; Contains value 0-9 on every byte, in decreasing significant digits (last byte is always
 	; the 1s place). Formula to get what RAM of a given digit:
 	;
-	; !Scratchram_32bitHexDecOutput+(!MaxNumberOfDigits-1)-(DigitIndex)
+	; !Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(DigitIndex)
 	;
-	; Where DigitIndex is an integer ranging from 0 to !MaxNumberOfDigits-1, representing what digit with 0
+	; Where DigitIndex is an integer ranging from 0 to !Setting_32bitHexDec_MaxNumberOfDigits-1, representing what digit with 0
 	; being the ones, 2 being 10s, and so on:
 	; DigitValue = 0: 1s place (ex. w/ 6 digits: $7F8453)
 	; DigitValue = 1: 10s place (ex. w/ 6 digits: $7F8452)
@@ -347,7 +347,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;-$04 to $05: because remainder of the division.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 			ThirtyTwoBitHexDecDivision:
-			LDX.b #!MaxNumberOfDigits-1
+			LDX.b #!Setting_32bitHexDec_MaxNumberOfDigits-1
 			
 			.Loop
 			LDA.b #10				;\divide by 10 (the radix)
@@ -430,7 +430,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #!StatusBarBlankTile				;\blank tile to replace leading zero
 		STA !Scratchram_32bitHexDecOutput,x	;/
 		INX					;>next digit
-		CPX.b #!MaxNumberOfDigits-1		;>last digit to check. So that it can display a single 0.
+		CPX.b #!Setting_32bitHexDec_MaxNumberOfDigits-1		;>last digit to check. So that it can display a single 0.
 		BCC .Loop				;>if not done yet, continue looping.
 		
 		.NonZero
@@ -490,7 +490,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;	JSL SixteenBitHexDecDivisionToOWB
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		ThirtyTwoBitHexDecDivisionToOWB:
-		LDX.b #!MaxNumberOfDigits-1
+		LDX.b #!Setting_32bitHexDec_MaxNumberOfDigits-1
 		
 		.Loop
 		LDA !Scratchram_32bitHexDecOutput,x
@@ -667,13 +667,13 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				STA !Scratchram_CharacterTileTable,x	;/
 				INX					;>Next string position in table
 				INY					;\Next digit
-				CPY.b #!MaxNumberOfDigits		;|
+				CPY.b #!Setting_32bitHexDec_MaxNumberOfDigits		;|
 				BCC ..FoundDigit			;/
 				RTL
 		
 			..NextDigit
 				INY				;>1 digit to the right
-				CPY.b #!MaxNumberOfDigits	;\Loop until no digits left (minimum is 1 digit)
+				CPY.b #!Setting_32bitHexDec_MaxNumberOfDigits	;\Loop until no digits left (minimum is 1 digit)
 				BCC .Loop			;/
 				INX				;>Next item in table
 				RTL
