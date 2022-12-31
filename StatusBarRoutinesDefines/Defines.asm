@@ -42,7 +42,17 @@
 		; that doesn't enable editing the tile properties, otherwise set this to 1 (you may
 		; have to edit "!Default_GraphicalBarProperties" in order for it to work though.).
 		; This define is needed to prevent writing what it assumes tile properties into invalid
-		; RAM addresses.
+		; RAM addresses when not used.
+		;
+		; Also please note that some status bar routines such as ConvertToRightAligned
+		; also uses this define, and also can be used on the overworld border. If you have
+		; this define set to 0, writing properties for both status bar and OWB will not write
+		; tile properties at all. Another note is that the OWB's default tile properties,
+		; assuming you are using OWB+ patch, uses $38 (%00111000) on blank spaces and powerup
+		; decorations (mushroom, star, and flower), while numbers and other symbols being used
+		; are using property value $39 (%00111001, using a different page). This means if you
+		; have this setting set to 0, garbage tiles may appear on the OWB when testing the OWB
+		; HUD elements.
 	;Status bar starting addresses.
 		;RAM address of the first TTTTTTTT byte.
 			if !sa1 == 0

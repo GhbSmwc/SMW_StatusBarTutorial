@@ -708,15 +708,15 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;  into leading spaces) is automatically right-aligned, using this routine is pointless.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	ConvertToRightAligned:
-		TXA
-		DEC
-		TAY					;>Transfer status bar leftmost position to Y
+		TXA					;>Transfer X (number of tiles) to A
+		DEC					;>Decrement A (since it's 0-based)
+		TAY					;>Transfer A status bar leftmost position to Y (Y is how many tiles of offset by, need this later)
 		BRA +
 	ConvertToRightAlignedFormat2:
-		TXA
-		DEC
-		ASL
-		TAY					;>Transfer status bar leftmost position to Y
+		TXA					;>Transfer X (number of tiles) to A
+		DEC					;>Decrement A (since it's 0-based)
+		ASL					;>Double A (because each tile is 2 bytes, becomming the number of tiles being 0-based)
+		TAY					;>Transfer A to Y status bar leftmost position to Y (need this later)
 		+
 		REP #$21				;\-(NumberOfTiles-1)...
 		AND #$00FF				;|
@@ -731,8 +731,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		
 		if !StatusBar_UsingCustomProperties != 0
 			TYA
-			DEC
-			ASL
 			REP #$21				;\-(NumberOfTiles-1)
 			AND #$00FF				;|
 			EOR #$FFFF				;|
@@ -791,9 +789,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;
 	;Input:
 	; -$00-$02 = 24-bit address location to write to status bar tile number.
-	; -If tile properties are edit-able:
-	; --$03-$05 = Same as $00-$02 but tile properties.
-	; --$06 = the tile properties, for all tiles.
+	; -If tile properties are edit-able (if !StatusBar_UsingCustomProperties != 0):
+	; --$03-$05 = Same as $00-$02 but tile properties
+	; --$06 = the tile properties, for all tiles
 	; -X = The number of characters to write, ("123" would have X = 3)
 	; -!Scratchram_CharacterTileTable-(!Scratchram_CharacterTileTable+N-1)
 	;  the string to write to the status bar.
@@ -807,15 +805,15 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		TXY
 		
 		.Loop
-		LDA !Scratchram_CharacterTileTable,x
-		STA [$00],y
-		if !StatusBar_UsingCustomProperties != 0
-			LDA $06
-			STA [$03],y
-		endif
-		DEX
-		DEY
-		BPL .Loop
+			LDA !Scratchram_CharacterTileTable,x
+			STA [$00],y
+			if !StatusBar_UsingCustomProperties != 0
+				LDA $06
+				STA [$03],y
+			endif
+			DEX
+			DEY
+			BPL .Loop
 		RTL
 	WriteStringDigitsToHUDFormat2:
 		DEX
@@ -824,15 +822,15 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		TAY				;/
 		
 		.Loop
-		LDA !Scratchram_CharacterTileTable,x
-		STA [$00],y
-		if !StatusBar_UsingCustomProperties != 0
-			LDA $06
-			STA [$03],y
-		endif
-		DEX
-		DEY #2
-		BPL .Loop
+			LDA !Scratchram_CharacterTileTable,x
+			STA [$00],y
+			if !StatusBar_UsingCustomProperties != 0
+				LDA $06
+				STA [$03],y
+			endif
+			DEX
+			DEY #2
+			BPL .Loop
 		RTL
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

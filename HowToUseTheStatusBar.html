@@ -811,7 +811,7 @@ When written to the status bar:<br>
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar
 !NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 !StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above but tile props (when enabled).
-!DigitProps = %00111000								;&gt;Properties of the digits (when enabled).
+!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -826,7 +826,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #!StatusBarBlankTile
 		STA !StatusBarPosition,x
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!DigitProps
+			LDA.b #!TileProps
 			STA !StatusBarPositionProps,x
 		endif
 		DEX #!StatusbarFormat
@@ -861,7 +861,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar
 !NumberOfDigitsDisplayed = 9							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 !StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above but tile props (when enabled).
-!DigitProps = %00111000								;&gt;Properties of the digits (when enabled).
+!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -876,7 +876,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #!StatusBarBlankTile
 		STA !StatusBarPosition,x
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!DigitProps
+			LDA.b #!TileProps
 			STA !StatusBarPositionProps,x
 		endif
 		DEX #!StatusbarFormat
@@ -935,7 +935,7 @@ Here is an example using 2 16-bit numbers:
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar
 !NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 !StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above but tile props (when enabled).
-!DigitProps = %00111000								;&gt;Properties of the digits (when enabled).
+!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -949,7 +949,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #!StatusBarBlankTile
 		STA !StatusBarPosition,x
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!DigitProps
+			LDA.b #!TileProps
 			STA !StatusBarPositionProps,x
 		endif
 		DEX #!StatusbarFormat
@@ -1000,7 +1000,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar
 !NumberOfDigitsDisplayed = 9							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 !StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above but tile props (when enabled).
-!DigitProps = %00111000								;&gt;Properties of the digits (when enabled).
+!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -1014,7 +1014,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #!StatusBarBlankTile
 		STA !StatusBarPosition,x
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!DigitProps
+			LDA.b #!TileProps
 			STA !StatusBarPositionProps,x
 		endif
 		DEX #!StatusbarFormat
@@ -1949,7 +1949,7 @@ main:
 						LDA #!StatusBarBlankTile
 						STA !StatusBarPosition,x
 						if !StatusBar_UsingCustomProperties != 0
-							LDA.b #!DigitProps
+							LDA.b #!TileProps
 							STA !StatusBarPositionProps,x
 						endif
 						DEX #!StatusbarFormat
@@ -2167,6 +2167,10 @@ Reason this package not including this is because too much information to be had
 the tile numbering of the overworld border, if you are dealing with displaying digits, for non-digit based things like the repeated symbols, just use a different tile number. The graphical
 bar to be used on the OWB is already covered in that package. So only the numerical display we'll discuss here.</p>
 
+<p>Please note that for testing some codes below, specifically ones that call subroutines that at least write tile properties into the status bar/OWB+, <b>requires</b> having <kbd>!StatusBar_UsingCustomProperties</kbd>
+set to <kbd>1</kbd> because SMW's OWB and OWB+ patch have a default tile property page number being <kbd>0</kbd>, and by simply writing just the tile number will write garbage numbers on there due to being on the wrong
+GFX page (numbers graphics are on page 1, not 0).</p>
+
 <p>Remember that I mentioned that the digit graphics are stored in page 1 at tile numbers <kbd>$22</kbd>-<kbd>$2B</kbd>? Well, I've also included OWB converters in the routines folder. Here are the examples
 (Create an ASM file, <kbd>OWBDisplayTest.asm</kbd>, with the following code, have it under &ldquo;overworld&rdquo; or gamemode <kbd>$0D-$0E</kbd> ($0D so the display happens during fade)). Also remember
 that the provided examples assumes you've installed the overworld border plus patch:<br>
@@ -2175,7 +2179,9 @@ that the provided examples assumes you've installed the overworld border plus pa
 8-bit 2-digit:
 <table><tr><td><pre>
 !RAMToMeasure = $60								;&gt;[1 byte] RAM address you what to show
-!OverworldBorderPosition = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border
+!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border (tile)
+!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$00	;&gt;Where to write on the overworld border (properties)
+!TileProps = %00111001								;&gt;Properties of the digits.
 !RemoveLeadingZeroes = 0							;&gt;0 = Always show 10s digit, 1 = If value less than 10, replace 10s with blank.
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -2186,7 +2192,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	JSL HexDec_EightBitHexDec
 	CLC
 	ADC #$22
-	STA !OverworldBorderPosition+(1*2)		;&gt;Write 1s place
+	STA !OverworldBorderPositionTile+(1*2)		;&gt;Write 1s place
 	if !RemoveLeadingZeroes == 0
 		TXA						;&gt;if you are using status bar patches, STX $xxxxxx will not work.
 		CLC						;\Convert digits to OWB digits
@@ -2202,17 +2208,19 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #$1F				;&gt;OWB Blank tile.
 		++
 	endif
-	STA !OverworldBorderPosition			;&gt;Write 10s place
+	STA !OverworldBorderPositionTile		;&gt;Write 10s place
 	
 	;Set properties:
-		LDA.b #%00111001
-		STA !OverworldBorderPosition+1
-		STA !OverworldBorderPosition+1+(1*2)
+		LDA.b #!TileProps
+		STA !OverworldBorderPositionProp
+		STA !OverworldBorderPositionProp+(1*2)
 	RTL</pre></td></tr></table>
 8-bit 3-digit:
 <table><tr><td><pre>
 !RAMToMeasure = $60								;&gt;[1 byte] RAM address you what to show
-!OverworldBorderPosition = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border
+!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border (tile)
+!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$00	;&gt;Where to write on the overworld border (properties)
+!TileProps = %00111001								;&gt;Properties of the digits.
 !RemoveLeadingZeroes = 0							;&gt;0 = Have leading zeroes, 1 = no (leading spaces)
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -2223,55 +2231,57 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		JSL HexDec_EightBitHexDec3Digits			;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
 		CLC							;\Write 1s place (always written)
 		ADC #$22						;|
-		STA !OverworldBorderPosition+(2*!StatusbarFormat)	;/
+		STA !OverworldBorderPositionTile+(2*!StatusbarFormat)	;/
 		if !RemoveLeadingZeroes == 0
 			TXA							;\Write 10s place
 			CLC							;|
 			ADC #$22						;|
-			STA !OverworldBorderPosition+(1*!StatusbarFormat)	;/
+			STA !OverworldBorderPositionTile+(1*!StatusbarFormat)	;/
 			TYA							;\Write 100s place.
 			CLC							;|
 			ADC #$22						;|
-			STA !OverworldBorderPosition				;/
+			STA !OverworldBorderPositionTile			;/
 		else
 			..HandleHundreds
 				CPY #$00
 				BNE ...HundredsNonZero
 				...NoHundreds
 					LDA #$1F
-					STA !OverworldBorderPosition
+					STA !OverworldBorderPositionTile
 					BRA ..HandleTens
 				...HundredsNonZero
 					TYA
 					CLC
 					ADC #$22
-					STA !OverworldBorderPosition
+					STA !OverworldBorderPositionTile
 					BRA ..HandleTens_WriteTens		 ;&gt;If 100+ then 10s should never be a blank tile
 			..HandleTens
 				CPX #$00
 				BNE ...WriteTens
 				...NoTens
 					LDA #$1F
-					STA !OverworldBorderPosition+(1*!StatusbarFormat)
+					STA !OverworldBorderPositionTile+(1*2)
 					BRA ..DigitsDone
 				...WriteTens
 					TXA
 					CLC
 					ADC #$22
-					STA !OverworldBorderPosition+(1*!StatusbarFormat)
+					STA !OverworldBorderPositionTile+(1*2)
 			..DigitsDone
 		endif
 		
 		;Set properties
-			LDA.b #%00111001
-			STA !OverworldBorderPosition+1
-			STA !OverworldBorderPosition+1+(1*2)
-			STA !OverworldBorderPosition+1+(2*2)
+			LDA.b #!TileProps
+			STA !OverworldBorderPositionProp
+			STA !OverworldBorderPositionProp+(1*2)
+			STA !OverworldBorderPositionProp+(2*2)
 		RTL</pre></td></tr></table>
 16-bit n-digit:
 <table><tr><td><pre>
 !RAMToMeasure = $60								;&gt;[2 bytes] RAM address you what to show
-!OverworldBorderPosition = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border
+!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border (tile)
+!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$00	;&gt;Where to write on the overworld border (properties)
+!TileProps = %00111001								;&gt;Properties of the digits.
 !NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 !RemoveLeadingZeroes = 0							;&gt;0 = Have leading zeroes, 1 = no (leading spaces)
 
@@ -2294,9 +2304,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDY.b #(!NumberOfDigitsDisplayed-1)
 		-
 		LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
-		STA !OverworldBorderPosition,x
-		LDA.b #%00111001								;\Page 1, Palette 6, and Priority ON
-		STA.l !OverworldBorderPosition+1,x						;/
+		STA !OverworldBorderPositionTile,x
+		LDA.b #!TileProps								;\Page 1, Palette 6, and Priority ON
+		STA.l !OverworldBorderPositionProp,x						;/
 		DEY
 		DEX #2
 		BPL -
@@ -2305,7 +2315,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 32-bit n-digit:
 <table><tr><td><pre>
 !RAMToMeasure = $60								;&gt;[4 bytes] RAM address you what to show
-!OverworldBorderPosition = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border
+!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border (tile)
+!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$00	;&gt;Where to write on the overworld border (properties)
+!TileProps = %00111001								;&gt;Properties of the digits.
 !RemoveLeadingZeroes = 0							;&gt;0 = Have leading zeroes, 1 = no (leading spaces)
 
 ;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !Setting_32bitHexDec_MaxNumberOfDigits
@@ -2344,24 +2356,28 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		TYX												;&gt;Sigh, LDA $xxxxxx,y does not exist.
 		LDA (!Scratchram_32bitHexDecOutput)+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
 		PLX
-		STA !OverworldBorderPosition,x
-		LDA.b #%00111001
-		STA.l !OverworldBorderPosition+1,x
+		STA !OverworldBorderPositionTile,x
+		LDA.b #!TileProps
+		STA.l !OverworldBorderPositionProp,x
 		DEY
 		DEX #2
 		BPL -
 	RTL</pre></td></tr></table>
-Left and right aligned:
+Left and right aligned with 16-bit numbers:
 <table><tr><td><pre>
 !DisplayTwoNumbers = 1			;&gt;0 = only the first number, 1 = display 2.
-!RightAligned = 1			;&gt;0 = left, 1 = right.
+!RightAligned = 0			;&gt;0 = left, 1 = right.
 !RAMToMeasure = $60			;&gt;[2 bytes] RAM address you what to show
 !RAMToMeasure2 = $62			;&gt;[2 bytes] Second number
 if !RightAligned == 0
-	!OverworldBorderPosition = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the OWB (left aligned)
+	!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the OWB (left aligned)
+	!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$00	;&gt;Where to write on the overworld border (properties, left aligned)
 else
-	!OverworldBorderPosition = !FreeramFromAnotherPatch_OWBorderTileStart+$3E	;&gt;Where to write on the OWB (right aligned)
+	!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$3E	;&gt;Where to write on the OWB (right aligned)
+	!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$3E	;&gt;Where to write on the overworld border (properties, right aligned)
 endif
+!TileProps = %00111001							;&gt;Properties of the digits (when enabled).
+
 !NumberOfDigitsDisplayed = 5		;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 
 ;Note: Pointless and a waste of processing to use the digit alignment display if you plan on having
@@ -2383,14 +2399,14 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		-
 		if !RightAligned == 0
 			LDA #!OverWorldBorderBlankTile		;\Clear tiles
-			STA !OverworldBorderPosition,x		;/
+			STA !OverworldBorderPositionTile,x	;/
 			LDA.b #%00111001			;\Set tile properties
-			STA.l !OverworldBorderPosition+1,x	;/
+			STA.l !OverworldBorderPositionProp,x	;/
 		else
 			LDA #!OverWorldBorderBlankTile
-			STA !OverworldBorderPosition-((((!NumberOfDigitsDisplayed*2)+1)-1)*2),x
+			STA !OverworldBorderPositionTile-((((!NumberOfDigitsDisplayed*2)+1)-1)*2),x
 			LDA.b #%00111001
-			STA.l !OverworldBorderPosition+1-((((!NumberOfDigitsDisplayed*2)+1)-1)*2),x
+			STA.l !OverworldBorderPositionProp-((((!NumberOfDigitsDisplayed*2)+1)-1)*2),x
 		endif
 		DEX #2
 		BPL -
@@ -2443,9 +2459,14 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				JSL HexDec_ConvertAlignedDigitToOWB		;&gt;Convert to OWB digits (aligned digits)
 	endif
 	;Write to OWB
-		LDA.b #!OverworldBorderPosition     : STA $00
-		LDA.b #!OverworldBorderPosition>>8  : STA $01
-		LDA.b #!OverworldBorderPosition>>16 : STA $02
+		LDA.b #!OverworldBorderPositionTile     : STA $00
+		LDA.b #!OverworldBorderPositionTile>>8  : STA $01
+		LDA.b #!OverworldBorderPositionTile>>16 : STA $02
+		LDA.b #!TileProps
+		STA $06
+		LDA.b #!OverworldBorderPositionProp     : STA $03
+		LDA.b #!OverworldBorderPositionProp>>8  : STA $04
+		LDA.b #!OverworldBorderPositionProp>>16 : STA $05
 		if !RightAligned != 0
 			;Convert to right-aligned
 				JSL HexDec_ConvertToRightAlignedFormat2
@@ -2453,6 +2474,124 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		JSL HexDec_WriteStringDigitsToHUDFormat2
 	..TooMuchDigits
 	RTL</pre></td></tr></table>
+Left and right aligned with 32-bit numbers:
+<table><tr><td><pre>
+!DisplayTwoNumbers = 1								;&gt;0 = only the first number, 1 = display 2.
+!RightAligned = 0								;&gt;0 = left, 1 = right.
+!RAMToMeasure = $60								;&gt;[4 bytes] RAM address you what to show
+!RAMToMeasure2 = $0F3A|!addr							;&gt;[4 bytes] Same as above
+
+if !RightAligned == 0
+	!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border for left aligned
+	!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$00	;&gt;Same as above but tile props.
+else
+	!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$3E	;&gt;Where to write on the overworld border for right aligned
+	!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$3E	;&gt;Same as above but tile props.
+endif
+!DigitProps = %00111001								;&gt;Properties of the digits (when enabled).
+!NumberOfDigitsDisplayed = 10							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.NumberDisplayTest
+	;Clear the tiles. To prevent leftover "ghost" tiles that should've
+	;disappear when the number of digits decreases (so when "10" becomes "9",
+	;won't display "90").
+		if !DisplayTwoNumbers == 0
+			LDX.b #(!NumberOfDigitsDisplayed-1)*2
+		else
+			LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*2
+		endif
+		-
+		if !RightAligned == 0
+			LDA #!OverWorldBorderBlankTile
+			STA !OverworldBorderPositionTile,x
+			LDA.b #!DigitProps
+			STA !OverworldBorderPositionProp,x
+		else
+			LDA #!OverWorldBorderBlankTile
+			STA !OverworldBorderPositionTile-((((!NumberOfDigitsDisplayed*2)+1)-1)*2),x
+			LDA.b #!DigitProps
+			STA.l !OverworldBorderPositionProp-((((!NumberOfDigitsDisplayed*2)+1)-1)*2),x
+		endif
+		DEX #2
+		BPL -
+	if !DisplayTwoNumbers == 0
+		;First number
+			;Process HexDec
+				REP #$20					;\Convert a given number to decimal digits.
+				LDA !RAMToMeasure				;|
+				STA $00						;|
+				LDA !RAMToMeasure+2				;|
+				STA $02						;|
+				SEP #$20					;|
+				JSL HexDec_ThirtyTwoBitHexDecDivision		;/
+			;Remove leading zeroes and have it as a character table
+				LDX #$00					;&gt;Start at character position 0.
+				JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+			;Prevent writing too many characters
+				CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
+				BCS ..TooMuchDigits				;/not being cleared from the previous code.
+			;Convert to OWB digits
+				JSL HexDec_ConvertAlignedDigitToOWB		;&gt;Convert to OWB digits (aligned digits)
+	else
+		;First number
+			;Process HexDec
+				REP #$20					;\Convert a given number to decimal digits.
+				LDA !RAMToMeasure				;|
+				STA $00						;|
+				LDA !RAMToMeasure+2				;|
+				STA $02						;|
+				SEP #$20					;|
+				JSL HexDec_ThirtyTwoBitHexDecDivision		;/
+			;Remove leading zeroes and have it as a character table
+				LDX #$00					;&gt;Start at character position 0.
+				JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+		;"/" symbol
+				LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
+				STA !Scratchram_CharacterTileTable,x		;/
+				INX						;&gt;Next character position.
+		;Second number
+			;Process HexDec
+				PHX						;&gt;Push X because it gets modified by the HexDec routine.
+				REP #$20					;\Convert a given number to decimal digits.
+				LDA !RAMToMeasure2				;|
+				STA $00						;|
+				LDA !RAMToMeasure2+2				;|
+				STA $02						;|
+				SEP #$20					;|
+				JSL HexDec_ThirtyTwoBitHexDecDivision		;/
+				PLX						;&gt;Restore.
+			;Remove leading zeroes and have it as a character table
+				JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+			;Prevent writing too much characters.
+				CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
+				BCS ..TooMuchDigits				;/not being cleared from the previous code.
+			;Convert it to OWB digits and numbers
+				JSL HexDec_ConvertAlignedDigitToOWB
+	endif
+	;Write to OWB
+		LDA.b #!OverworldBorderPositionTile : STA $00			;\Set address to write at a given status bar position (tile number).
+		LDA.b #!OverworldBorderPositionTile&gt;&gt;8 : STA $01		;|
+		LDA.b #!OverworldBorderPositionTile&gt;&gt;16 : STA $02		;/
+		LDA.b #!DigitProps : STA $06
+		LDA.b #!OverworldBorderPositionProp : STA $03			;\Set address to write at a given status bar position (tile properties).
+		LDA.b #!OverworldBorderPositionProp&gt;&gt;8 : STA $04		;|
+		LDA.b #!OverworldBorderPositionProp&gt;&gt;16 : STA $05		;/
+		if !RightAligned != 0
+			;Convert to right-aligned
+				JSL HexDec_ConvertToRightAlignedFormat2
+		endif
+		
+		if !StatusbarFormat == $01
+			JSL HexDec_WriteStringDigitsToHUD
+		else
+			JSL HexDec_WriteStringDigitsToHUDFormat2
+		endif
+	..TooMuchDigits
+	RTL
+</pre></td></tr></table>
 </p>
 <hr>
 <h2 id="OAMHud"><a href="#OAMHudBack">^</a>Sprite-based HUD</h2>
