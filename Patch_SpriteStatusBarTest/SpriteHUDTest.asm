@@ -38,7 +38,7 @@
   ;^Not used when using timer display mode
   ;^[4 bytes] for 32-bit number display of 2 numbers
 ;Settings
- !SpriteStatusBarPatchTest_Mode = 4
+ !SpriteStatusBarPatchTest_Mode = 2
   ;^0 = 16-bit numerical digits display
   ; 1 = 16-bit displaying 2 numbers ("200/300", for example)
   ; 2 = 32-bit numerical digits display
@@ -101,6 +101,11 @@
 			!bank = $000000
 			!sa1 = 1
 		endif
+;Timer max (also don't touch), based on if you want the hours or not
+	!MaxTimer = $00034BBF
+	if !SpriteStatusBarPatchTest_Mode == 6
+		!MaxTimer = $014996FF
+	endif
 
 if !Setting_RemoveOrInstall == 0
 	if read4($00A2E6) != $028AB122			;22 B1 8A 02 -> JSL.L CODE_028AB1
@@ -246,7 +251,40 @@ if !Setting_RemoveOrInstall != 0
 							....MaxNotExceed
 						endif
 						SEP #$20
-			elseif !SpriteStatusBarPatchTest_Mode == 5 ;Repeated icons
+			elseif and(greaterequal(!SpriteStatusBarPatchTest_Mode, 5), lessequal(!SpriteStatusBarPatchTest_Mode, 6))
+				;Timer counting up
+				LDA $9D								;\If fozen, don't count
+				ORA $13D4|!addr							;|
+				BNE ..Frozen							;/
+				REP #$20							;
+				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent		;\Increment timer
+				CLC								;|
+				ADC #$0001							;|
+				STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent		;|
+				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2	;|
+				ADC #$0000							;|
+				STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2	;/
+				
+				..Cap
+					LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+					SEC
+					SBC.w #!MaxTimer
+					LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+					SBC.w #!MaxTimer>>16
+					SEP #$20
+					BCC ...NotMaxed
+				
+					...Maxed
+						REP #$20
+						LDA.w #!MaxTimer
+						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						LDA.w #!MaxTimer>>16
+						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+						SEP #$20
+					...NotMaxed
+				..Frozen
+				
+			elseif !SpriteStatusBarPatchTest_Mode == 7 ;Repeated icons
 				..ControllerValueTest
 					LDA $16
 					BIT.b #%00001000
@@ -500,7 +538,7 @@ if !Setting_RemoveOrInstall != 0
 						JSL WriteStringAsSpriteOAM_OAMOnly
 			elseif or(equal(!SpriteStatusBarPatchTest_Mode, 5), equal(!SpriteStatusBarPatchTest_Mode, 6)) ;Timer mode (MM:SS.CC/HH:MM:SS.CC)
 				!Timer_HourCharacterCount = 0
-				if !SpriteStatusBarPatchTest_Mode == 4
+				if !SpriteStatusBarPatchTest_Mode == 6
 					!Timer_HourCharacterCount = 3
 				endif
 				REP #$20
