@@ -2592,6 +2592,248 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	..TooMuchDigits
 	RTL
 </pre></td></tr></table>
+A percentage (up to 3 digits before the decimal point):
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;[2 bytes] RAM address you what to show (Quantity)
+!RAMToMeasure2 = $62							;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
+!Default_PercentagePrecision = 2
+ ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
+ ; with !Scratchram_PercentageFixedPointPrecision.
+!CapAt100 = 1								;&gt;0 = allow percentage to display values greater than 100, 1 = cap at 100.
+!DigitDisplayAlignment = 1						;&gt;0 = left-aligned, 1 = right-aligned.
+
+if !DigitDisplayAlignment == 0
+	!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border (tile number)
+	!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$00	;&gt;Same as above but tile properties
+else
+	!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$3E	;&gt;Where to write on the overworld border (tile number, right aligned)
+	!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$3E	;&gt;Same as above but tile properties
+endif
+!TileProps = %00111001								;&gt;Properties of the digits.
+
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+main:
+	;Submit fraction
+		REP #$20
+		LDA !RAMToMeasure
+		STA !Scratchram_PercentageQuantity
+		LDA !RAMToMeasure2
+		STA !Scratchram_PercentageMaxQuantity
+		SEP #$20
+		LDA #!Default_PercentagePrecision
+		STA !Scratchram_PercentageFixedPointPrecision
+		JSL HexDec_ConvertToPercentage
+	;Prevent display percentages greater than 100%.
+	;Note to self:
+	;100				= $00000064
+	;1000 (display as ***.*)	= $000003E8
+	;10000 (display as ***.**)	= $00002710
+		if !CapAt100 != 0
+			.CheckExceed100
+				REP #$30
+				LDX.w #(10**(!Default_PercentagePrecision+2))
+				;Check the high word of the XXXX (RAM_00-RAM_03 = $XXXXYYYY)
+					LDA $02			;\Any nonzero digits in the high word would mean at least
+					BNE ..Cap100		;/65536 ($00010000), which is guaranteed over 100/1000/10000.
+				;Check low word
+					TXA
+					CMP $00			;\Max compares with RAM_00
+					BCS ..Under		;/If Max &gt;= RAM_00 or RAM_00 is lower, don't set it to max.
+				
+				..Cap100
+					TXA
+					STA $00
+				..Under
+				SEP #$30
+		endif
+	;Avoid displaying 0% and 100% misleadingly if close to them.
+		CPY #$00
+		BEQ .Normal
+		CPY #$01
+		BEQ .RoundTo1Percent
+		CPY #$02
+		BCS .RoundTo99Percent		;&gt;Just in case somehow Y is a value $03 or more
+		
+		.RoundTo1Percent
+			REP #$20
+			LDA.w #1
+			STA $00
+			STZ $02
+			SEP #$20
+			BRA .Normal
+		.RoundTo99Percent
+			REP #$20
+			LDA.w #(10**(!Default_PercentagePrecision+2)-1)		;&gt;99%, 99.9%, or 99.99%.
+			STA $00
+			STZ $02
+			SEP #$20
+		.Normal
+	;Display the number.
+		if !Default_PercentagePrecision == 0
+			;Since it is very unlikely you display percentage greater than 100 (assuming you set !Default_PercentagePrecision to 0), you mostly
+			;likely just need to use $00 (8-bit) alone.
+			if !DigitDisplayAlignment == 1
+				..DisplayDigits
+					LDA $00
+					JSL HexDec_EightBitHexDec3Digits			;&gt;A = 1s, X = 10s, Y = 100s
+					CLC							;\Write 1s place
+					ADC #$22						;|
+					STA !OverworldBorderPositionTile-(1*2)			;/
+					...HandleHundreds
+						CPY #$00					;\Is the 100s place nonzero? Yes, then leave that and the 10s showing up
+						BNE ....HundredsNonZero				;/No, then erase the 100s digit and see if 10s is also part of the leading 0s.
+						....NoHundreds
+							LDA #!OverWorldBorderBlankTile			;\Erase the 100s digit
+							STA !OverworldBorderPositionTile-(3*2)		;/
+							BRA ...HandleTens				;&gt;Check if the next digit is also part of the leading zero.
+						....HundredsNonZero
+						TYA						;\Write 100s place
+						CLC						;|
+						ADC #$22					;|
+						STA !OverworldBorderPositionTile-(3*2)		;/
+						BRA ...HandleTens_WriteTens			;&gt;If at least 100, 10s shouldn't be omitted.
+					...HandleTens
+						CPX #$00					;\Is the 10s place nonzero? Yes, then leave the 10s place showing up
+						BNE ....WriteTens				;/No, then erase the 10s.
+						....NoTens
+							LDA #!OverWorldBorderBlankTile			;&gt;If 0, replace 10s digit with blank.
+							STA !OverworldBorderPositionTile-(2*2)
+							BRA ...WritePercent
+						....WriteTens
+							TXA						;\Write 10s place
+							CLC						;|
+							ADC #$22					;|
+							STA !OverworldBorderPositionTile-(2*2)		;/
+					...WritePercent
+						LDA #!OverWorldBorderPercentTile
+						STA !OverworldBorderPositionTile-(0*2)
+					..WriteProps
+						LDA.b #!TileProps
+						STA !OverworldBorderPositionProp-(0*2)
+						STA !OverworldBorderPositionProp-(1*2)
+						STA !OverworldBorderPositionProp-(2*2)
+						STA !OverworldBorderPositionProp-(3*2)
+			elseif !DigitDisplayAlignment == 0
+				STZ $01
+				JSL HexDec_SixteenBitHexDecDivision
+				
+				.ClearTiles
+				;Clear the tiles. To prevent leftover "ghost" tiles that should've
+				;disappear when the number of digits decreases (so when "10" becomes "9",
+				;won't display "90"). Also setup tile properties when enabled.
+					LDX.b #(4-1)*2
+					..Loop
+						LDA #!OverWorldBorderBlankTile
+						STA !OverworldBorderPositionTile,x
+						LDA.b #!TileProps
+						STA !OverworldBorderPositionProp,x
+						DEX #2
+						BPL ..Loop
+				.StatusBarString
+				;Remove leading zeroes and have it as a character table
+					LDX #$00					;&gt;Start at character position 0.
+					JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+				;Prevent writing too much characters.
+					CPX.b #4+1					;\Failsafe to avoid writing more characters than intended would write onto tiles
+					BCS ..TooMuchDigits				;/not being cleared from the previous code.
+				;Write percent symbol after the number
+					LDA #!StatusBarPercentTile			;\Write percent symbol
+					STA !Scratchram_CharacterTileTable,x		;/
+					INX
+					JSL HexDec_ConvertAlignedDigitToOWB
+				;Write to status bar
+					LDA.b #!OverworldBorderPositionTile : STA $00
+					LDA.b #!OverworldBorderPositionTile&gt;&gt;8 : STA $01
+					LDA.b #!OverworldBorderPositionTile&gt;&gt;16 : STA $02
+					if 2 == $01
+						JSL HexDec_WriteStringDigitsToHUD
+					else
+						JSL HexDec_WriteStringDigitsToHUDFormat2
+					endif
+					..TooMuchDigits
+			endif
+		else
+			JSL HexDec_SixteenBitHexDecDivision
+			if !DigitDisplayAlignment == 1
+				if !Default_PercentagePrecision == 1
+					JSL HexDec_RemoveLeadingZeroes16BitLeaveLast2
+					;XXX.X%
+					;DigitsFromHexDec (IntegerDigits) -&gt; DisplayedDigits
+					;!Scratchram_16bitHexDecOutput+$01 (1000s place) -&gt; 100s place
+					;!Scratchram_16bitHexDecOutput+$02 (100s place) -&gt; 10s place
+					;!Scratchram_16bitHexDecOutput+$03 (10s place) -&gt; 1s place
+					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/10s place
+					JSL HexDec_SixteenBitHexDecDivisionToOWB
+					
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA !OverworldBorderPositionTile-(5*2) : LDA #!TileProps : STA !OverworldBorderPositionProp-(5*2)	;&gt;100s place
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA !OverworldBorderPositionTile-(4*2) : LDA #!TileProps : STA !OverworldBorderPositionProp-(4*2)	;&gt;10s place
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA !OverworldBorderPositionTile-(3*2) : LDA #!TileProps : STA !OverworldBorderPositionProp-(3*2)	;&gt;1s place
+					LDA #!OverWorldBorderDotTile : STA !OverworldBorderPositionTile-(2*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(2*2)		;&gt;Decimal point symbol
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA !OverworldBorderPositionTile-(1*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(1*2)	;&gt;1/10ths place
+					LDA #!OverWorldBorderPercentTile : STA !OverworldBorderPositionTile-(0*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(0*2)		;&gt;percent symbol
+				elseif !Default_PercentagePrecision == 2
+					JSL HexDec_RemoveLeadingZeroes16BitLeaveLast3
+					;XXX.XX%
+					;DigitsFromHexDec (IntegerDigits) -&gt; DisplayedDigits
+					;!Scratchram_16bitHexDecOutput+$00 (10000s place) -&gt; 100s place
+					;!Scratchram_16bitHexDecOutput+$01 (1000s place) -&gt; 10s place
+					;!Scratchram_16bitHexDecOutput+$02 (100s place) -&gt; 1s place
+					;!Scratchram_16bitHexDecOutput+$03 (10s place) -&gt; 1/10s place
+					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/100s place
+					JSL HexDec_SixteenBitHexDecDivisionToOWB
+					
+					LDA !Scratchram_16bitHexDecOutput+$00 : STA !OverworldBorderPositionTile-(6*2) : LDA #!TileProps : STA !OverworldBorderPositionProp-(6*2)	;&gt;100s place
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA !OverworldBorderPositionTile-(5*2) : LDA #!TileProps : STA !OverworldBorderPositionProp-(5*2)	;&gt;10s place
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA !OverworldBorderPositionTile-(4*2) : LDA #!TileProps : STA !OverworldBorderPositionProp-(4*2)	;&gt;1s place
+					LDA #!OverWorldBorderDotTile : STA !OverworldBorderPositionTile-(3*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(3*2)		;&gt;Decimal point symbol
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA !OverworldBorderPositionTile-(2*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(2*2)	;&gt;1/10ths place
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA !OverworldBorderPositionTile-(1*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(1*2)	;&gt;1/100ths place
+					LDA #!OverWorldBorderPercentTile : STA !OverworldBorderPositionTile-(0*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(0*2)		;&gt;percent symbol
+				endif
+			elseif !DigitDisplayAlignment == 0
+				.ClearTiles
+					LDA #!OverWorldBorderBlankTile
+					if !Default_PercentagePrecision == 1
+						LDX.b #($06-1)*2		;&gt;[100.0%] is 6 characters. So we must clear out 6 tiles.
+					elseif !Default_PercentagePrecision == 2
+						LDX.b #($07-1)*2		;&gt;[100.00%] is 7 characters. So we must clear out 7 tiles.
+					endif
+					..Loop
+						STA !OverworldBorderPositionTile,x
+						DEX #2
+						BPL ..Loop
+				LDX #$00
+				if !Default_PercentagePrecision == 1
+					LDA #!StatusBarDotTile					;\Decimal point
+					STA $09							;/
+					JSL HexDec_SupressLeadingZerosPercentageLeaveLast2
+				elseif !Default_PercentagePrecision == 2
+					LDA #!StatusBarDotTile					;\Decimal point
+					STA $09							;/
+					JSL HexDec_SupressLeadingZerosPercentageLeaveLast3
+				endif
+				LDA #!StatusBarPercentTile			;\Write percent symbol
+				STA !Scratchram_CharacterTileTable,x		;/
+				INX
+				;Convert to OWB
+					JSL HexDec_ConvertAlignedDigitToOWB
+				;Write to OWB
+					LDA.b #!OverworldBorderPositionTile : STA $00
+					LDA.b #!OverworldBorderPositionTile&gt;&gt;8 : STA $01
+					LDA.b #!OverworldBorderPositionTile&gt;&gt;16 : STA $02
+					LDA.b #!OverworldBorderPositionProp : STA $03
+					LDA.b #!OverworldBorderPositionProp&gt;&gt;8 : STA $04
+					LDA.b #!OverworldBorderPositionProp&gt;&gt;16 : STA $05
+					LDA.b #!TileProps : STA $06
+					JSL HexDec_WriteStringDigitsToHUDFormat2
+			endif
+		endif
+			.Done
+	;Done
+		RTL
+</pre></td></tr></table>
 </p>
 <hr>
 <h2 id="OAMHud"><a href="#OAMHudBack">^</a>Sprite-based HUD</h2>
