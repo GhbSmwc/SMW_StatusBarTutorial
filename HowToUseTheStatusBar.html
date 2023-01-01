@@ -1841,8 +1841,14 @@ code to display a percentage:
 !CapAt100 = 1								;&gt;0 = allow percentage to display values greater than 100, 1 = cap at 100.
 !DigitDisplayAlignment = 0						;&gt;0 = left-aligned, 1 = right-aligned.
 
-!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
-
+if !DigitDisplayAlignment == 0
+	!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar, tile numbers (left aligned)
+	!StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above, but tile properties (left aligned)
+else
+	!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$3E		;&gt;Where to write on the status bar, tile numbers (right aligned)
+	!StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$3E	;&gt;Same as above, but tile properties (right aligned)
+endif
+!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -1907,35 +1913,39 @@ main:
 			;Since it is very unlikely you display percentage greater than 100 (assuming you set !Default_PercentagePrecision to 0), you mostly
 			;likely just need to use $00 (8-bit) alone.
 			if !DigitDisplayAlignment == 1
-				LDA $00
-				JSL HexDec_EightBitHexDec3Digits
-				STA !StatusBarPosition+(2*!StatusbarFormat)	;&gt;Write 1s place
-				
-				.HandleHundreds
-				CPY #$00					;\Is the 100s place nonzero? Yes, then leave that and the 10s showing up
-				BNE ..HundredsNonZero				;/No, then erase the 100s digit and see if 10s is also part of the leading 0s.
-				
-				..NoHundreds
-				LDY #!StatusBarBlankTile			;\Erase the 100s digit
-				TYA						;|
-				STA !StatusBarPosition				;/
-				BRA .HandleTens					;&gt;Check if the next digit is also part of the leading zero.
-				
-				..HundredsNonZero
-				TYA
-				STA !StatusBarPosition				;&gt;Write 100s place
-				BRA .HandleTens_WriteTens			;&gt;If at least 100, 10s shouldn't be omitted.
-				
-				.HandleTens
-				CPX #$00					;\Is the 10s place nonzero? Yes, then leave the 10s place showing up
-				BNE ..WriteTens					;/No, then erase the 10s.
-				
-				..NoTens
-				LDX #!StatusBarBlankTile			;&gt;If 0, replace 10s digit with blank.
-				
-				..WriteTens
-				TXA						;\Write 10s place
-				STA !StatusBarPosition+(1*!StatusbarFormat)	;/
+				.DisplayNumbers
+					LDA $00
+					JSL HexDec_EightBitHexDec3Digits
+					STA !StatusBarPosition-(1*!StatusbarFormat)		;&gt;Write 1s place
+					..HandleHundreds
+						CPY #$00					;\Is the 100s place nonzero? Yes, then leave that and the 10s showing up
+						BNE ...HundredsNonZero				;/No, then erase the 100s digit and see if 10s is also part of the leading 0s.
+					...NoHundreds
+						LDY #!StatusBarBlankTile			;\Erase the 100s digit
+						TYA						;|
+						STA !StatusBarPosition-(3*!StatusbarFormat)	;/
+						BRA ..HandleTens				;&gt;Check if the next digit is also part of the leading zero.
+					...HundredsNonZero
+						TYA
+						STA !StatusBarPosition-(3*!StatusbarFormat)	;&gt;Write 100s place
+						BRA ..HandleTens_WriteTens			;&gt;If at least 100, 10s shouldn't be omitted.
+					..HandleTens
+						CPX #$00					;\Is the 10s place nonzero? Yes, then leave the 10s place showing up
+						BNE ...WriteTens				;/No, then erase the 10s.
+						...NoTens
+							LDX #!StatusBarBlankTile			;&gt;If 0, replace 10s digit with blank.
+						...WriteTens
+							TXA						;\Write 10s place
+							STA !StatusBarPosition-(2*!StatusbarFormat)	;/
+					if !StatusBar_UsingCustomProperties != 0
+						LDA #!TileProps
+						STA !StatusBarPositionProps-(0*!StatusbarFormat)
+						STA !StatusBarPositionProps-(1*!StatusbarFormat)
+						STA !StatusBarPositionProps-(2*!StatusbarFormat)
+						STA !StatusBarPositionProps-(3*!StatusbarFormat)
+					endif
+					LDA #!StatusBarPercentTile
+					STA !StatusBarPosition-(0*!StatusbarFormat)
 			elseif !DigitDisplayAlignment == 0
 				STZ $01
 				JSL HexDec_SixteenBitHexDecDivision
@@ -1969,6 +1979,12 @@ main:
 					LDA.b #!StatusBarPosition : STA $00
 					LDA.b #!StatusBarPosition&gt;&gt;8 : STA $01
 					LDA.b #!StatusBarPosition&gt;&gt;16 : STA $02
+					if !StatusBar_UsingCustomProperties != 0
+						LDA.b #!StatusBarPositionProps : STA $03
+						LDA.b #!StatusBarPositionProps&gt;&gt;8 : STA $04
+						LDA.b #!StatusBarPositionProps&gt;&gt;16 : STA $05
+						LDA #!TileProps : STA $06
+					endif
 					if !StatusbarFormat == $01
 						JSL HexDec_WriteStringDigitsToHUD
 					else
@@ -1987,12 +2003,21 @@ main:
 					;!Scratchram_16bitHexDecOutput+$02 (100s place) -&gt; 10s place
 					;!Scratchram_16bitHexDecOutput+$03 (10s place) -&gt; 1s place
 					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/10s place
-					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarPosition
-					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarPosition+(1*!StatusbarFormat)
-					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition+(2*!StatusbarFormat)
-					LDA #$24 : STA !StatusBarPosition+(3*!StatusbarFormat)					;&gt;Decimal point symbol
-					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition+(4*!StatusbarFormat)
-					LDA #!StatusBarPercentTile : STA !StatusBarPosition+(5*!StatusbarFormat)			;&gt;percent symbol
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarPosition-(5*!StatusbarFormat)	;&gt;100s
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarPosition-(4*!StatusbarFormat)	;&gt;10s
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition-(3*!StatusbarFormat)	;&gt;1s
+					LDA #$24 : STA !StatusBarPosition-(2*!StatusbarFormat)					;&gt;.
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition-(1*!StatusbarFormat)	;&gt;1/10ths
+					LDA #!StatusBarPercentTile : STA !StatusBarPosition-(0*!StatusbarFormat)		;&gt;%
+					if !StatusBar_UsingCustomProperties != 0
+						LDA #!TileProps
+						STA !StatusBarPositionProps-(5*!StatusbarFormat)	;&gt;100s
+						STA !StatusBarPositionProps-(4*!StatusbarFormat)	;&gt;10s
+						STA !StatusBarPositionProps-(3*!StatusbarFormat)	;&gt;1s
+						STA !StatusBarPositionProps-(2*!StatusbarFormat)	;&gt;.
+						STA !StatusBarPositionProps-(1*!StatusbarFormat)	;&gt;1/10s
+						STA !StatusBarPositionProps-(0*!StatusbarFormat)	;&gt;%
+					endif
 				elseif !Default_PercentagePrecision == 2
 					JSL HexDec_RemoveLeadingZeroes16BitLeaveLast3
 					;XXX.XX%
@@ -2002,13 +2027,23 @@ main:
 					;!Scratchram_16bitHexDecOutput+$02 (100s place) -&gt; 1s place
 					;!Scratchram_16bitHexDecOutput+$03 (10s place) -&gt; 1/10s place
 					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/100s place
-					LDA !Scratchram_16bitHexDecOutput+$00 : STA !StatusBarPosition
-					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarPosition+(1*!StatusbarFormat)
-					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarPosition+(2*!StatusbarFormat)
-					LDA #$24 : STA !StatusBarPosition+(3*!StatusbarFormat)					;&gt;Decimal point symbol
-					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition+(4*!StatusbarFormat)
-					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition+(5*!StatusbarFormat)
-					LDA #!StatusBarPercentTile : STA !StatusBarPosition+(6*!StatusbarFormat)		;&gt;percent symbol
+					LDA !Scratchram_16bitHexDecOutput+$00 : STA !StatusBarPosition-(6*!StatusbarFormat)	;&gt;100s
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarPosition-(5*!StatusbarFormat)	;&gt;10s
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarPosition-(4*!StatusbarFormat)	;&gt;1s
+					LDA #$24 : STA !StatusBarPosition-(3*!StatusbarFormat)					;&gt;.
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition-(2*!StatusbarFormat)	;&gt;1/10s
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition-(1*!StatusbarFormat)	;&gt;1/100s
+					LDA #!StatusBarPercentTile : STA !StatusBarPosition-(0*!StatusbarFormat)		;&gt;%
+					if !StatusBar_UsingCustomProperties != 0
+						LDA #!TileProps
+						STA !StatusBarPositionProps-(6*!StatusbarFormat)	;&gt;100s
+						STA !StatusBarPositionProps-(5*!StatusbarFormat)	;&gt;10s
+						STA !StatusBarPositionProps-(4*!StatusbarFormat)	;&gt;1s
+						STA !StatusBarPositionProps-(3*!StatusbarFormat)	;&gt;.
+						STA !StatusBarPositionProps-(2*!StatusbarFormat)	;&gt;1/10s
+						STA !StatusBarPositionProps-(1*!StatusbarFormat)	;&gt;1/100s
+						STA !StatusBarPositionProps-(0*!StatusbarFormat)	;&gt;%
+					endif
 				endif
 			elseif !DigitDisplayAlignment == 0
 				.ClearTiles
@@ -2041,6 +2076,12 @@ main:
 					LDA.b #!StatusBarPosition : STA $00
 					LDA.b #!StatusBarPosition&gt;&gt;8 : STA $01
 					LDA.b #!StatusBarPosition&gt;&gt;16 : STA $02
+					if !StatusBar_UsingCustomProperties != 0
+						LDA.b #!StatusBarPositionProps : STA $03
+						LDA.b #!StatusBarPositionProps&gt;&gt;8 : STA $04
+						LDA.b #!StatusBarPositionProps&gt;&gt;16 : STA $05
+						LDA #!TileProps : STA $06
+					endif
 					if !StatusbarFormat == $01
 						JSL HexDec_WriteStringDigitsToHUD
 					else
@@ -2048,14 +2089,10 @@ main:
 					endif
 			endif
 		endif
-		;Percent symbol
-			if !DigitDisplayAlignment != 0
-				LDA #!StatusBarPercentTile
-				STA !StatusBarPosition+((4+!Default_PercentagePrecision)*!StatusbarFormat)
-			endif
 			.Done
 	;Done
-		RTL</pre></td></tr></table><br>
+		RTL
+</pre></td></tr></table><br>
 The calculation to find the percentage is handled in <kbd>ConvertToPercentage</kbd>. Depending on what is written to <kbd>!Scratchram_PercentageFixedPointPrecision</kbd> determines should the numerator be out of 100, 1000, or 10000,
 which after the HexDec routine, you can write the first n digits, then the decimal point (tile <kbd>#$24</kbd>), and then the last n digits, example:
 <table>
