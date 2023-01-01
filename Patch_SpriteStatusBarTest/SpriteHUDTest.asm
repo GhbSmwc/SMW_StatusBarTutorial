@@ -31,18 +31,22 @@
   ;^[2 bytes] for 16-bit numerical digit display
   ;^[1 byte] for repeated icons display (how many filled)
   ;^[4 bytes] for timer display
- !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent = $62
+  ;^[4 bytes] for 32-bit number display
+ !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent = $0F3A|!addr
   ;^[2 bytes] for 16-bit numerical digit display
   ;^[1 byte] for repeated icons display (how many total icons)
-  ; Not used when using timer display mode
+  ;^Not used when using timer display mode
+  ;^[4 bytes] for 32-bit number display of 2 numbers
 ;Settings
- !SpriteStatusBarPatchTest_Mode = 2
+ !SpriteStatusBarPatchTest_Mode = 4
   ;^0 = 16-bit numerical digits display
-  ; 1 = same as above but for displaying 2 numbers ("200/300", for example)
-  ; 2 = Percentage. Displays a percentage of ValueToRepresent out of SecondValueToRepresent.
-  ; 3 = Timer display (MM:SS.CC), NOTE: This only DISPLAYS the timer, you need to have a code that increments the value every frame.
-  ; 4 = Timer display (HH:MM:SS.CC), same rule as above.
-  ; 5 = repeated icons display
+  ; 1 = 16-bit displaying 2 numbers ("200/300", for example)
+  ; 2 = 32-bit numerical digits display
+  ; 3 = 32-bit displaying 2 numbers.
+  ; 4 = Percentage. Displays a percentage of ValueToRepresent out of SecondValueToRepresent.
+  ; 5 = Timer display (MM:SS.CC), NOTE: This only DISPLAYS the timer, you need to have a code that increments the value every frame.
+  ; 6 = Timer display (HH:MM:SS.CC), same rule as above.
+  ; 7 = repeated icons display
  ;Percentage display settings.
   !SpriteStatusBarPatchTest_PercentagePrecision = 2
    ;^Number of digits after the decimal point when displaying the percentage, Use only values 0-2.
@@ -54,7 +58,7 @@
    ;^Properties (YXPPCCCT). Note: Will apply to all characters in the string.
  ;Positions settings
   !SpriteStatusBarPatchTest_PositionMode = 1
-   ;^0 = Fixed on-screen
+   ;^0 = Fixed on-screen (left-aligned)
    ; 1 = Relative to Mario (centered)
   ;Positions, relative to top-left of screen or Mario. Note:
   ;when using repeated icons display, it is the first tile drawn in the direction of the X and Y displacement.
@@ -116,18 +120,19 @@ if !Setting_RemoveOrInstall != 0
 		.RestoreOverwrittenCode
 			JSL $028AB1		;>Restore the JSL (we write our own OAM after all sprite OAM of SMW are finished)
 		.MainCode
-			if !SpriteStatusBarPatchTest_Mode <= 2
+			if !SpriteStatusBarPatchTest_Mode <= 4
 				;Number display:
 				;x
 				;x/y
 				;x%
 				..ControllerValueTest
+					wdm
 					LDA $15
 					BIT.b #%00001000
 					BNE ...Up
 					BIT.b #%00000100
 					BNE ...Down
-					if !SpriteStatusBarPatchTest_Mode != 0
+					if or(or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 3)), equal(!SpriteStatusBarPatchTest_Mode, 4))
 						BIT.b #%00000010
 						BNE ...Left
 						BIT.b #%00000001
@@ -136,39 +141,103 @@ if !Setting_RemoveOrInstall != 0
 					BRA ...Done
 					
 					...Up
-						REP #$20
-						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
-						CMP #$FFFF
-						BEQ ...Done
-						INC
-						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
-						BRA ...Done
-					...Down
-						REP #$20
-						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
-						BEQ ...Done
-						DEC
-						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
-					if !SpriteStatusBarPatchTest_Mode != 0
-						BRA ...Done
-						...Left
+						if or(or(equal(!SpriteStatusBarPatchTest_Mode, 0), equal(!SpriteStatusBarPatchTest_Mode, 1)), equal(!SpriteStatusBarPatchTest_Mode, 4))
 							REP #$20
-							LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
-							BEQ ...Done
-							DEC
-							STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
-							BRA ...Done
-						...Right
-							REP #$20
-							LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
 							CMP #$FFFF
 							BEQ ...Done
 							INC
-							STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
 							BRA ...Done
+						elseif and(greaterequal(!SpriteStatusBarPatchTest_Mode, 2), lessequal(!SpriteStatusBarPatchTest_Mode, 3))
+							REP #$20
+							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							SEC
+							SBC #$FFFF
+							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+							SBC #$FFFF
+							BCS ...Done
+							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							CLC
+							ADC #$0001
+							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+							ADC #$0000
+							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+							BRA ...Done
+						endif
+					...Down
+						if or(or(equal(!SpriteStatusBarPatchTest_Mode, 0), equal(!SpriteStatusBarPatchTest_Mode, 1)), equal(!SpriteStatusBarPatchTest_Mode, 4))
+							REP #$20
+							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							BEQ ...Done
+							DEC
+							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						elseif and(greaterequal(!SpriteStatusBarPatchTest_Mode, 2), lessequal(!SpriteStatusBarPatchTest_Mode, 3))
+							REP #$20
+							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							ORA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+							BEQ ...Done
+							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							SEC
+							SBC #$0001
+							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+							SBC #$0000
+							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+						endif
+					if or(or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 3)), equal(!SpriteStatusBarPatchTest_Mode, 4))
+						BRA ...Done
+						...Left
+							if or(or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 3)), equal(!SpriteStatusBarPatchTest_Mode, 4))
+								REP #$20
+								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								BEQ ...Done
+								DEC
+								STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								BRA ...Done
+							elseif !SpriteStatusBarPatchTest_Mode == 3
+								REP #$20
+								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								ORA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2
+								BEQ ...Done
+								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								SEC
+								SBC #$0001
+								STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2
+								SBC #$0000
+								STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2
+								BRA ...Done
+							endif
+						...Right
+							if or(or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 3)), equal(!SpriteStatusBarPatchTest_Mode, 4))
+								REP #$20
+								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								CMP #$FFFF
+								BEQ ...Done
+								INC
+								STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								BRA ...Done
+							elseif !SpriteStatusBarPatchTest_Mode == 3
+								REP #$20
+								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								SEC
+								SBC #$FFFF
+								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2
+								SBC #$FFFF
+								BCS ...Done
+								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								CLC
+								ADC #$0001
+								STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2
+								ADC #$0000
+								STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2
+							endif
 					endif
 					...Done
-						if !SpriteStatusBarPatchTest_Mode != 0
+						if or(or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 3)), equal(!SpriteStatusBarPatchTest_Mode, 4))
 							REP #$20
 							LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
 							CMP !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
@@ -228,67 +297,99 @@ if !Setting_RemoveOrInstall != 0
 		PHK		;|
 		PLB		;/
 		;Draw HUD code here
-			if or(equal(!SpriteStatusBarPatchTest_Mode, 0), equal(!SpriteStatusBarPatchTest_Mode, 1))
+			if !SpriteStatusBarPatchTest_Mode < 4
 				;Number display:
 				;X
 				;X/Y
-				REP #$20
-				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
-				STA $00
-				SEP #$20
-				JSL SixteenBitHexDecDivision		;>Convert to decimal digits
-				LDX #$00				;>Start the string position
-				JSL SupressLeadingZeros			;>Rid out the leading zeroes (X = number of characters/tiles written)
-				if !SpriteStatusBarPatchTest_Mode == 1
-					LDA #$0A							;\#$0A will be converted to the "/" graphic in the digit table
-					STA !Scratchram_CharacterTileTable,x				;/
-					INX								;>That (above) counts as a character.
-					PHX								;>Push X because it gets modified by the HexDec routine.
-					REP #$20							;\Convert a given number to decimal digits.
-					LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;|
-					STA $00								;|
-					SEP #$20							;|
-					JSL SixteenBitHexDecDivision					;/
-					PLX								;>Restore.
-					JSL SupressLeadingZeros						;>Remove leading zeroes of the second number.
-				endif
-				LDA.b #DigitTable			;\Supply the table
-				STA $07					;|
-				LDA.b #DigitTable>>8			;|
-				STA $08					;|
-				LDA.b #DigitTable>>16			;|
-				STA $09					;/
-				DEX					;\Number of tiles to write -1
-				STX $04					;|
-				STZ $05					;/
-				LDA.b #!SpriteStatusBarPatchTest_NumberDisplayProperties	;\Properties (YXPPCCCT)
-				STA $06								;/
-				if !SpriteStatusBarPatchTest_PositionMode == 0
-					REP #$20				;\XY position
-					LDA #$0000				;|
-					STA $00					;|
-					LDA #$FFFF				;|\Y position is shifted down for some reason...
-					STA $02					;|/
-					SEP #$20				;/
-				elseif !SpriteStatusBarPatchTest_PositionMode == 1
-					REP #$20
-					LDA $7E
-					CLC
-					ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+$08
-					STA $00
-					PHX
-					INX
-					JSL GetStringXPositionCentered16Bit
-					PLX
-					REP #$20
-					LDA $80
-					CLC
-					ADC.w #!SpriteStatusBarPatchTest_DisplayYPos
-					STA $02
-					SEP #$20
-				endif
-				JSL WriteStringAsSpriteOAM_OAMOnly
-			elseif !SpriteStatusBarPatchTest_Mode == 2 ;Percentage display
+				
+				;First number
+					if !SpriteStatusBarPatchTest_Mode <= 1
+						REP #$20
+						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						STA $00
+						SEP #$20
+						JSL SixteenBitHexDecDivision					;>Convert to decimal digits
+						LDX #$00							;>Start the string position
+						JSL SupressLeadingZeros						;>Rid out the leading zeroes (X = number of characters/tiles written)
+					elseif and(greaterequal(!SpriteStatusBarPatchTest_Mode, 2), lessequal(!SpriteStatusBarPatchTest_Mode, 3))
+						REP #$20
+						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						STA $00
+						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+						STA $02
+						SEP #$20
+						JSL ThirtyTwoBitHexDecDivision
+						LDX #$00
+						JSL SupressLeadingZeros32Bit
+					endif
+				;Second number
+					if !SpriteStatusBarPatchTest_Mode == 1
+						LDA #$0A							;\#$0A will be converted to the "/" graphic in the digit table
+						STA !Scratchram_CharacterTileTable,x				;/
+						INX								;>That (above) counts as a character.
+						PHX								;>Push X because it gets modified by the HexDec routine.
+						REP #$20							;\Convert a given number to decimal digits.
+						LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;|
+						STA $00								;|
+						SEP #$20							;|
+						JSL SixteenBitHexDecDivision					;/
+						PLX								;>Restore.
+						JSL SupressLeadingZeros						;>Remove leading zeroes of the second number.
+					elseif !SpriteStatusBarPatchTest_Mode == 3
+						WDM
+						LDA #$0A							;\#$0A will be converted to the "/" graphic in the digit table
+						STA !Scratchram_CharacterTileTable,x				;/
+						INX								;>That (above) counts as a character.
+						PHX								;>Push X because it gets modified by the HexDec routine.
+						REP #$20							;\Convert a given number to decimal digits.
+						LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;|
+						STA $00								;|
+						LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2	;|
+						STA $02								;|
+						SEP #$20							;|
+						JSL ThirtyTwoBitHexDecDivision					;/
+						PLX								;>Restore.
+						JSL SupressLeadingZeros32Bit					;>Remove leading zeroes of the second number.
+					endif
+				;OAM setup
+					LDA.b #DigitTable			;\Supply the table
+					STA $07					;|
+					LDA.b #DigitTable>>8			;|
+					STA $08					;|
+					LDA.b #DigitTable>>16			;|
+					STA $09					;/
+					DEX					;\Number of tiles to write -1
+					STX $04					;|
+					STZ $05					;/
+					LDA.b #!SpriteStatusBarPatchTest_NumberDisplayProperties	;\Properties (YXPPCCCT)
+					STA $06								;/
+					if !SpriteStatusBarPatchTest_PositionMode == 0
+						REP #$20				;\XY position
+						LDA #$0000				;|
+						STA $00					;|
+						LDA #$FFFF				;|\Y position is shifted down for some reason...
+						STA $02					;|/
+						SEP #$20				;/
+					elseif !SpriteStatusBarPatchTest_PositionMode == 1
+						REP #$20						;\Position based on Mario's on-screen position
+						LDA $7E							;|
+						CLC							;|
+						ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+$08	;|
+						STA $00							;|
+						PHX							;|
+						INX							;|
+						JSL GetStringXPositionCentered16Bit			;|
+						PLX							;|
+						REP #$20						;|
+						LDA $80							;|
+						CLC							;|
+						ADC.w #!SpriteStatusBarPatchTest_DisplayYPos		;|
+						STA $02							;|
+						SEP #$20						;/
+					endif
+				;Write to OAM
+					JSL WriteStringAsSpriteOAM_OAMOnly
+			elseif !SpriteStatusBarPatchTest_Mode == 4 ;Percentage display
 				.PercentageDisplay
 				;Display a percentage
 					REP #$20
@@ -397,7 +498,7 @@ if !Setting_RemoveOrInstall != 0
 						STA $09					;/
 					;And done
 						JSL WriteStringAsSpriteOAM_OAMOnly
-			elseif or(equal(!SpriteStatusBarPatchTest_Mode, 3), equal(!SpriteStatusBarPatchTest_Mode, 4)) ;Timer mode (MM:SS.CC/HH:MM:SS.CC)
+			elseif or(equal(!SpriteStatusBarPatchTest_Mode, 5), equal(!SpriteStatusBarPatchTest_Mode, 6)) ;Timer mode (MM:SS.CC/HH:MM:SS.CC)
 				!Timer_HourCharacterCount = 0
 				if !SpriteStatusBarPatchTest_Mode == 4
 					!Timer_HourCharacterCount = 3
@@ -410,7 +511,7 @@ if !Setting_RemoveOrInstall != 0
 				SEP #$20
 				JSL Frames2Timer
 				.Hours
-					if !SpriteStatusBarPatchTest_Mode == 4
+					if !SpriteStatusBarPatchTest_Mode == 6
 						LDA !Scratchram_Frames2TimeOutput
 						JSL EightBitHexDec
 						PHA					;STX $XXXXXX does not work.
@@ -492,7 +593,7 @@ if !Setting_RemoveOrInstall != 0
 						LDA.b #DigitTable>>16			;|
 						STA $09					;/
 					JSL WriteStringAsSpriteOAM_OAMOnly
-			elseif !SpriteStatusBarPatchTest_Mode == 5 ;Repeated icons
+			elseif !SpriteStatusBarPatchTest_Mode == 7 ;Repeated icons
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_XDisp	;\Displacement for each tile
 				STA $04							;|
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_YDisp	;|
@@ -539,7 +640,7 @@ if !Setting_RemoveOrInstall != 0
 			JML $00A2EA		;>Continue onwards
 
 
-	if lessequal(!SpriteStatusBarPatchTest_Mode, 4) ;If !SpriteStatusBarPatchTest_Mode is a number display
+	if lessequal(!SpriteStatusBarPatchTest_Mode, 6) ;If !SpriteStatusBarPatchTest_Mode is a number display
 		DigitTable:
 			db $80				;>Index $00 = for the "0" graphic
 			db $81				;>Index $01 = for the "1" graphic

@@ -92,7 +92,7 @@
 			!OverWorldBorderPercentTile = $92
 	;32-bit Number display
 		;For [Convert32bitIntegerToDecDigits]
-			!Setting_32bitHexDec_MaxNumberOfDigits = 9
+			!Setting_32bitHexDec_MaxNumberOfDigits = 10
 			;^Number of digits to be stored (fixed) to be allowed to display up to. Use values 1-10
 			; because maximum 32-bit unsigned integer is 4,294,967,295.
 		
