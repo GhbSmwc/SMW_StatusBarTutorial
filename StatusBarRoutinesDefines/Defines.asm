@@ -80,13 +80,16 @@
 				!FreeramFromAnotherPatch_OWBorderPropStart = $41EC01
 			endif
 	;Status bar and OWB tiles:
-		;Status bar tiles
+		;Status bar tiles numbers for various symbols
 			!StatusBarSlashCharacterTileNumb = $29		;>Slash tile number (status bar, now OWB!)
-			!StatusBarBlankTile = $FC			;>Don't change! just in case
-			;^Tile number for where there is no characters to be written for each 8x8 space.
-		;Overworld border tiles
+			!StatusBarBlankTile = $FC			;>Don't change! just in case if you installed a status bar patch that relocated the blank tile.
+			!StatusBarDotTile = $24
+			!StatusBarPercentTile = $2A
+		;Overworld border tiles for various symbols
 			!OverWorldBorderSlashCharacterTileNumb = $91
 			!OverWorldBorderBlankTile = $1F
+			!OverWorldBorderDotTile = $93
+			!OverWorldBorderPercentTile = $92
 	;32-bit Number display
 		;For [Convert32bitIntegerToDecDigits]
 			!Setting_32bitHexDec_MaxNumberOfDigits = 9

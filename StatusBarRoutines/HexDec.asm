@@ -757,28 +757,38 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		DEX
 		.Loop
 			LDA !Scratchram_CharacterTileTable,x
-			CMP #$0A
-			BCC .Digits
+			CMP #$0A				;\0-9 are digits
+			BCC ..Digits				;/
 			CMP #!StatusBarBlankTile
-			BEQ .Blank
+			BEQ ..Blank
 			CMP #!StatusBarSlashCharacterTileNumb
-			BEQ .Slash
-		
-		.Slash
-			LDA #!OverWorldBorderSlashCharacterTileNumb
-			BRA .Write
-		
-		.Blank
-			LDA #!OverWorldBorderBlankTile
-			BRA .Write
-		.Digits
-			CLC
-			ADC #$22
-		.Write
-			STA !Scratchram_CharacterTileTable,x
-		..Next
-			DEX
-			BPL .Loop
+			BEQ ..Slash
+			CMP #!StatusBarPercentTile
+			BEQ ..Percent
+			CMP #!StatusBarDotTile
+			BEQ ..Dot
+			
+			
+			..Blank
+				LDA #!OverWorldBorderBlankTile
+				BRA ..Write
+			..Slash
+				LDA #!OverWorldBorderSlashCharacterTileNumb
+				BRA ..Write
+			..Percent
+				LDA #!OverWorldBorderPercentTile
+				BRA ..Write
+			..Dot
+				LDA #!OverWorldBorderDotTile
+				BRA ..Write
+			..Digits
+				CLC
+				ADC #$22
+			..Write
+				STA !Scratchram_CharacterTileTable,x
+			..Next
+				DEX
+				BPL .Loop
 		PLX
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

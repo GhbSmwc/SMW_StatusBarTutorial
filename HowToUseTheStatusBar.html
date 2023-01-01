@@ -1962,7 +1962,7 @@ main:
 					CPX.b #4+1					;\Failsafe to avoid writing more characters than intended would write onto tiles
 					BCS ..TooMuchDigits				;/not being cleared from the previous code.
 				;Write percent symbol after the number
-					LDA #!TileNumb_PercentSymbol			;\Write percent symbol
+					LDA #!StatusBarPercentTile			;\Write percent symbol
 					STA !Scratchram_CharacterTileTable,x		;/
 					INX
 				;Write to status bar
@@ -1992,7 +1992,7 @@ main:
 					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition+(2*!StatusbarFormat)
 					LDA #$24 : STA !StatusBarPosition+(3*!StatusbarFormat)					;&gt;Decimal point symbol
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition+(4*!StatusbarFormat)
-					LDA #!TileNumb_PercentSymbol : STA !StatusBarPosition+(5*!StatusbarFormat)			;&gt;percent symbol
+					LDA #!StatusBarPercentTile : STA !StatusBarPosition+(5*!StatusbarFormat)			;&gt;percent symbol
 				elseif !Default_PercentagePrecision == 2
 					JSL HexDec_RemoveLeadingZeroes16BitLeaveLast3
 					;XXX.XX%
@@ -2008,7 +2008,7 @@ main:
 					LDA #$24 : STA !StatusBarPosition+(3*!StatusbarFormat)					;&gt;Decimal point symbol
 					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition+(4*!StatusbarFormat)
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition+(5*!StatusbarFormat)
-					LDA #!TileNumb_PercentSymbol : STA !StatusBarPosition+(6*!StatusbarFormat)			;&gt;percent symbol
+					LDA #!StatusBarPercentTile : STA !StatusBarPosition+(6*!StatusbarFormat)		;&gt;percent symbol
 				endif
 			elseif !DigitDisplayAlignment == 0
 				.ClearTiles
@@ -2034,7 +2034,7 @@ main:
 					STA $09			;/
 					JSL HexDec_SupressLeadingZerosPercentageLeaveLast3
 				endif
-				LDA #!TileNumb_PercentSymbol			;\Write percent symbol
+				LDA #!StatusBarPercentTile			;\Write percent symbol
 				STA !Scratchram_CharacterTileTable,x		;/
 				INX
 				;Write to status bar
@@ -2050,7 +2050,7 @@ main:
 		endif
 		;Percent symbol
 			if !DigitDisplayAlignment != 0
-				LDA #!TileNumb_PercentSymbol
+				LDA #!StatusBarPercentTile
 				STA !StatusBarPosition+((4+!Default_PercentagePrecision)*!StatusbarFormat)
 			endif
 			.Done
