@@ -84,6 +84,7 @@ on something simple as how to write a value to memory. You should also know abou
 		<li><a href="#PixiSprite" id="PixiSpriteBack">Pixi sprites</a></li>
 		<li><a href="#HUDSprites" id="HUDSpritesBack">HUD-like sprites</a></li>
 	</ul>
+	<li><a href="#StripeHud" id="StripeHudBack">Stripe-based HUD</a></li>
 	<li><a href="#OtherNotes" id="OtherNotesBack">Other Notes</a></li>
 	<li><a href="#Credits" id="CreditsBack">Credits</a></li>
 </ul>
@@ -502,7 +503,7 @@ and make sure you are using page 1 and not 0 on the tile properties (example, to
 for the tens and <kbd><font color="blue">$02</font>+$22 = $24</kbd> for the ones). I'll later explain how to display digits on the overworld border later on this document.</p>
 
 
-<p>Create a text file, name it <kbd>StatusBarTest.asm</kbd>. Edit that text file to include this code:
+<p>Create a text file, name it <kbd>StatusBarTest.asm</kbd>. Edit that text file to include only this code:
 <table><tr><td><pre>
 !RAMToMeasure = $60							;&gt;[1 byte] RAM address you what to show
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
@@ -511,7 +512,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	main:
 	LDA !RAMToMeasure
-	JSL HexDec_EightBitHexDec
+	JSL HexDec_EightBitHexDec			;&gt;Get digits, A = 1s, X = 10s
 	STA !StatusBarPosition+(1*!StatusbarFormat)	;&gt;Write 1s place
 	TXA						;&gt;if you are using status bar patches, STX $xxxxxx will not work.
 	STA !StatusBarPosition				;&gt;Write 10s place
@@ -575,14 +576,14 @@ digits outputted, not really harsh since this is 8-bit, so up to 25 iterations f
 DO want speed/performance, do this instead. This works from left-to-right by repeatedly subtracting 100 until A is 0-99. The number of subtractions is now how many 100s for the 100s digit, after
 that, with A being 0-99, we do the same but with 10s (how many 10s) instead of 100s to find how many 10s. After that, A is 0-9 which is already the ones place:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[1 byte ]RAM address you what to show
+!RAMToMeasure = $60							;&gt;[1 byte] RAM address you what to show
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	main:
 	LDA !RAMToMeasure
-	JSL HexDec_EightBitHexDec3Digits		;&gt;Obtain 3 digits in A, X and Y.
+	JSL HexDec_EightBitHexDec3Digits		;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
 	STA !StatusBarPosition+(2*!StatusbarFormat)	;&gt;Write 1s place
 	TXA						;\Write 10s place
 	STA !StatusBarPosition+(1*!StatusbarFormat)	;/
@@ -733,7 +734,7 @@ unused digits always showing 0 on the millions (1000000s) and beyond (so don't d
 	digits, you then call <kbd>RemoveLeadingZeroes16Bit</kbd> or <kbd>RemoveLeadingZeroes32Bit</kbd> before writing to the status bar. Make sure you match the 16 and 32 bits between hexdec and removing leading zeroes routines. For the 8-bit versions,
 	a routine isn't necessary:
 	<ul>
-		<li>For 2-digit numbers, just replace the 10s place digit with tile #$FC if it is 0:
+		<li>For 2-digit numbers, just replace the 10s place digit with tile #$FC (defined as <kbd>!StatusBarBlankTile</kbd>) if it is 0:
 <table><tr><td><pre>
 !RAMToMeasure = $60							;&gt;[1 byte] RAM address you what to show
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
@@ -748,7 +749,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	BNE .NotLeadingZero
 	
 	.LeadingZero
-	LDA #$FC					;&gt;Blank tile
+	LDA #!StatusBarBlankTile			;&gt;Blank tile
 	
 	.NotLeadingZero
 	STA !StatusBarPosition				;&gt;Write 10s place
@@ -3426,6 +3427,151 @@ as it would make this tutorial unnecessarily long.</p>
 	<td>Calculates the X and Y position (of the first tile) of the repeating icons to be centered around a given point. For more information, see the <a id="SpritePositioningInfo_Back2" href="Readme_Files/SpritePositining.html">this info</a></td>
 </tr>
 </table>
+<hr>
+<h2 id="StripeHud"><a href="#StripeHudBack">^</a>Stripe-based HUD</h2>
+<p><i>See <a href="https://www.smwcentral.net/?p=viewthread&t=14531">this post at SMWC</a> about stripe images. Due to that not being updated for more than a decade and some info are wrong, best read
+<a href="https://smwc.me/1600801">this one</a> afterwards before attempting this.</i></p>
+
+<p>This section explains how to write layer 3 tiles anywhere on the layer 3 than just on the HUD.</p>
+
+<p>Use this if you are not having a layer 3 background. And have the following set for your layer 3 scrolling:
+<ul>
+	<li><kbd>[check]</kbd> Force Layer 3 tiles with priority above other layers and sprites</li>
+	<li><kbd>[check]</kbd> Enable advanced bypass settings for Layer 3</li>
+	<li><kbd>[uncheck]</kbd> CGADSUB for Layer 3</li>
+	<li><kbd>[uncheck]</kbd> Move layer 3 to subscreen</li>
+	<li>Vertical scroll: <kbd>None</kbd></li>
+	<li>Horizontal scroll: <kbd>None</kbd></li>
+	<li>Initial Y position: <kbd>0</kbd></li>
+	<li>Initial X position: <kbd>0</kbd></li>
+</ul>
+</p>
+<p>Just like sprite OAM patch, almost everything is the same except you are no longer writing to the status bar, also, note that since writing
+tiles to the stripe have &ldquo;dynamic&rdquo; location since this is a table, thus the way you write them is different.</p>
+
+<p>8-bit, 2 digits:
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt[1 byte] RAM address you what to show
+!Stripe_X_Pos = 1							;\Stripe tile position
+!Stripe_Y_Pos = 218							;/
+!TileProps = %00111000							;&gtTile properties
+!RemoveLeadingZeroes = 0						;&gt0 = no, 1 = yes
+
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.StripeNumberTest
+		LDA.b #!Stripe_X_Pos				;\Position
+		STA $00						;|
+		LDA.b #!Stripe_Y_Pos				;|
+		STA $01						;/
+		LDA #$05					;\Layer
+		STA $02						;/
+		STZ $03						;&gtD and RLE
+		LDA #$02					;\Number of tiles
+		STA $04						;|
+		STZ $05						;/
+		JSL HexDec_SetupStripeHeaderAndIndex		;&gtX (16-bit): The index position to write stripe data
+		
+		PHX						;&gtPush 16-bit stripe index
+		SEP #$30					;&gt8-bit AXY
+		LDA !RAMToMeasure				;&gtConvert this number to BCD
+		JSL HexDec_EightBitHexDec			;&gtGet digits, A = 1s, X = 10s
+		STX $00						;&gtStore 10s in $00 for later
+		REP #$10					;\Pull 16-bit stripe index
+		PLX						;/
+		STA.l $7F837D+6,x				;&gtWrite 1s place
+		LDA $00						;&gtif you are using status bar patches, STX $xxxxxx will not work.
+		if !RemoveLeadingZeroes != 0
+			BNE ..NotLeadingZero
+			LDA #!StatusBarBlankTile
+			..NotLeadingZero
+		endif
+		STA.l $7F837D+4,x				;&gtWrite 10s place
+		
+		LDA.b #!TileProps				;\Write tile properties
+		STA.l $7F837D+4+1,x				;|
+		STA.l $7F837D+6+1,x				;/
+		SEP #$30
+		JSL HexDec_FinishStripe
+		RTL
+</pre></td></tr></table>
+</p>
+<p>
+8-bit, 3 digits:
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;[1 byte] RAM address you what to show
+!Stripe_X_Pos = 1							;\Stripe tile position
+!Stripe_Y_Pos = 218							;/
+!TileProps = %00111000							;&gt;Tile properties
+!RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
+
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.StripeNumberTest
+		LDA.b #!Stripe_X_Pos				;\Position
+		STA $00						;|
+		LDA.b #!Stripe_Y_Pos				;|
+		STA $01						;/
+		LDA #$05					;\Layer
+		STA $02						;/
+		STZ $03						;&gt;D and RLE
+		LDA #$03					;\Number of tiles
+		STA $04						;|
+		STZ $05						;/
+		JSL HexDec_SetupStripeHeaderAndIndex		;&gt;X (16-bit): The index position to write stripe data
+		
+		PHX						;&gt;Push 16-bit stripe index
+		SEP #$30					;&gt;8-bit AXY
+		LDA !RAMToMeasure				;&gt;Convert this number to BCD
+		JSL HexDec_EightBitHexDec3Digits		;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
+		STX $00						;&gt;Store 10s in $00 for later
+		STY $01						;&gt;Store the 100s in $01 for later
+		REP #$10					;\Pull 16-bit stripe index
+		PLX						;/
+		STA.l $7F837D+8,x				;&gt;Write 1s place
+		if !RemoveLeadingZeroes == 0
+			LDA $01					;\100s
+			STA.l $7F837D+4,x			;/
+			LDA $00					;\10s
+			STA.l $7F837D+6,x			;/
+		else
+			..HandleHundreds
+				LDA $01
+				BNE ...HundredsNotZero
+				
+				...NoHundreds
+					LDA #!StatusBarBlankTile
+					STA.l $7F837D+4,x
+					BRA ..HandleTens
+				...HundredsNotZero
+					STA.l $7F837D+4,x
+					BRA ..HandleTens_WriteTens
+			..HandleTens
+				LDA $00
+				BNE ...WriteTens
+				
+				...NoTens
+					LDA #!StatusBarBlankTile
+					BRA ..HandleDigitsDone
+				...WriteTens
+					LDA $00
+			..HandleDigitsDone
+					STA.l $7F837D+6,x
+		endif
+		
+		LDA.b #!TileProps				;\Write tile properties
+		STA.l $7F837D+4+1,x				;|
+		STA.l $7F837D+6+1,x				;|
+		STA.l $7F837D+8+1,x				;/
+		SEP #$30
+		JSL HexDec_FinishStripe
+		RTL
+</pre></td></tr></table>
+</p>
 <hr>
 <h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
 <ul>
