@@ -58,14 +58,24 @@
    ;^Properties (YXPPCCCT). Note: Will apply to all characters in the string.
  ;Positions settings
   !SpriteStatusBarPatchTest_PositionMode = 1
-   ;^0 = Fixed on-screen (left-aligned)
-   ; 1 = Relative to Mario (centered)
-  ;Positions, relative to top-left of screen or Mario. Note:
-  ;when using repeated icons display, it is the first tile drawn in the direction of the X and Y displacement.
-  ;Meaning if you have a displacement of ($F8,$F8), it would be the bottom-rightmost of the line of icons.
-   !SpriteStatusBarPatchTest_DisplayXPos = $0000
-    ;^Note: If set to relative to player, this will be the center position.
-   !SpriteStatusBarPatchTest_DisplayYPos = $FFFF	;>Please note that Y position will appear 1px lower than this value.
+   ;^0 = Fixed on-screen, left-aligned
+   ; 1 = Fixed on-screen, right-aligned
+   ; 2 = Relative to Mario (centered)
+  ;Positions, relative to top-left of screen. Note: when using repeated icons display, it is the first tile drawn in the
+  ;direction of the X and Y displacement. Meaning if you have a displacement of ($F8,$F8), it would be the
+  ;bottom-rightmost of the line of icons.
+   if !SpriteStatusBarPatchTest_PositionMode == 0
+    ;Position for left-aligned
+     !SpriteStatusBarPatchTest_DisplayXPos = $0000
+     !SpriteStatusBarPatchTest_DisplayYPos = $FFFF		;>Please note that Y position will appear 1px lower than this value.
+   elseif !SpriteStatusBarPatchTest_PositionMode == 1
+    ;Position for right-aligned
+     !SpriteStatusBarPatchTest_DisplayXPos = $00F8
+     !SpriteStatusBarPatchTest_DisplayYPos = $FFFF		;>Please note that Y position will appear 1px lower than this value.
+   endif
+  ;Same as above but for relative to Mario when !SpriteStatusBarPatchTest_PositionMode == 2
+   !SpriteStatusBarPatchTest_DisplayXPosPlayer = $0000		;>This will be the center position.
+   !SpriteStatusBarPatchTest_DisplayYPosPlayer = $FFFF		;>Please note that Y position will appear 1px lower than this value.
   ;Repeated icons settings
    ;Displacement between each icons. These are 8-bit signed.
    ;A positive number would place each tile from left to right or top to bottom, negative is in reverse,
@@ -396,23 +406,42 @@ if !Setting_RemoveOrInstall != 0
 					STA $08					;|
 					LDA.b #DigitTable>>16			;|
 					STA $09					;/
-					DEX					;\Number of tiles to write -1
+					DEX					;\$04-$05 Number of tiles to write -1
 					STX $04					;|
 					STZ $05					;/
 					LDA.b #!SpriteStatusBarPatchTest_NumberDisplayProperties	;\Properties (YXPPCCCT)
 					STA $06								;/
-					if !SpriteStatusBarPatchTest_PositionMode == 0
-						REP #$20				;\XY position
-						LDA #$0000				;|
-						STA $00					;|
-						LDA #$FFFF				;|\Y position is shifted down for some reason...
-						STA $02					;|/
-						SEP #$20				;/
-					elseif !SpriteStatusBarPatchTest_PositionMode == 1
+					if !SpriteStatusBarPatchTest_PositionMode < 2
+						if !SpriteStatusBarPatchTest_PositionMode == 0
+							REP #$20						;\XY position
+							LDA #!SpriteStatusBarPatchTest_DisplayXPos		;|
+							STA $00							;|
+							LDA #!SpriteStatusBarPatchTest_DisplayYPos		;|\Y position is shifted down for some reason...
+							STA $02							;|/
+							SEP #$20						;/
+						else
+							;Right-aligned
+							;To obtain the X position of the string of the leftmost character we do this:
+							; XPosition = !SpriteStatusBarPatchTest_DisplayXPos - ((NumberOfTiles-1)*8)
+							;Which handles it this way for optimization purposes:
+							; XPosition = -((NumberOfTiles-1)*8) + !SpriteStatusBarPatchTest_DisplayXPos
+							REP #$20
+							LDA $04							;>Number of characters (-1 needed so that the rightmost character is on where the position was defined (included, not excluded) and not 8 pixels to the left)
+							ASL #3							;>Multiply by 8
+							EOR #$FFFF						;\Times -1
+							INC							;/
+							CLC							;\Add by given X position to be right-aligned
+							ADC #!SpriteStatusBarPatchTest_DisplayXPos		;/
+							STA $00
+							LDA #!SpriteStatusBarPatchTest_DisplayYPos		;\Y position
+							STA $02							;/
+							SEP #$20
+						endif
+					else
 						REP #$20						;\Position based on Mario's on-screen position
 						LDA $7E							;|
 						CLC							;|
-						ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+$08	;|
+						ADC.w #!SpriteStatusBarPatchTest_DisplayXPosPlayer+$08	;|
 						STA $00							;|
 						PHX							;|
 						INX							;|
@@ -421,7 +450,7 @@ if !Setting_RemoveOrInstall != 0
 						REP #$20						;|
 						LDA $80							;|
 						CLC							;|
-						ADC.w #!SpriteStatusBarPatchTest_DisplayYPos		;|
+						ADC.w #!SpriteStatusBarPatchTest_DisplayYPosPlayer	;|
 						STA $02							;|
 						SEP #$20						;/
 					endif
@@ -500,22 +529,44 @@ if !Setting_RemoveOrInstall != 0
 					STA !Scratchram_CharacterTileTable,x		;/
 					INX
 					;XY position
-						if !SpriteStatusBarPatchTest_PositionMode == 0
-							REP #$20
-							LDA #!SpriteStatusBarPatchTest_DisplayXPos
-							STA $00
-							LDA #!SpriteStatusBarPatchTest_DisplayYPos
-							STA $02
-							SEP #$20
+						if !SpriteStatusBarPatchTest_PositionMode < 2
+							if !SpriteStatusBarPatchTest_PositionMode == 0
+								REP #$20
+								LDA #!SpriteStatusBarPatchTest_DisplayXPos
+								STA $00
+								LDA #!SpriteStatusBarPatchTest_DisplayYPos
+								STA $02
+								SEP #$20
+							else
+								;Right-aligned
+								;To obtain the X position of the string of the leftmost character we do this:
+								; XPosition = !SpriteStatusBarPatchTest_DisplayXPos - ((NumberOfTiles-1)*8)
+								;Which handles it this way for optimization purposes:
+								; XPosition = -((NumberOfTiles-1)*8) + !SpriteStatusBarPatchTest_DisplayXPos
+								TXA
+								DEC
+								REP #$20
+								AND #$00FF
+								;LDA $04							;>Number of characters (-1 needed so that the rightmost character is on where the position was defined (included, not excluded) and not 8 pixels to the left)
+								ASL #3							;>Multiply by 8
+								EOR #$FFFF						;\Times -1
+								INC							;/
+								CLC							;\Add by given X position to be right-aligned
+								ADC #!SpriteStatusBarPatchTest_DisplayXPos		;/
+								STA $00
+								LDA #!SpriteStatusBarPatchTest_DisplayYPos		;\Y position
+								STA $02							;/
+								SEP #$20
+							endif
 						else
 							REP #$20
 							LDA $7E
 							CLC
-							ADC #!SpriteStatusBarPatchTest_DisplayXPos+$08
+							ADC #!SpriteStatusBarPatchTest_DisplayXPosPlayer+$08
 							STA $00
 							LDA $80
 							CLC
-							ADC #!SpriteStatusBarPatchTest_DisplayYPos
+							ADC #!SpriteStatusBarPatchTest_DisplayYPosPlayer
 							STA $02
 							SEP #$20
 							JSL GetStringXPositionCentered16Bit
@@ -537,9 +588,16 @@ if !Setting_RemoveOrInstall != 0
 					;And done
 						JSL WriteStringAsSpriteOAM_OAMOnly
 			elseif or(equal(!SpriteStatusBarPatchTest_Mode, 5), equal(!SpriteStatusBarPatchTest_Mode, 6)) ;Timer mode (MM:SS.CC/HH:MM:SS.CC)
+				;Don't touch these
+				;Note to self: NunberOfTiles = $08+!Timer_HourCharacterCount
+				;Also needed to calculate the right-aligned version
 				!Timer_HourCharacterCount = 0
+				!Timer_XPosition = !SpriteStatusBarPatchTest_DisplayXPos
 				if !SpriteStatusBarPatchTest_Mode == 6
 					!Timer_HourCharacterCount = 3
+				endif
+				if !SpriteStatusBarPatchTest_PositionMode == 1
+					!Timer_XPosition = !SpriteStatusBarPatchTest_DisplayXPos-(($08+!Timer_HourCharacterCount-1)*8)
 				endif
 				REP #$20
 				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
@@ -593,30 +651,30 @@ if !Setting_RemoveOrInstall != 0
 					STA !Scratchram_CharacterTileTable+7+!Timer_HourCharacterCount
 				.WriteToOAM
 					..Positions
-						if !SpriteStatusBarPatchTest_PositionMode == 0
-							REP #$20				;\XY position
-							LDA #$0000				;|
-							STA $00					;|
-							LDA #$FFFF				;|\Y position is shifted down for some reason...
-							STA $02					;|/
-							SEP #$20				;/
-						elseif !SpriteStatusBarPatchTest_PositionMode == 1
+						if !SpriteStatusBarPatchTest_PositionMode < 2
+							REP #$20						;\XY position
+							LDA #!Timer_XPosition					;|
+							STA $00							;|
+							LDA #!SpriteStatusBarPatchTest_DisplayYPos		;|\Y position is shifted down for some reason...
+							STA $02							;|/
+							SEP #$20						;/
+						else
 							LDX #$08+!Timer_HourCharacterCount	;MM:SS.CC is 8 characters
 							REP #$20
 							LDA $7E
 							CLC
-							ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+$08
+							ADC.w #!SpriteStatusBarPatchTest_DisplayXPosPlayer+$08
 							STA $00
 							JSL GetStringXPositionCentered16Bit
 							REP #$20
 							LDA $80
 							CLC
-							ADC.w #!SpriteStatusBarPatchTest_DisplayYPos
+							ADC.w #!SpriteStatusBarPatchTest_DisplayYPosPlayer
 							STA $02
 							SEP #$20
 						endif
 					..NumberOfTiles
-						;MM:SS.CC is 8 characters
+						;MM:SS.CC is 8 characters, -1 which is why $07 is used 
 						LDA #$07+!Timer_HourCharacterCount
 						STA $04
 						STZ $05
@@ -636,18 +694,18 @@ if !Setting_RemoveOrInstall != 0
 				STA $04							;|
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_YDisp	;|
 				STA $05							;/
-				if !SpriteStatusBarPatchTest_PositionMode = 0
+				if !SpriteStatusBarPatchTest_PositionMode < 2
 					REP #$20						;\Positions
 					LDA #!SpriteStatusBarPatchTest_DisplayXPos		;|
 					STA $00							;|
-					LDA #!SpriteStatusBarPatchTest_DisplayYPos		;|
+					LDA #!SpriteStatusBarPatchTest_DisplayXPos		;|
 					STA $02							;|
 					SEP #$20						;/
-				elseif !SpriteStatusBarPatchTest_PositionMode = 1
+				else
 					REP #$20
 					LDA $7E							;\Positions
 					CLC							;|
-					ADC.w #!SpriteStatusBarPatchTest_DisplayXPos+4		;|
+					ADC.w #!SpriteStatusBarPatchTest_DisplayXPosPlayer+4	;|
 					STA $00							;|
 					LDA $80							;|
 					CLC							;|
