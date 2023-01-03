@@ -3472,7 +3472,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #$02					;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
-		JSL HexDec_SetupStripeHeaderAndIndex		;&gtX (16-bit): The index position to write stripe data
+		JSL HexDec_SetupStripe				;&gtX (16-bit): The index position to write stripe data
 		
 		PHX						;&gtPush 16-bit stripe index
 		SEP #$30					;&gt8-bit AXY
@@ -3494,7 +3494,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		STA.l $7F837D+4+1,x				;|
 		STA.l $7F837D+6+1,x				;/
 		SEP #$30
-		JSL HexDec_FinishStripe
 		RTL
 </pre></td></tr></table>
 </p>
@@ -3522,7 +3521,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #$03					;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
-		JSL HexDec_SetupStripeHeaderAndIndex		;&gt;X (16-bit): The index position to write stripe data
+		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
 		
 		PHX						;&gt;Push 16-bit stripe index
 		SEP #$30					;&gt;8-bit AXY
@@ -3568,7 +3567,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		STA.l $7F837D+6+1,x				;|
 		STA.l $7F837D+8+1,x				;/
 		SEP #$30
-		JSL HexDec_FinishStripe
 		RTL
 </pre></td></tr></table></p>
 
@@ -3595,7 +3593,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #$05					;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
-		JSL HexDec_SetupStripeHeaderAndIndex		;&gt;X (16-bit): The index position to write stripe data
+		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
 		
 		PHX						;&gt;Push 16-bit stripe index
 		SEP #$30					;&gt;8-bit AXY
@@ -3629,14 +3627,10 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 					INX			;&gt;Next digit
 					CPX #$0005		;\If 5th digit written, no more.
 					BCC ...Loop		;/
-		SEP #$30			;\8-bit A, 16-bit XY
+		SEP #$20			;\8-bit A
 		REP #$10			;/
 		PLX				;&gt;Pull stripe index, into X
-		STZ $03				;&gt;D and RLE (overwritten by SixteenBitHexDecDivision)
-		LDA #$05			;\Number of tiles (overwritten by SixteenBitHexDecDivision)
-		STA $04				;|
-		STZ $05				;/
-		JSL HexDec_FinishStripe
+		SEP #$30
 		RTL
 </pre></td></tr></table>
 </p>
