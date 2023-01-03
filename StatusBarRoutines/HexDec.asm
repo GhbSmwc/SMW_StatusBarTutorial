@@ -1247,9 +1247,13 @@ SetupStripeHeaderAndIndex:
 ;
 ;Input:
 ;-$03: Direction and RLE: %DR00000000. This routine only checks the RLE
-;      due to the length formula varies depending if using RLE or not.
-;-$04 to $05: Number of tiles
-;-X register (16-bit): Index length of stripe table
+; due to the length formula varies depending if using RLE or not.
+; Must be the same value as when setting up the stripe.
+;-$04 to $05: Number of tiles. Must be the same value as when setting
+; up the stripe.
+;-X register (16-bit): The index position to write stripe data, used
+; for locating where the terminating byte should be at. Must be the
+; same value as after setting up the stripe.
 ;Output:
 ;-$7F837B to $7F837C: New length of stripe
 ;Destroyed:

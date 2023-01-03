@@ -3570,6 +3570,74 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		SEP #$30
 		JSL HexDec_FinishStripe
 		RTL
+</pre></td></tr></table></p>
+
+<p>16-bit:
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;[2 bytes] RAM address you what to show
+!Stripe_X_Pos = 1							;\Stripe tile position
+!Stripe_Y_Pos = 218							;/
+!TileProps = %00111000							;&gt;Tile properties
+!RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
+
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.StripeNumberTest
+		LDA.b #!Stripe_X_Pos				;\Position
+		STA $00						;|
+		LDA.b #!Stripe_Y_Pos				;|
+		STA $01						;/
+		LDA #$05					;\Layer
+		STA $02						;/
+		STZ $03						;&gt;D and RLE
+		LDA #$05					;\Number of tiles
+		STA $04						;|
+		STZ $05						;/
+		JSL HexDec_SetupStripeHeaderAndIndex		;&gt;X (16-bit): The index position to write stripe data
+		
+		PHX						;&gt;Push 16-bit stripe index
+		SEP #$30					;&gt;8-bit AXY
+		LDA !RAMToMeasure				;\Convert this number to BCD
+		STA $00						;|
+		LDA !RAMToMeasure+1				;|
+		STA $01						;/
+		JSL HexDec_SixteenBitHexDecDivision		;&gt;Digits stored at !Scratchram_16bitHexDecOutput
+		if !RemoveLeadingZeroes != 0
+			JSL HexDec_RemoveLeadingZeroes16Bit 	;&gt;Leading spaces, not zeroes
+		endif
+		wdm
+		REP #$20
+		LDA $02,S					;\$00-$01: Stripe index, will be used for following loop to write each pair of bytes
+		STA $00						;/(LDA $xx,s merely reads data in stack, which is better than PLX : STX $xx : PHX)
+		SEP #$20
+		REP #$10
+		..WriteToStripe
+			LDX #$0000
+			...Loop
+				LDA !Scratchram_16bitHexDecOutput,x
+				PHX
+				LDX $00				;&gt;X = current stripe tile index
+				STA.l $7F837D+4,x
+				LDA.b #!TileProps		;\Tile props
+				STA.l $7F837D+4+1,x		;/
+				PLX				;&gt;X = what digit from 16-bit hexdec
+				....Next
+					INC $00			;\Next stripe tile index
+					INC $00			;/
+					INX			;&gt;Next digit
+					CPX #$0005		;\If 5th digit written, no more.
+					BCC ...Loop		;/
+		SEP #$30			;\8-bit A, 16-bit XY
+		REP #$10			;/
+		PLX				;&gt;Pull stripe index, into X
+		STZ $03				;&gt;D and RLE (overwritten by SixteenBitHexDecDivision)
+		LDA #$05			;\Number of tiles (overwritten by SixteenBitHexDecDivision)
+		STA $04				;|
+		STZ $05				;/
+		JSL HexDec_FinishStripe
+		RTL
 </pre></td></tr></table>
 </p>
 <hr>
