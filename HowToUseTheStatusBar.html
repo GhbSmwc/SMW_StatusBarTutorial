@@ -2590,7 +2590,7 @@ else
 	!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$3E	;&gt;Same as above but tile props.
 endif
 !DigitProps = %00111001								;&gt;Properties of the digits (when enabled).
-!NumberOfDigitsDisplayed = 10							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!NumberOfDigitsDisplayed = 9							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -3605,7 +3605,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		if !RemoveLeadingZeroes != 0
 			JSL HexDec_RemoveLeadingZeroes16Bit 	;&gt;Leading spaces, not zeroes
 		endif
-		wdm
 		REP #$20
 		LDA $02,S					;\$00-$01: Stripe index, will be used for following loop to write each pair of bytes
 		STA $00						;/(LDA $xx,s merely reads data in stack, which is better than PLX : STX $xx : PHX)
@@ -3632,7 +3631,70 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		PLX				;&gt;Pull stripe index, into X
 		SEP #$30
 		RTL
-</pre></td></tr></table>
+</pre></td></tr></table></p>
+
+<p>32-bit:
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;[4 bytes] RAM address you what to show
+!Stripe_X_Pos = 1							;\Stripe tile position
+!Stripe_Y_Pos = 218							;/
+!TileProps = %00111000							;&gt;Tile properties
+!RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
+
+;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !Setting_32bitHexDec_MaxNumberOfDigits
+;(the number digits stored in each byte in !Scratchram_32bitHexDecOutput), else garbage will appear.
+	!NumberOfDigitsDisplayed = 9		;&gt;How many digits, enter 1-10 (pointless if you enter less than 5).
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	main:
+	.StripeNumberTest
+		LDA.b #!Stripe_X_Pos				;\Position
+		STA $00						;|
+		LDA.b #!Stripe_Y_Pos				;|
+		STA $01						;/
+		LDA #$05					;\Layer
+		STA $02						;/
+		STZ $03						;&gt;D and RLE
+		LDA.b #!NumberOfDigitsDisplayed			;\Number of tiles
+		STA $04						;|
+		STZ $05						;/
+		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
+		
+		PHX						;&gt;Push 16-bit stripe index
+		REP #$20
+		LDA !RAMToMeasure
+		STA $00
+		LDA !RAMToMeasure+2
+		STA $02
+		SEP #$30
+		JSL HexDec_ThirtyTwoBitHexDecDivision
+		if !RemoveLeadingZeroes != 0
+			JSL HexDec_RemoveLeadingZeroes32Bit
+		endif
+		REP #$30
+		PLA						;&gt;Pull 16-bit stripe index
+		CLC						;\$00-$02: Address of tile data to write (TileDataAddressToWrite = Stripe_Data_Index + $7F837D + 4)
+		ADC.w #$7F837D+4				;|
+		STA $00						;|
+		SEP #$30					;|
+		LDA #$7F					;|
+		STA $02						;/
+
+	;Write to overworld border:
+		LDX #(!NumberOfDigitsDisplayed-1)		;&gt;Digits left to write, -1, and 0-based
+		LDY #((!NumberOfDigitsDisplayed-1)*2)		;&gt;Which tile data
+		-
+		LDA (!Scratchram_32bitHexDecOutput)+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
+		STA [$00],y
+		LDA.b #!TileProps
+		INY						;\Next byte over to write properties
+		STA [$00],y					;|
+		DEY						;/
+		DEY #2						;\Loop until all tiles written.
+		DEX						;|
+		BPL -						;/
+	RTL</pre></td></tr></table>
 </p>
 <hr>
 <h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
