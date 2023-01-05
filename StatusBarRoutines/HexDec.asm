@@ -1157,7 +1157,7 @@ CountingAnimation16Bit:
 ;       $05 = Layer 3
 ;-$03: Direction and RLE: %DR00000000
 ;       D = Direction: 0 = horizontal (rightwards), 1 = vertical (downwards)
-;       R = RLE: 0 = no repeat, 1 = repeat
+;       R = RLE: 0 = no (manually write different tiles), 1 = yes (write one tile multiple times, based on input $04-$05)
 ;-$04 to $05 (16-bit): Number of tiles.
 ;Output:
 ;-$7F837B-$7F837C: Updated length of stripe data.
