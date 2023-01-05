@@ -34,8 +34,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ; - ConvertToPercentage
 ; - CountingAnimation16Bit
 ;Stripe routines
-; - SetupStripeHeaderAndIndex
-; - FinishStripe
+; - SetupStripe
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;General math routines.
 ;Due to the fact that registers have limitations and such.

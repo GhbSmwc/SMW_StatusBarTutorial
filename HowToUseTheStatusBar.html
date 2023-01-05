@@ -3430,7 +3430,7 @@ as it would make this tutorial unnecessarily long.</p>
 <hr>
 <h2 id="StripeHud"><a href="#StripeHudBack">^</a>Stripe-based HUD</h2>
 <p><i>See <a href="https://www.smwcentral.net/?p=viewthread&t=14531">this post at SMWC</a> about stripe images. Due to that not being updated for more than a decade and some info are wrong, best read
-<a href="https://smwc.me/1600801">this one</a> afterwards before attempting this.</i></p>
+<a href="https://smwc.me/1600801">this one</a> and other posts after it afterwards before attempting this.</i></p>
 
 <p>This section explains how to write layer 3 tiles anywhere on the layer 3 than just on the HUD.</p>
 
@@ -3445,6 +3445,54 @@ as it would make this tutorial unnecessarily long.</p>
 	<li>Initial Y position: <kbd>0</kbd></li>
 	<li>Initial X position: <kbd>0</kbd></li>
 </ul>
+To set up writing to the stripe image, I made a subroutine, <kbd>SetupStripe</kbd> that does all the complex logic for you. The data usage follows:
+<table>
+	<tr><th>Input</th><th>Number of bytes</th><th>Description</th></tr>
+	<tr><td><kbd>$00</kbd></td><td style="text-align: center; vertical-align: middle;">1</td><td>X position, 0-63.</td></tr>
+	<tr><td><kbd>$01</kbd></td><td style="text-align: center; vertical-align: middle;">1</td><td>Y position, 0-63.</td></tr>
+	<tr>
+		<td>
+			<kbd>$02</kbd>
+		</td>
+		<td style="text-align: center; vertical-align: middle;">1</td>
+		<td>
+			What layer:
+			<ul>
+				<li><kbd>$02</kbd>: Layer 1</li>
+				<li><kbd>$03</kbd>: Layer 2</li>
+				<li><kbd>$05</kbd>: Layer 3</li>
+			</ul>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<kbd>$03</kbd>
+		</td>
+		<td style="text-align: center; vertical-align: middle;">1</td>
+		<td>
+			Direction and RLE: <kbd>%DR00000000</kbd>
+			<ul>
+				<li><kbd>R</kbd>: Repeat: 0 = no (manuelly write different tiles), 1 = yes (write one tile multiple times, based on input <kbd>$04-$05</kbd>)</li>
+				<li><kbd>D</kbd>: Direction: 0 = horizontal (rightwards), 1 = vertical (downwards)</li>
+			</ul>
+		</td>
+	</tr>
+	<tr><td><kbd>$04</kbd> to <kbd>$05</kbd></td><td style="text-align: center; vertical-align: middle;">2</td><td>Number of tiles.</td></tr>
+</table><br><br>
+
+<table>
+	<tr><th>Output</th><th>Number of bytes</th><th>Description</th></tr>
+	<tr><td><kbd>$7F837B</kbd> to <kbd>$7F837C</kbd></td><td style="text-align: center; vertical-align: middle;">2</td><td>Updated length of stripe data.</td></tr>
+	<tr><td><kbd>X register</kbd></td><td style="text-align: center; vertical-align: middle;">2 (not stored)</td><td>The index position of where to write tile data (starting at <kbd>$7F837D+4,x</kbd>).</td></tr>
+</table><br><br>
+
+<table>
+	<tr><th>Destroyed</th><th>Number of bytes</th><th>Description</th></tr>
+	<tr><td><kbd>$06</kbd> to <kbd>$08</kbd></td><td style="text-align: center; vertical-align: middle;">3</td><td>Used when not using RLE, to calculate the terminating byte location.</td></tr>
+</table><br>
+After calling that, all you have to do is write to <kbd>$7F837D+4,x</kbd> (XY register will be 16-bit) and beyond, but be careful not to overwrite the terminating byte (and potentially the bytes after). Just like the Super Status Bar patch
+and OWB+, its tile data format is &ldquo;2-bytes together&rdquo;.
+
 </p>
 <p>Just like sprite OAM patch, almost everything is the same except you are no longer writing to the status bar, also, note that since writing
 tiles to the stripe have &ldquo;dynamic&rdquo; location since this is a table, thus the way you write them is different.</p>
