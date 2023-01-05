@@ -3490,11 +3490,10 @@ To set up writing to the stripe image, I made a subroutine, <kbd>SetupStripe</kb
 	<tr><th>Destroyed</th><th>Number of bytes</th><th>Description</th></tr>
 	<tr><td><kbd>$06</kbd> to <kbd>$08</kbd></td><td style="text-align: center; vertical-align: middle;">3</td><td>Used when not using RLE, to calculate the terminating byte location.</td></tr>
 </table><br>
-After calling that, all you have to do is write to <kbd>$7F837D+4,x</kbd> (XY register will be 16-bit) and beyond, but be careful not to overwrite the terminating byte (and potentially the bytes after). Just like the Super Status Bar patch
-and OWB+, its tile data format is &ldquo;2-bytes together&rdquo;.
+After calling that, all you have to do is write your tile data to <kbd>$7F837D+4,x</kbd> (XY register will be 16-bit) and beyond, but be careful not to overwrite the terminating byte (and potentially the bytes after). Just like the Super Status Bar patch
+and OWB+, its tile data format is &ldquo;2-bytes together&rdquo;.</p>
 
-</p>
-<p>Just like sprite OAM patch, almost everything is the same except you are no longer writing to the status bar, also, note that since writing
+<p>Also just like sprite OAM patch, almost everything is the same except you are no longer writing to the status bar, also, note that since writing
 tiles to the stripe have &ldquo;dynamic&rdquo; location since this is a table, thus the way you write them is different.</p>
 
 <p>8-bit, 2 digits:
