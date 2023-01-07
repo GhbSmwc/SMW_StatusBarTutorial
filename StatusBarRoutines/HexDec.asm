@@ -1148,17 +1148,21 @@ CountingAnimation16Bit:
 	RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Easy stripe setup-er 2.0. Sets up stripe header, Updates length of stripe,
-;and writes the terminating byte.
+;and writes the terminating byte. You only need to write the tile data
+;afterwards.
+;
 ;-$00: X position (%00XXXXXX, only bits 0-5 used, ranges from 0-63 ($00-$3F))
 ;-$01: Y position (%00YYYYYY, only bits 0-5 used, ranges from 0-63 ($00-$3F))
 ;-$02: What layer:
-;       $02 = Layer 1
-;       $03 = Layer 2
-;       $05 = Layer 3
+;  $02 = Layer 1
+;  $03 = Layer 2
+;  $05 = Layer 3
 ;-$03: Direction and RLE: %DR00000000
-;       D = Direction: 0 = horizontal (rightwards), 1 = vertical (downwards)
-;       R = RLE: 0 = no (manually write different tiles), 1 = yes (write one tile multiple times, based on input $04-$05)
-;-$04 to $05 (16-bit): Number of tiles.
+;  D = Direction: 0 = horizontal (rightwards), 1 = vertical (downwards)
+;  R = RLE: 0 = no (manually write different tiles), 1 = yes (write one
+;   tile multiple times, based on input $04-$05).
+;-$04 to $05 (16-bit): Number of tiles, minus 1 (a value of 2 here means 3
+;  tiles). (If RLE is used, this is how many times a tile is repeated).
 ;Output:
 ;-$7F837B-$7F837C: Updated length of stripe data.
 ;-X register (16-bit, XY registers are 16-bit): The index position of where
@@ -1167,6 +1171,7 @@ CountingAnimation16Bit:
 ;-$06-$08: Used when not using RLE, to calculate the terminating byte location.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;note to self
+; $7F837B = Length of stripe, counting header and tile data, but not the terminating byte.
 ; $7F837D+0,x = EHHHYXyy
 ; $7F837D+1,x = yyyxxxxx
 ; $7F837D+2,x = DRllllll
@@ -1235,13 +1240,14 @@ SetupStripe:
 			STA $7F837D+6,x		;/
 			REP #$20
 			LDA $04			;\NumberOfBytes = (NumberOfTiles-1)*2
-			DEC A			;|
+			INC
 			ASL			;|
 			SEP #$20		;/
 			BRA ..Write
 		..NoRLE
 			REP #$21		;REP #$21 is 8-bit A with carry cleared
 			LDA $04			;\4+(NumberOfTiles*2)...
+			INC			;|
 			ASL			;|
 			CLC			;|
 			ADC #$0004		;/
@@ -1253,6 +1259,7 @@ SetupStripe:
 			STA $08			;/
 			REP #$20		;\4+(NumberOfTiles*2)...
 			LDA $04			;|
+			INC			;|
 			ASL			;|
 			CLC			;|>Just in case
 			ADC.w #$837D+4		;|
@@ -1266,6 +1273,7 @@ SetupStripe:
 			STA [$06]		;/
 			REP #$20
 			LDA $04			;\NumberOfBytes = (NumberOfTiles*2)-1
+			INC			;|
 			ASL			;|
 			DEC			;|
 			SEP #$20		;/

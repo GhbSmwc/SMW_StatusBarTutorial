@@ -3477,7 +3477,7 @@ To set up writing to the stripe image, I made a subroutine, <kbd>SetupStripe</kb
 			</ul>
 		</td>
 	</tr>
-	<tr><td><kbd>$04</kbd> to <kbd>$05</kbd></td><td style="text-align: center; vertical-align: middle;">2</td><td>Number of tiles.</td></tr>
+	<tr><td><kbd>$04</kbd> to <kbd>$05</kbd></td><td style="text-align: center; vertical-align: middle;">2</td><td>Number of tiles, minus 1 (a value of 2 here means 3 tiles). If RLE is used, this is how many times a tile is repeated, minus 1.</td></tr>
 </table><br><br>
 
 <table>
@@ -3490,7 +3490,7 @@ To set up writing to the stripe image, I made a subroutine, <kbd>SetupStripe</kb
 	<tr><th>Destroyed</th><th>Number of bytes</th><th>Description</th></tr>
 	<tr><td><kbd>$06</kbd> to <kbd>$08</kbd></td><td style="text-align: center; vertical-align: middle;">3</td><td>Used when not using RLE, to calculate the terminating byte location.</td></tr>
 </table><br>
-After calling that, all you have to do is write your tile data to <kbd>$7F837D+4,x</kbd> (XY register will be 16-bit) and beyond, but be careful not to overwrite the terminating byte (and potentially the bytes after). Just like the Super Status Bar patch
+After calling that, all you have to do is write your tile data to <kbd>$7F837D+4,x</kbd> (XY register will be 16-bit) and beyond, but be careful not to overwrite the terminating byte (and potentially the bytes after) if this is your last stripe within a frame. Just like the Super Status Bar patch
 and OWB+, its tile data format is &ldquo;2-bytes together&rdquo;.</p>
 
 <p>Also just like sprite OAM patch, almost everything is the same except you are no longer writing to the status bar, also, note that since writing
@@ -3516,7 +3516,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #$05					;\Layer
 		STA $02						;/
 		STZ $03						;&gtD and RLE
-		LDA #$02					;\Number of tiles
+		LDA.b #$02-1					;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
 		JSL HexDec_SetupStripe				;&gtX (16-bit): The index position to write stripe data
@@ -3565,7 +3565,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #$05					;\Layer
 		STA $02						;/
 		STZ $03						;&gt;D and RLE
-		LDA #$03					;\Number of tiles
+		LDA.b #$03-1					;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
 		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
@@ -3637,7 +3637,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #$05					;\Layer
 		STA $02						;/
 		STZ $03						;&gt;D and RLE
-		LDA #$05					;\Number of tiles
+		LDA.b #$05-1					;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
 		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
@@ -3703,7 +3703,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #$05					;\Layer
 		STA $02						;/
 		STZ $03						;&gt;D and RLE
-		LDA.b #!NumberOfDigitsDisplayed			;\Number of tiles
+		LDA.b #!NumberOfDigitsDisplayed-1		;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
 		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
