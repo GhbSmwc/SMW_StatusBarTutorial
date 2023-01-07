@@ -1240,17 +1240,15 @@ SetupStripe:
 			STA $7F837D+6,x		;/
 			REP #$20
 			LDA $04			;\NumberOfBytes = (NumberOfTiles-1)*2
-			INC
 			ASL			;|
 			SEP #$20		;/
 			BRA ..Write
 		..NoRLE
 			REP #$21		;REP #$21 is 8-bit A with carry cleared
-			LDA $04			;\4+(NumberOfTiles*2)...
-			INC			;|
+			LDA $04			;\Length = 4+(NumberOfTiles*2) = ((NumberOfTiles-1)*2) + 6
 			ASL			;|
 			CLC			;|
-			ADC #$0004		;/
+			ADC #$0006		;/
 			CLC			;\plus the current length
 			ADC $7F837B		;/
 			STA $7F837B		;>And that is our new length
