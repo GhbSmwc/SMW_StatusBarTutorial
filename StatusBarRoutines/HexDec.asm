@@ -1147,7 +1147,7 @@ CountingAnimation16Bit:
 	SEP #$20
 	RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;Easy stripe setup-er 2.0. Sets up stripe header, Updates length of stripe,
+;Easy stripe setup-er 2.1. Sets up stripe header, Updates length of stripe,
 ;and writes the terminating byte. You only need to write the tile data
 ;afterwards.
 ;
