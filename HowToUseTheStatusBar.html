@@ -2469,7 +2469,7 @@ Left and right aligned with 16-bit numbers:
 !DisplayTwoNumbers = 1			;&gt;0 = only the first number, 1 = display 2.
 !RightAligned = 0			;&gt;0 = left, 1 = right.
 !RAMToMeasure = $60			;&gt;[2 bytes] RAM address you what to show
-!RAMToMeasure2 = $62			;&gt;[2 bytes] Second number
+!RAMToMeasure2 = $62			;&gt;[2 bytes] Second number (not used if !DisplayTwoNumbers == 0)
 if !RightAligned == 0
 	!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the OWB (left aligned)
 	!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$00	;&gt;Where to write on the overworld border (properties, left aligned)
@@ -2580,7 +2580,7 @@ Left and right aligned with 32-bit numbers:
 !DisplayTwoNumbers = 1								;&gt;0 = only the first number, 1 = display 2.
 !RightAligned = 0								;&gt;0 = left, 1 = right.
 !RAMToMeasure = $60								;&gt;[4 bytes] RAM address you what to show
-!RAMToMeasure2 = $0F3A|!addr							;&gt;[4 bytes] Same as above
+!RAMToMeasure2 = $0F3A|!addr							;&gt;[4 bytes] Same as above (not used if !DisplayTwoNumbers == 0)
 
 if !RightAligned == 0
 	!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border for left aligned
@@ -3498,11 +3498,11 @@ tiles to the stripe have &ldquo;dynamic&rdquo; location since this is a table, t
 
 <p>8-bit, 2 digits:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt[1 byte] RAM address you what to show
+!RAMToMeasure = $60							;&gt;[1 byte] RAM address you what to show
 !Stripe_X_Pos = 1							;\Stripe tile position
-!Stripe_Y_Pos = 218							;/
-!TileProps = %00111000							;&gtTile properties
-!RemoveLeadingZeroes = 0						;&gt0 = no, 1 = yes
+!Stripe_Y_Pos = 26							;/
+!TileProps = %00111000							;&gt;Tile properties
+!RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
 
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -3515,27 +3515,27 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		STA $01						;/
 		LDA #$05					;\Layer
 		STA $02						;/
-		STZ $03						;&gtD and RLE
+		STZ $03						;&gt;D and RLE
 		LDA.b #$02-1					;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
-		JSL HexDec_SetupStripe				;&gtX (16-bit): The index position to write stripe data
+		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
 		
-		PHX						;&gtPush 16-bit stripe index
-		SEP #$30					;&gt8-bit AXY
-		LDA !RAMToMeasure				;&gtConvert this number to BCD
-		JSL HexDec_EightBitHexDec			;&gtGet digits, A = 1s, X = 10s
-		STX $00						;&gtStore 10s in $00 for later
+		PHX						;&gt;Push 16-bit stripe index
+		SEP #$30					;&gt;8-bit AXY
+		LDA !RAMToMeasure				;&gt;Convert this number to BCD
+		JSL HexDec_EightBitHexDec			;&gt;Get digits, A = 1s, X = 10s
+		STX $00						;&gt;Store 10s in $00 for later
 		REP #$10					;\Pull 16-bit stripe index
 		PLX						;/
-		STA.l $7F837D+6,x				;&gtWrite 1s place
-		LDA $00						;&gtif you are using status bar patches, STX $xxxxxx will not work.
+		STA.l $7F837D+6,x				;&gt;Write 1s place
+		LDA $00						;&gt;if you are using status bar patches, STX $xxxxxx will not work.
 		if !RemoveLeadingZeroes != 0
 			BNE ..NotLeadingZero
 			LDA #!StatusBarBlankTile
 			..NotLeadingZero
 		endif
-		STA.l $7F837D+4,x				;&gtWrite 10s place
+		STA.l $7F837D+4,x				;&gt;Write 10s place
 		
 		LDA.b #!TileProps				;\Write tile properties
 		STA.l $7F837D+4+1,x				;|
@@ -3549,7 +3549,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 <table><tr><td><pre>
 !RAMToMeasure = $60							;&gt;[1 byte] RAM address you what to show
 !Stripe_X_Pos = 1							;\Stripe tile position
-!Stripe_Y_Pos = 218							;/
+!Stripe_Y_Pos = 26							;/
 !TileProps = %00111000							;&gt;Tile properties
 !RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
 
@@ -3621,7 +3621,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 <table><tr><td><pre>
 !RAMToMeasure = $60							;&gt;[2 bytes] RAM address you what to show
 !Stripe_X_Pos = 1							;\Stripe tile position
-!Stripe_Y_Pos = 218							;/
+!Stripe_Y_Pos = 26							;/
 !TileProps = %00111000							;&gt;Tile properties
 !RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
 
@@ -3684,7 +3684,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 <table><tr><td><pre>
 !RAMToMeasure = $60							;&gt;[4 bytes] RAM address you what to show
 !Stripe_X_Pos = 1							;\Stripe tile position
-!Stripe_Y_Pos = 218							;/
+!Stripe_Y_Pos = 26							;/
 !TileProps = %00111000							;&gt;Tile properties
 !RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
 
@@ -3744,27 +3744,30 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	RTL</pre></td></tr></table>
 </p>
 <p>
-16-bit N-digit with left/right aligned (WIP - right-aligned not working):
+16-bit N-digit with left/right aligned:
 <table><tr><td><pre>
 !DisplayTwoNumbers = 1								;&gt;0 = only the first number, 1 = display 2.
 !RightAligned = 0								;&gt;0 = left, 1 = right.
 !RAMToMeasure = $60								;&gt;[2 bytes] RAM address you what to show
-!RAMToMeasure2 = $62								;&gt;[2 bytes] Same as above
-; Position. Do note that this is always the position of the leftmost tile to
-; write, even on right-aligned, unlike status bar/OWB+, because stripe tile
-; address are dynamic (index based).
- !Stripe_X_Pos = 1								;\Stripe tile position
- !Stripe_Y_Pos = 218								;/
+!RAMToMeasure2 = $62								;&gt;[2 bytes] Same as above (not used if !DisplayTwoNumbers == 0)
+if !RightAligned == 0
+ !Stripe_X_Pos = 01								;\Stripe tile position (left aligned)
+ !Stripe_Y_Pos = 26								;/
+else
+ !Stripe_X_Pos = 30								;\Stripe tile position (right-aligned)
+ !Stripe_Y_Pos = 26								;/
+endif
 !DigitProps = %00111000								;&gt;Properties of the digits (when enabled).
 !NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
-	;Don't touch, this is needed to find how many tiles will be written.
+	;Don't touch, this is needed to find how many tiles will be written and how they are positioned in the stripe data.
 	;Also used when clearing tiles.
-		!NumberOfBytesMaxed = (!NumberOfDigitsDisplayed-1)*2
+		!NumberOfCharactersMaxedMinus1 = !NumberOfDigitsDisplayed-1		;&gt;Maximum character index (-1 because 0-based indexing)
 		if !DisplayTwoNumbers != 0
-			!NumberOfBytesMaxed = (((!NumberOfDigitsDisplayed*2)+1)-1)*2
+			!NumberOfCharactersMaxedMinus1 = (!NumberOfDigitsDisplayed*2)+1-1
+			;^Maximum index of characters (e.g 5 digits is a value of 10 because 5*2 (times 2 because we display 2 numbers), plus 1 because of the slash character, minus 1 because 0-based indexing)
 		endif
 
 	main:
@@ -3780,9 +3783,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			;Remove leading zeroes and have it as a character table
 				LDX #$00					;&gt;Start at character position 0.
 				JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
-			;Prevent writing too much characters.
-				CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
-				BCS ..TooMuchDigits				;/not being cleared from the previous code.
 	else
 		;First number
 			;Process HexDec
@@ -3809,21 +3809,21 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				PLX						;&gt;Restore.
 			;Remove leading zeroes and have it as a character table
 				JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
-			;Prevent writing too much characters.
-				CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
-				BCS ..TooMuchDigits				;/not being cleared from the previous code.
 	endif
 	;Write to stripe
-		wdm
 		PHX						;&gt;push number of characters
-		LDA.b #!Stripe_X_Pos				;\Position
+		if !RightAligned == 0
+			LDA.b #!Stripe_X_Pos					;\Position
+		else
+			LDA.b #!Stripe_X_Pos-!NumberOfCharactersMaxedMinus1
+		endif
 		STA $00						;|
 		LDA.b #!Stripe_Y_Pos				;|
 		STA $01						;/
 		LDA #$05					;\Layer
 		STA $02						;/
 		STZ $03						;&gt;D and RLE
-		LDA.b #!NumberOfBytesMaxed/2			;\Number of tiles -1
+		LDA.b #!NumberOfCharactersMaxedMinus1		;\Number of tiles -1
 		STA $04						;|(create a line of tiles whose number is a maximum number of characters to allow tile clearing)
 		STZ $05						;/
 		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
@@ -3832,8 +3832,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			REP #$20		;\$00-$02: Address of of open stripe data (tile data's TTTTTTTT).
 			TXA			;|$03-$05: Address of of open stripe data (tile data's YXPCCCTT).
 			CLC			;|
-			ADC.w #$7F837D+4	;|
-			STA $00			;|
+			ADC.w #$7F837D+4	;|Take X, the stripe index, add by #$7F8381
+			STA $00			;|and store it at $00, since we are doing "Indirect Long" 
 			INC			;|
 			STA $03			;|
 			SEP #$30		;|
@@ -3843,7 +3843,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			LDA.b #!DigitProps	;\Props (WriteStringDigitsToHUD uses $06 to write)
 			STA $06			;/
 		;Clear tiles (blank tiles by default), so that leftover characters will disappear.
-			LDY.b #!NumberOfBytesMaxed
+			LDY.b #!NumberOfCharactersMaxedMinus1*2
 			-
 			LDA #!StatusBarBlankTile		;\Clear tiles
 			STA [$00],y				;/
@@ -3851,14 +3851,42 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			STA [$03],y				;/
 			DEY #2
 			BPL -
-			
 		PLX						;&gt;Pull number of characters
+		;Prevent writing too much characters.
+			CPX.b #!NumberOfCharactersMaxedMinus1+2		;\Failsafe to avoid writing more characters than intended would write onto tiles
+			BCS ..StringTooLong				;/not being cleared from the previous code.
+		if !RightAligned != 0
+			;Find the rightmost position
+			;Formula: StringPosition = (NumberOfCharactersMax - 1) - (NumberOfCharacters - 1)
+			;
+			;Processed in this order:
+			;
+			;StringPosition = -(NumberOfCharacters - 1) + (NumberOfCharactersMax - 1)
+			REP #$20
+			TXA						;\Clear high byte just in case
+			AND #$00FF					;/
+			DEC						;&gt;(NumberOfCharacters - 1)
+			EOR #$FFFF					;\*(-1)
+			INC						;/
+			CLC						;\+ NumberOfCharactersMax
+			ADC.w #!NumberOfCharactersMaxedMinus1		;/
+			ASL						;&gt;*2 because each tile have 2 bytes
+			PHA						;&gt;Save this offset for tile properties
+			CLC						;\Offset from tile position
+			ADC $00						;|
+			STA $00						;|
+			PLA						;|
+			CLC						;|
+			ADC $03						;|
+			STA $03						;/
+			SEP #$20					
+		endif
 		if !StatusbarFormat == $01
 			JSL HexDec_WriteStringDigitsToHUD
 		else
 			JSL HexDec_WriteStringDigitsToHUDFormat2
 		endif
-	..TooMuchDigits
+	..StringTooLong
 	RTL
 </pre></td></tr></table>
 </p>
