@@ -1252,7 +1252,7 @@ SetupStripe:
 			CLC			;\plus the current length
 			ADC $7F837B		;/
 			STA $7F837B		;>And that is our new length
-			SEP #$30		;>8-bit AXY
+			SEP #$20		;>8-bit A
 			LDA #$7F		;\Bank byte
 			STA $08			;/
 			REP #$20		;\4+(NumberOfTiles*2)...
