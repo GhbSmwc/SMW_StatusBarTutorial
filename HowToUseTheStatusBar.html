@@ -3618,7 +3618,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		RTL
 </pre></td></tr></table></p>
 
-<p>16-bit:
+<p>16-bit N-digit:
 <table><tr><td><pre>
 !RAMToMeasure = $60							;&gt;[2 bytes] RAM address you what to show
 !Stripe_X_Pos = 1							;\Stripe tile position
@@ -3681,7 +3681,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		RTL
 </pre></td></tr></table></p>
 
-<p>32-bit:
+<p>32-bit N-digit:
 <table><tr><td><pre>
 !RAMToMeasure = $60							;&gt;[4 bytes] RAM address you what to show
 !Stripe_X_Pos = 1							;\Stripe tile position
@@ -4000,8 +4000,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		;Clear tiles (blank tiles by default), so that leftover characters will disappear.
 			LDY.b #!NumberOfCharactersMaxedMinus1*2
 			-
-			;LDA #!StatusBarBlankTile		;\Clear tiles
-			LDA #$0A
+			LDA #!StatusBarBlankTile		;\Clear tiles
 			STA [$00],y				;/
 			LDA.b #!DigitProps			;\Set tile properties
 			STA [$03],y				;/
