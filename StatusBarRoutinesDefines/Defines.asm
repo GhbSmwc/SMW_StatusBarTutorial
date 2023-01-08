@@ -12,7 +12,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Other (don't touch)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;Digit table location.
+	;[5 bytes]
+	;16-bit Hexdec Digit table.
 	;For these routines:
 	;-SixteenBitHexDecDivision
 	;-RemoveLeadingZeroes16Bit
@@ -22,9 +23,9 @@
 	;uses the SNES registers for non SA-1, or
 	;uses a division routine which the outputs are
 	;at $00-$03.
-		!Scratchram_16bitHexDecOutput = $02
+		!Scratchram_16bitHexDecOutput = $02 ;>$02-$06
 		if !sa1 != 0
-			!Scratchram_16bitHexDecOutput = $04
+			!Scratchram_16bitHexDecOutput = $04 ;>$04-$08
 		endif
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Defines
