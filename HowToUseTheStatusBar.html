@@ -4048,11 +4048,11 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 <table><tr><td><pre>
 !RAMToMeasure = $60							;&gt;[2 bytes] RAM address you what to show (Quantity)
 !RAMToMeasure2 = $62							;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
-!Default_PercentagePrecision = 0
+!Default_PercentagePrecision = 2
  ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
  ; with !Scratchram_PercentageFixedPointPrecision.
 !CapAt100 = 1								;&gt;0 = allow percentage to display values greater than 100, 1 = cap at 100.
-!RightAligned = 0							;&gt;0 = left-aligned, 1 = right-aligned.
+!RightAligned = 1							;&gt;0 = left-aligned, 1 = right-aligned.
 
 if !RightAligned == 0
  !Stripe_X_Pos = 01								;\Stripe tile position (left aligned)
@@ -4179,13 +4179,11 @@ main:
 							LDA #!StatusBarBlankTile			;&gt;If 0, replace 10s digit with blank.
 						...WriteTens
 							STA $7F8381+(1*2),x				;&gt;Write 10s place
-					if !StatusBar_UsingCustomProperties != 0
 						LDA #!TileProps
 						STA $7F8381+(0*2)+1,x
 						STA $7F8381+(1*2)+1,x
 						STA $7F8381+(2*2)+1,x
 						STA $7F8381+(3*2)+1,x
-					endif
 					LDA #!StatusBarPercentTile
 					STA $7F8381+(3*2),x
 					SEP #$30
@@ -4268,22 +4266,21 @@ main:
 					;!Scratchram_16bitHexDecOutput+$02 (100s place) -&gt; 10s place
 					;!Scratchram_16bitHexDecOutput+$03 (10s place) -&gt; 1s place
 					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/10s place
-					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarPosition-(5*!StatusbarFormat)	;&gt;100s
-					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarPosition-(4*!StatusbarFormat)	;&gt;10s
-					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition-(3*!StatusbarFormat)	;&gt;1s
-					LDA #$24 : STA !StatusBarPosition-(2*!StatusbarFormat)					;&gt;.
-					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition-(1*!StatusbarFormat)	;&gt;1/10ths
-					LDA #!StatusBarPercentTile : STA !StatusBarPosition-(0*!StatusbarFormat)		;&gt;%
-					if !StatusBar_UsingCustomProperties != 0
-						LDA #!TileProps
-						STA !StatusBarPositionProps-(5*!StatusbarFormat)	;&gt;100s
-						STA !StatusBarPositionProps-(4*!StatusbarFormat)	;&gt;10s
-						STA !StatusBarPositionProps-(3*!StatusbarFormat)	;&gt;1s
-						STA !StatusBarPositionProps-(2*!StatusbarFormat)	;&gt;.
-						STA !StatusBarPositionProps-(1*!StatusbarFormat)	;&gt;1/10s
-						STA !StatusBarPositionProps-(0*!StatusbarFormat)	;&gt;%
-					endif
-					RTL
+					REP #$10
+					PLX
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA $7F8381+(0*2)	;&gt;100s
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA $7F8381+(1*2)	;&gt;10s
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA $7F8381+(2*2)	;&gt;1s
+					LDA #$24 : STA $7F8381+(3*2)					;&gt;.
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA $7F8381+(4*2)	;&gt;1/10ths
+					LDA #!StatusBarPercentTile : STA $7F8381+(5*2)			;&gt;%
+					LDA #!TileProps
+					STA $7F8381+(0*2)+1						;&gt;100s
+					STA $7F8381+(1*2)+1						;&gt;10s
+					STA $7F8381+(2*2)+1						;&gt;1s
+					STA $7F8381+(3*2)+1						;&gt;.
+					STA $7F8381+(4*2)+1						;&gt;1/10s
+					STA $7F8381+(5*2)+1						;&gt;%
 				elseif !Default_PercentagePrecision == 2
 					JSL HexDec_RemoveLeadingZeroes16BitLeaveLast3
 					;XXX.XX%
@@ -4293,24 +4290,25 @@ main:
 					;!Scratchram_16bitHexDecOutput+$02 (100s place) -&gt; 1s place
 					;!Scratchram_16bitHexDecOutput+$03 (10s place) -&gt; 1/10s place
 					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/100s place
-					LDA !Scratchram_16bitHexDecOutput+$00 : STA !StatusBarPosition-(6*!StatusbarFormat)	;&gt;100s
-					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarPosition-(5*!StatusbarFormat)	;&gt;10s
-					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarPosition-(4*!StatusbarFormat)	;&gt;1s
-					LDA #$24 : STA !StatusBarPosition-(3*!StatusbarFormat)					;&gt;.
-					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition-(2*!StatusbarFormat)	;&gt;1/10s
-					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition-(1*!StatusbarFormat)	;&gt;1/100s
-					LDA #!StatusBarPercentTile : STA !StatusBarPosition-(0*!StatusbarFormat)		;&gt;%
-					if !StatusBar_UsingCustomProperties != 0
-						LDA #!TileProps
-						STA !StatusBarPositionProps-(6*!StatusbarFormat)	;&gt;100s
-						STA !StatusBarPositionProps-(5*!StatusbarFormat)	;&gt;10s
-						STA !StatusBarPositionProps-(4*!StatusbarFormat)	;&gt;1s
-						STA !StatusBarPositionProps-(3*!StatusbarFormat)	;&gt;.
-						STA !StatusBarPositionProps-(2*!StatusbarFormat)	;&gt;1/10s
-						STA !StatusBarPositionProps-(1*!StatusbarFormat)	;&gt;1/100s
-						STA !StatusBarPositionProps-(0*!StatusbarFormat)	;&gt;%
-					endif
+					REP #$10
+					PLX
+					LDA !Scratchram_16bitHexDecOutput+$00 : STA $7F8381+(0*2)	;&gt;100s
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA $7F8381+(1*2)	;&gt;10s
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA $7F8381+(2*2)	;&gt;1s
+					LDA #$24 : STA $7F8381+(3*2)					;&gt;.
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA $7F8381+(4*2)	;&gt;1/10s
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA $7F8381+(5*2)	;&gt;1/100s
+					LDA #!StatusBarPercentTile : STA $7F8381+(6*2)			;&gt;%
+					LDA #!TileProps
+					STA $7F8381+(0*2)+1						;&gt;100s
+					STA $7F8381+(1*2)+1						;&gt;10s
+					STA $7F8381+(2*2)+1						;&gt;1s
+					STA $7F8381+(3*2)+1						;&gt;.
+					STA $7F8381+(4*2)+1						;&gt;1/10s
+					STA $7F8381+(5*2)+1						;&gt;1/100s
+					STA $7F8381+(6*2)+1						;&gt;%
 				endif
+				SEP #$30
 				RTL
 			elseif !RightAligned == 0
 				.ClearTiles
@@ -4357,7 +4355,6 @@ main:
 				RTL
 			endif
 		endif
-
 </pre></td></tr></table>
 </p>
 <hr>
