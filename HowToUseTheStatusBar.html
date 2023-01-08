@@ -4052,7 +4052,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
  ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
  ; with !Scratchram_PercentageFixedPointPrecision.
 !CapAt100 = 1								;&gt;0 = allow percentage to display values greater than 100, 1 = cap at 100.
-!RightAligned = 1							;&gt;0 = left-aligned, 1 = right-aligned.
+!RightAligned = 0							;&gt;0 = left-aligned, 1 = right-aligned.
 
 if !RightAligned == 0
  !Stripe_X_Pos = 01								;\Stripe tile position (left aligned)
@@ -4151,7 +4151,7 @@ main:
 		if !Default_PercentagePrecision == 0
 			;Since it is very unlikely you display percentage greater than 100 (assuming you set !Default_PercentagePrecision to 0), you mostly
 			;likely just need to use $00 (8-bit) alone.
-			if !RightAligned == 1
+			if !RightAligned == 1 ;right aligned, whole percentage
 				.DisplayNumbers
 					LDA $00
 					JSL HexDec_EightBitHexDec3Digits			;&gt;A: 1s, X: 10s, Y: 100s
@@ -4188,10 +4188,9 @@ main:
 					STA $7F8381+(3*2),x
 					SEP #$30
 					RTL
-			elseif !RightAligned == 0
+			elseif !RightAligned == 0 ;Left aligned, whole percentage
 				STZ $01
 				JSL HexDec_SixteenBitHexDecDivision
-				wdm
 				;!Scratchram_16bitHexDecOutput+0 to !Scratchram_16bitHexDecOutput+4: hexdec output
 				;!Scratchram_16bitHexDecOutput+5 to !Scratchram_16bitHexDecOutput+7: address of stripe to clear tiles
 				LDA #$7F					;\$00-$02: Stripe to write tile numbers
@@ -4221,15 +4220,15 @@ main:
 				.StatusBarString
 				;Remove leading zeroes and have it as a character table
 					LDX #$00					;&gt;Start at character position 0.
-					JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+					JSL HexDec_SupressLeadingZeros			;&gt;Digits at !Scratchram_CharacterTileTable
 				;Write percent symbol after the number
 					LDA #!StatusBarPercentTile			;\Write percent symbol
 					STA !Scratchram_CharacterTileTable,x		;/
 					INX
-					CPX.b #5
+					CPX.b #5		;&gt;"XXX%" is 4 characters, so 5 and up is too long.
 					BCS ..TooMuchDigits
 					STX $07			;&gt;Save number of characters
-				;Write to status bar
+				;Write to layer 3
 					LDA #$7F		;\$00-$02: Stripe to write tile numbers
 					STA $02			;|$03-$05: Stripe to write tile properties
 					STA $05			;|
@@ -4257,7 +4256,7 @@ main:
 			endif
 		else
 			JSL HexDec_SixteenBitHexDecDivision
-			if !RightAligned == 1
+			if !RightAligned == 1 ;Right aligned, N-digit precision
 				if !Default_PercentagePrecision == 1
 					JSL HexDec_RemoveLeadingZeroes16BitLeaveLast2
 					;XXX.X%
@@ -4268,19 +4267,19 @@ main:
 					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/10s place
 					REP #$10
 					PLX
-					LDA !Scratchram_16bitHexDecOutput+$01 : STA $7F8381+(0*2)	;&gt;100s
-					LDA !Scratchram_16bitHexDecOutput+$02 : STA $7F8381+(1*2)	;&gt;10s
-					LDA !Scratchram_16bitHexDecOutput+$03 : STA $7F8381+(2*2)	;&gt;1s
-					LDA #$24 : STA $7F8381+(3*2)					;&gt;.
-					LDA !Scratchram_16bitHexDecOutput+$04 : STA $7F8381+(4*2)	;&gt;1/10ths
-					LDA #!StatusBarPercentTile : STA $7F8381+(5*2)			;&gt;%
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA $7F8381+(0*2),x	;&gt;100s
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA $7F8381+(1*2),x	;&gt;10s
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA $7F8381+(2*2),x	;&gt;1s
+					LDA #$24 : STA $7F8381+(3*2),x					;&gt;.
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA $7F8381+(4*2),x	;&gt;1/10ths
+					LDA #!StatusBarPercentTile : STA $7F8381+(5*2),x		;&gt;%
 					LDA #!TileProps
-					STA $7F8381+(0*2)+1						;&gt;100s
-					STA $7F8381+(1*2)+1						;&gt;10s
-					STA $7F8381+(2*2)+1						;&gt;1s
-					STA $7F8381+(3*2)+1						;&gt;.
-					STA $7F8381+(4*2)+1						;&gt;1/10s
-					STA $7F8381+(5*2)+1						;&gt;%
+					STA $7F8381+(0*2)+1,x						;&gt;100s
+					STA $7F8381+(1*2)+1,x						;&gt;10s
+					STA $7F8381+(2*2)+1,x						;&gt;1s
+					STA $7F8381+(3*2)+1,x						;&gt;.
+					STA $7F8381+(4*2)+1,x						;&gt;1/10s
+					STA $7F8381+(5*2)+1,x						;&gt;%
 				elseif !Default_PercentagePrecision == 2
 					JSL HexDec_RemoveLeadingZeroes16BitLeaveLast3
 					;XXX.XX%
@@ -4292,69 +4291,100 @@ main:
 					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/100s place
 					REP #$10
 					PLX
-					LDA !Scratchram_16bitHexDecOutput+$00 : STA $7F8381+(0*2)	;&gt;100s
-					LDA !Scratchram_16bitHexDecOutput+$01 : STA $7F8381+(1*2)	;&gt;10s
-					LDA !Scratchram_16bitHexDecOutput+$02 : STA $7F8381+(2*2)	;&gt;1s
+					LDA !Scratchram_16bitHexDecOutput+$00 : STA $7F8381+(0*2),x	;&gt;100s
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA $7F8381+(1*2),x	;&gt;10s
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA $7F8381+(2*2),x	;&gt;1s
 					LDA #$24 : STA $7F8381+(3*2)					;&gt;.
-					LDA !Scratchram_16bitHexDecOutput+$03 : STA $7F8381+(4*2)	;&gt;1/10s
-					LDA !Scratchram_16bitHexDecOutput+$04 : STA $7F8381+(5*2)	;&gt;1/100s
-					LDA #!StatusBarPercentTile : STA $7F8381+(6*2)			;&gt;%
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA $7F8381+(4*2),x	;&gt;1/10s
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA $7F8381+(5*2),x	;&gt;1/100s
+					LDA #!StatusBarPercentTile : STA $7F8381+(6*2),x			;&gt;%
 					LDA #!TileProps
-					STA $7F8381+(0*2)+1						;&gt;100s
-					STA $7F8381+(1*2)+1						;&gt;10s
-					STA $7F8381+(2*2)+1						;&gt;1s
-					STA $7F8381+(3*2)+1						;&gt;.
-					STA $7F8381+(4*2)+1						;&gt;1/10s
-					STA $7F8381+(5*2)+1						;&gt;1/100s
-					STA $7F8381+(6*2)+1						;&gt;%
+					STA $7F8381+(0*2)+1,x						;&gt;100s
+					STA $7F8381+(1*2)+1,x						;&gt;10s
+					STA $7F8381+(2*2)+1,x						;&gt;1s
+					STA $7F8381+(3*2)+1,x						;&gt;.
+					STA $7F8381+(4*2)+1,x						;&gt;1/10s
+					STA $7F8381+(5*2)+1,x						;&gt;1/100s
+					STA $7F8381+(6*2)+1,x						;&gt;%
 				endif
 				SEP #$30
 				RTL
-			elseif !RightAligned == 0
+			elseif !RightAligned == 0 ;left aligned, N-digit precision
+				wdm
+				LDA #$7F					;\!Scratchram_16bitHexDecOutput+5 to !!Scratchram_16bitHexDecOutput+7: RAM containing stripe tile data to write
+				STA !Scratchram_16bitHexDecOutput+5+2		;|
+				REP #$30					;|
+				PLX						;|&gt;Pull 16-bit stripe index
+				TXA						;|
+				CLC						;|
+				ADC.w #$7F837D+4				;|
+				STA !Scratchram_16bitHexDecOutput+5		;|
+				PHX						;|&gt;Push 16-bit stripe index
+				SEP #$30					;/
 				.ClearTiles
-					LDA #!StatusBarBlankTile
-					if !Default_PercentagePrecision == 1
-						LDX.b #($06-1)*!StatusbarFormat		;&gt;[100.0%] is 6 characters. So we must clear out 6 tiles.
-					elseif !Default_PercentagePrecision == 2
-						LDX.b #($07-1)*!StatusbarFormat		;&gt;[100.00%] is 7 characters. So we must clear out 7 tiles.
-					endif
+				;Clear the tiles. To prevent leftover "ghost" tiles that should've
+				;disappear when the number of digits decreases (so when "10" becomes "9",
+				;won't display "90"). Also setup tile properties when enabled.
+					LDY.b #!NumberOfCharactersMaxedMinus1*2
 					..Loop
-						STA !StatusBarPosition,x
-						DEX #!StatusbarFormat
+						LDA #!StatusBarBlankTile
+						STA [!Scratchram_16bitHexDecOutput+5],y
+						LDA.b #!TileProps
+						INY
+						STA [!Scratchram_16bitHexDecOutput+5],y
+						DEY
+						DEY #2
 						BPL ..Loop
-				
 				
 				LDX #$00
 				if !Default_PercentagePrecision == 1
-					LDA #$24		;\Decimal point
-					STA $09			;/
-					JSL HexDec_SupressLeadingZerosPercentageLeaveLast2
+					LDA #$24						;\Decimal point
+					STA $09							;/
+					JSL HexDec_SupressLeadingZerosPercentageLeaveLast2	;&gt;Characters are now in !Scratchram_CharacterTileTable
 				elseif !Default_PercentagePrecision == 2
-					LDA #$24		;\Decimal point
-					STA $09			;/
-					JSL HexDec_SupressLeadingZerosPercentageLeaveLast3
+					LDA #$24						;\Decimal point
+					STA $09							;/
+					JSL HexDec_SupressLeadingZerosPercentageLeaveLast3	;&gt;Characters are now in !Scratchram_CharacterTileTable
 				endif
 				LDA #!StatusBarPercentTile			;\Write percent symbol
 				STA !Scratchram_CharacterTileTable,x		;/
 				INX
-				;Write to status bar
-					LDA.b #!StatusBarPosition : STA $00
-					LDA.b #!StatusBarPosition&gt;&gt;8 : STA $01
-					LDA.b #!StatusBarPosition&gt;&gt;16 : STA $02
-					if !StatusBar_UsingCustomProperties != 0
-						LDA.b #!StatusBarPositionProps : STA $03
-						LDA.b #!StatusBarPositionProps&gt;&gt;8 : STA $04
-						LDA.b #!StatusBarPositionProps&gt;&gt;16 : STA $05
-						LDA #!TileProps : STA $06
-					endif
+				CPX.b #!NumberOfCharactersMaxedMinus1+2
+				BCS ..TooMuchDigits
+				STX $07						;&gt;Save number of characters
+				;Write to layer 3
+					LDA #$7F				;\$00-$02: Tile numbers address
+					STA $02					;|$03-$05: Tile properties address
+					STA $05					;|
+					REP #$30				;|
+					PLX					;|
+					TXA					;|
+					CLC					;|
+					ADC.w #$7F837D+4			;|
+					STA $00					;|
+					INC					;|
+					STA $03					;/
+					SEP #$30
+					LDA #!TileProps				;\Tile properties to use
+					STA $06					;/
+					LDX $07
 					if !StatusbarFormat == $01
 						JSL HexDec_WriteStringDigitsToHUD
 					else
 						JSL HexDec_WriteStringDigitsToHUDFormat2
 					endif
+					RTL
+				..TooMuchDigits
+				PLX
 				RTL
 			endif
 		endif
+</pre></td></tr></table>
+</p>
+
+<p>Repeating icons
+<table><tr><td><pre>
+insert code here
 </pre></td></tr></table>
 </p>
 <hr>
