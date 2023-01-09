@@ -1,0 +1,303 @@
+<html>
+	<head>
+		<style>
+			html {
+			background-color: #000207;
+			color: white;
+			font-family: sans-serif;
+			}
+			
+			table, th, td {
+			border: 1px solid white;
+			border-collapse: collapse;
+			}
+			
+			div.SmallFont {
+				font-size: 11px;
+			}
+			
+			div.StatisticsTable {
+				max-width:900px;
+			}
+			input[type='text'] { font-family: monospace;}
+			input[type='number'] { font-family: monospace;}
+			
+			span.NoLineBreak {
+				white-space: nowrap;
+			}
+			
+			abbr{cursor: help;}
+			
+			
+			img.img-hor {
+				-moz-transform: scaleX(-1);
+				-o-transform: scaleX(-1);
+				-webkit-transform: scaleX(-1);
+				transform: scaleX(-1);
+				filter: FlipH;
+				-ms-filter: "FlipH";
+			}
+			img.img-rot {
+				/* upwards bar */
+				transform: rotate(-90deg)
+			}
+			img.img-downwardsbar {
+				/* it performs the transforms right-to-left*/
+				transform: scaleY(-1) rotate(-90deg);
+			}
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+.ClickHoldChangeNumber {
+	cursor: ew-resize
+}
+	input[type='text'] { font-family: monospace;}
+	input[type='number'] { font-family: monospace;}
+		</style>
+	</head>
+	
+	<a href="../HowToUseTheStatusBar.html#Stripe_BackTOC">Back to readme</a>
+	<h1>Stripe header converter</h1>
+	<p>This tools is for debugging if you are wondering if something goes wrong related to the stripe header and you want it in a easily readable format to see if anything is wrong.</p>
+<table>
+	<tr>
+		<th>Raw byte form</th>
+		<th>Separated data form</th>
+	</tr>
+	<tr>
+		<td>Header 4-byte (<kbd>xxxxxxxx</kbd>, same order): <input type="text" id="RawByteString" onchange="EnteredRawBytes()" value="00000000" maxlength="8"> <span id="4ByteErrorMessageIfInvaid" hidden>Error! Invalid characters in the 4-byte header text</span></td>
+		<td><span id="HideIf4ByteHeaderStringIsInvalid">
+			<label>E bit: <input type="checkbox" id="StripeHeader_E" onchange="EnteredBySeperatedData()"></label><br>
+			HHH bits (0-7): <input type="number" id="StripeHeader_HHH" min="0" max="7" value="0" onchange="CorrectUserInputNumber() ;EnteredBySeperatedData()"><br>
+			Y position (0-63): <input type="number" id="StripeHeader_Y" min="0" max="63" value="0" onchange="MultiRadixInputs(); EnteredBySeperatedData()" data-list_of_input_radixes_ids_to_update="StripeHeader_Y_hex" class="CorrectValue"> ($<input type="text" id="StripeHeader_Y_hex" maxlength="2" onchange="MultiRadixInputs(); EnteredBySeperatedData()" data-list_of_input_radixes_ids_to_update="StripeHeader_Y" class="AnyRadixNumberInput" data-input_number_radix="16" value="00" data-pad_size="2">)<br>
+			X position (0-63): <input type="number" id="StripeHeader_X" min="0" max="63" value="0" onchange="MultiRadixInputs(); EnteredBySeperatedData()" data-list_of_input_radixes_ids_to_update="StripeHeader_X_hex" class="CorrectValue"> ($<input type="text" id="StripeHeader_X_hex" maxlength="2" onchange="MultiRadixInputs(); EnteredBySeperatedData()" data-list_of_input_radixes_ids_to_update="StripeHeader_X" class="AnyRadixNumberInput" data-input_number_radix="16" value="00" data-pad_size="2">)<br>
+			<label>D (direction, 0 = horizontal, 1 = vertical): <input type="checkbox" id="StripeHeader_D" onchange="EnteredBySeperatedData()"></label><br>
+			<label>R (RLE): <input type="checkbox" id="StripeHeader_R" onchange="EnteredBySeperatedData()"></label><br>
+			L (length, as number of bytes, 0-16383):  <input type="number" id="StripeHeader_L" min="0" max="16383" value="0" onchange="CorrectUserInputNumber(); EnteredBySeperatedData()" list_of_input_radixes_ids_to_update="StripeHeader_L_hex" class="CorrectValue"> ($<input type="text" id="StripeHeader_L_hex" maxlength="4" onchange="MultiRadixInputs(); EnteredBySeperatedData()" data-list_of_input_radixes_ids_to_update="StripeHeader_L" class="AnyRadixNumberInput" data-input_number_radix="16" value="0000" data-pad_size="4">)<br>
+		</span></td>
+	</tr>
+	<tr>
+		<td colspan="2"><pre id="HideBinaryDisplayIfError">
+EHHHYXyy yyyxxxxx DRllllll LLLLLLLL<br><span id="BinaryDisplay">00000000 00000000 00000000 00000000</span></pre>
+			
+			<kbd>Number of tiles: <span id="HTML_NumberOfTiles">0 (No tiles)</span></kbd><br>
+			<kbd>Layer: <span id="WhichLayer">Invalid Layer, using value 0</span></kbd>
+		</td>
+	</tr>
+</table>
+
+<script>
+	 window.onload = function(){ //Upon loading, apply the function to execute when the up/down arrow keys are pressed.
+	  UpDownArrowKeysIncrement()
+	 }
+	function CorrectUserInputNumber() {
+		event.target.value = (BigintClamp(ParseBigIntValue(event.target.value, 10), 0n, ParseBigIntValue(event.target.max, 10))).toString(10)
+	}
+	function EnteredRawBytes() {
+		if (/^[0-9A-Fa-f]{8}$/.test(document.getElementById("RawByteString").value)) {
+			document.getElementById("RawByteString").value = document.getElementById("RawByteString").value.toUpperCase()
+			document.getElementById("HideIf4ByteHeaderStringIsInvalid").hidden = false
+			document.getElementById("HideBinaryDisplayIfError").hidden = false
+			document.getElementById("4ByteErrorMessageIfInvaid").hidden = true
+			
+			let ByteArray = (document.getElementById("RawByteString").value.match(/[0-9A-Fa-f]{2}/g)).map((ByteElement) => ParseBigIntValue(ByteElement, 16))
+			document.getElementById("StripeHeader_E").checked = ByteArray[0] & 128n
+			document.getElementById("StripeHeader_HHH").value = ((ByteArray[0] & 112n) >> 4n).toString(10)
+			document.getElementById("StripeHeader_Y").value = (((ByteArray[1] & 224n) >> 5n) | ((ByteArray[0] & 3n) << 3n) | ((ByteArray[0] & 8n) << 2n)).toString(10)
+			document.getElementById("StripeHeader_X").value = ((ByteArray[1] & 31n) | ((ByteArray[0] & 4n) << 3n)).toString(10)
+			document.getElementById("StripeHeader_D").checked = ((ByteArray[2] & 128n) << 7n)
+			document.getElementById("StripeHeader_R").checked = ((ByteArray[2] & 64n) << 6n)
+			document.getElementById("StripeHeader_L").value = (ByteArray[3] | (ByteArray[2] & 63n) << 8n)
+			
+			document.getElementById("StripeHeader_Y_hex").value = pad((ParseBigIntValue(document.getElementById("StripeHeader_Y").value, 10)).toString(16).toUpperCase(), 2)
+			document.getElementById("StripeHeader_X_hex").value = pad((ParseBigIntValue(document.getElementById("StripeHeader_X").value, 10)).toString(16).toUpperCase(), 2)
+			document.getElementById("StripeHeader_L_hex").value = pad((ParseBigIntValue(document.getElementById("StripeHeader_L").value, 10)).toString(16).toUpperCase(), 4)
+			
+			document.getElementById("BinaryDisplay").innerHTML = (pad(ByteArray[0].toString(2), 8)) + " " + (pad(ByteArray[1].toString(2), 8)) + " " + (pad(ByteArray[2].toString(2), 8)) + " " + (pad(ByteArray[3].toString(2), 8))
+			GetNumberOfTiles()
+			GetLayerData()
+		} else {
+			document.getElementById("HideIf4ByteHeaderStringIsInvalid").hidden = true
+			document.getElementById("HideBinaryDisplayIfError").hidden = true
+			document.getElementById("4ByteErrorMessageIfInvaid").hidden = false
+		}
+	}
+	function EnteredBySeperatedData() {
+		//Correct number inputs
+			for (let Index = 0; Index < document.getElementsByClassName("CorrectValue").length; Index++) {
+				document.getElementsByClassName("CorrectValue")[Index].value = BigintClamp(ParseBigIntValue(document.getElementsByClassName("CorrectValue")[Index].value, 10), 0n, ParseBigIntValue(document.getElementsByClassName("CorrectValue")[Index].max))
+				document.getElementById(document.getElementsByClassName("CorrectValue")[Index].id + "_hex").value = pad(ParseBigIntValue(document.getElementsByClassName("CorrectValue")[Index].value, 10).toString(16).toUpperCase(), parseInt(document.getElementById(document.getElementsByClassName("CorrectValue")[Index].id + "_hex").dataset.pad_size))
+			}
+		
+		let ByteArray = new Array(4).fill(0n)
+		ByteArray[0] |= (BigInt(document.getElementById("StripeHeader_E").checked) << 7n)
+		
+		ByteArray[1] |= (ParseBigIntValue(document.getElementById("StripeHeader_X").value, 10) & 31n)
+		ByteArray[0] |= ((ParseBigIntValue(document.getElementById("StripeHeader_X").value, 10) & 32n) >> 3n)
+		
+		ByteArray[1] |= ((ParseBigIntValue(document.getElementById("StripeHeader_Y").value, 10) & 7n) << 5n)
+		ByteArray[0] |= ((ParseBigIntValue(document.getElementById("StripeHeader_Y").value, 10) & 24n) >> 3n)
+		ByteArray[0] |= ((ParseBigIntValue(document.getElementById("StripeHeader_Y").value, 10) & 32n) >> 2n)
+		
+		ByteArray[0] |= ((ParseBigIntValue(document.getElementById("StripeHeader_HHH").value, 10) & 7n) << 4n)
+		
+		ByteArray[2] |= (BigInt(document.getElementById("StripeHeader_D").checked) << 7n)
+		ByteArray[2] |= (BigInt(document.getElementById("StripeHeader_R").checked) << 6n)
+		
+		ByteArray[3] |= (ParseBigIntValue(document.getElementById("StripeHeader_L").value, 10) & 255n)
+		ByteArray[2] |= ((ParseBigIntValue(document.getElementById("StripeHeader_L").value, 10) & 16383n) >> 8n)
+		
+		document.getElementById("RawByteString").value = ((pad(ByteArray[0].toString(16), 2)) + (pad(ByteArray[1].toString(16), 2)) + (pad(ByteArray[2].toString(16), 2)) + (pad(ByteArray[3].toString(16), 2))).toUpperCase()
+		document.getElementById("BinaryDisplay").innerHTML = (pad(ByteArray[0].toString(2), 8)) + " " + (pad(ByteArray[1].toString(2), 8)) + " " + (pad(ByteArray[2].toString(2), 8)) + " " + (pad(ByteArray[3].toString(2), 8))
+		GetNumberOfTiles()
+		GetLayerData()
+	}
+	
+	
+	function ParseBigIntValue(string, radix) {
+		//Acts more closely to parseInt, unlike other methods (other functions, like CorrectBinBigIntValue)
+		//this works with bigInt.
+		let Output = 0n
+		let NegativeNumber = 1n
+		if ((/^-/).test(string)) {
+			NegativeNumber = -1n
+		}
+		let DigitPart = string.substring((string.search(/[0-9a-zA-Z]/)))
+		switch (radix) {
+			//decimal
+				default:
+				if ((/^-?\d+$/).test(string)) {
+					Output = BigInt(string)
+				}
+				break
+			//Hexadecimal
+				case 16:
+				case "0x":
+				case "0X":
+				if ((/^-?[0-9A-Fa-f]+$/).test(string)) {
+					Output = BigInt("0x" + DigitPart) * NegativeNumber
+				}
+				break
+			//Binary
+				case 2:
+				case "0b":
+				case "0B":
+				if ((/^-?[01]+$/).test(string)) {
+					Output = BigInt("0b" + DigitPart) * NegativeNumber
+				}
+		
+		}
+		return Output
+	}
+	function pad(num, size) {
+		//This adds leading zeroes. [size] is the number of digits at minimum to show (less than that will fill this with 0s).
+			let s = num+"";
+			while (s.length < size) s = "0" + s;
+			return s;
+	}
+	function BigintClamp(num, min, max) {
+		//Restrict a number within a specified range, bigInt edition.
+		return num <= min ? min : num >= max ? max : num;
+	}
+	//These makes input text act like a number input, pressing UP/DOWN on the arrow keys to increment/decrement it, but with any radixes.
+	//In order for this to apply, have these on the number input:
+	//- Make sure the class contains "AnyRadixNumberInput"
+	//- Specify what radix it is, have the custom attribute [data-input_number_radix="x"] where x
+	//  is a radix number that can be any number 2-36. Examples include: 2 = binary, 10 = decimal (default), 16 = hexadecimal.
+	//To get this to apply, use this:
+	// window.onload = function(){ //Upon loading, apply the function to execute when the up/down arrow keys are pressed.
+	//  UpDownArrowKeysIncrement()
+	// }
+		function UpDownArrowKeysIncrement() {
+			let FocusedElement = document.activeElement;
+			if(FocusedElement.addEventListener ) {
+				FocusedElement.addEventListener('keydown',this.keyHandler,false);
+			} else if(FocusedElement.attachEvent ) {
+				FocusedElement.attachEvent('onkeydown',this.keyHandler);
+			}
+		}
+	
+		function keyHandler(e) {
+			if (((e.code == "ArrowUp")||e.code == "ArrowDown")&&((/(^|\s.*?)AnyRadixNumberInput($|\s.*?)/).test(document.activeElement.className))) {
+				let target;
+				//Handle radix.
+					let Radix = 10
+					if ((/^\d+$/).test(document.activeElement.dataset.input_number_radix)) {
+						Radix = parseInt(document.activeElement.dataset.input_number_radix)
+					}
+				let InputNumber = ParseBigIntValue(document.activeElement.value, Radix) //This gets the number
+				if (!e) var e = window.event;
+				if (e.target) target = e.target;
+				else if (e.srcElement) target = e.srcElement;
+				
+				if(e.code == "ArrowUp") {
+					InputNumber++
+					e.preventDefault()	//Prevents the caret (blinking text cursor) from being placed at the beginning of the line.
+				} else if(e.code == "ArrowDown") {
+					InputNumber--
+				}
+				document.activeElement.value = InputNumber.toString(Radix).toUpperCase()
+				document.activeElement.setSelectionRange(document.activeElement.value.length, document.activeElement.value.length)
+				document.activeElement.onchange()
+			}
+		}
+	function MultiRadixInputs() {
+		//This function is for having multiple inputs each having the same number with different radixes that are linked together if one of them changes.
+		//For this to apply:
+		// - Recommended to use the onchange event to include the effect
+		// - Each linked input shall have an unique id
+		// - Make sure they have [data-input_number_radix="x"] to specify the radix, else it defaults to 10
+		// - Make sure they have [data-list_of_input_radixes_ids_to_update="x"] where X is a space-separated list containing a list of element ids
+		//   to update them to show the same number (but with different radix). Make sure that list does not include the ID of itself element, only others.
+		// This function requires these functions:
+		// - ParseBigIntValue
+		let DefaultRadixEventTarget = 10
+		if (/^\d+$/.test(event.target.dataset.input_number_radix)) {
+			DefaultRadixEventTarget = parseInt(event.target.dataset.input_number_radix)
+		}
+		event.target.value = ParseBigIntValue(event.target.value, DefaultRadixEventTarget).toString(DefaultRadixEventTarget).toUpperCase() //this makes it so that it corrects the input of itself the user entered.
+		let ListOfIds = event.target.dataset.list_of_input_radixes_ids_to_update.match(/[A-Za-z0-9_]+/g)
+		for (let Index = 0; Index < ListOfIds.length; Index++) {
+			let DefaultRadixListOfIds = 10
+			if (/^\d+$/.test(document.getElementById(ListOfIds[Index]).dataset.input_number_radix)) {
+				DefaultRadixListOfIds = parseInt(document.getElementById(ListOfIds[Index]).dataset.input_number_radix)
+			}
+			document.getElementById(ListOfIds[Index]).value = ParseBigIntValue(event.target.value, DefaultRadixEventTarget).toString(DefaultRadixListOfIds).toUpperCase()
+		}
+	}
+	function GetNumberOfTiles() {
+		let NumberOfTiles = (ParseBigIntValue(document.getElementById("StripeHeader_L").value, 10) + 1n) / 2n //L = (NumberOfTiles*2)-1 rearranged into (L+1)/2 = NumbOfTiles
+		let DivsionRemainder = (ParseBigIntValue(document.getElementById("StripeHeader_L").value, 10) + 1n) % 2n
+		if (document.getElementById("StripeHeader_R").checked) {
+			NumberOfTiles = (ParseBigIntValue(document.getElementById("StripeHeader_L").value, 10) / 2n) + 1n//(NumberOfTiles-1)*2 rearranged to (L/2)+1 = NumbOfTiles
+			DivsionRemainder = (ParseBigIntValue(document.getElementById("StripeHeader_L").value, 10) % 2n)
+		}
+		if (NumberOfTiles > 0n) {
+			document.getElementById("HTML_NumberOfTiles").innerHTML = NumberOfTiles.toString(10)
+			if (DivsionRemainder != 0n) {
+				document.getElementById("HTML_NumberOfTiles").innerHTML += " <span style='color: #ff0000;'>(1 leftover byte)</style></span>"
+			}
+		} else {
+			document.getElementById("HTML_NumberOfTiles").innerHTML = "0 (No tiles)"
+		}
+	}
+	function GetLayerData() {
+		let ListOfHHHValue = [
+			"Invalid layer, using HHH value 0", //0 = ?
+			"Invalid layer, using HHH value 1", //1 = ?
+			"Layer 1", //2 = Layer 1
+			"Layer 2", //3 = Layer 2
+			"Invalid layer, using HHH value 4", //4 = ?
+			"Layer 3", //5 = Layer 3
+			"Invalid layer, using HHH value 6", //6 = ?
+			"Invalid layer, using HHH value 7" //7 = ?
+		]
+		document.getElementById("WhichLayer").innerHTML = ListOfHHHValue[parseInt(document.getElementById("StripeHeader_HHH").value)]
+	}
+</script>
