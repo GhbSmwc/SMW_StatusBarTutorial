@@ -104,6 +104,11 @@ on something simple as how to write a value to memory. You should also know abou
 <ul>
 <li><a href="https://www.smwcentral.net/?p=section&a=details&id=26026">Pixi</a></li>
 </ul>
+
+<p>Patching tool:</p>
+<ul>
+<li><a href="https://www.smwcentral.net/?p=section&a=details&id=25953">Asar</a>, for inserting various patches and the sprite HUD patch included.</li>
+</ul>
 <p>Other</p>
 <ul>
 <li><a href="https://www.smwcentral.net/?p=section&a=details&id=19545">Shared Subroutines</a>, if you are running low on space in your hack. Currently, they work on its own without the shared subroutines. To migrate,
@@ -1579,12 +1584,14 @@ Perhaps, if you wanted to display a timer on the HUD in HH:MM:SS.CC (or MM:SS.CC
  !StartTimerMinute = 3
  !StartTimerSeconds = 30
 
-;Don't touch, this makes it so that !StatusBarPosition is always the first
-;character being written (with hours disabled, it starts with the minutes).
-	!StatusBarPositionOfset = 0
-	if !ShowHours == 0
-		!StatusBarPositionOfset = 3
+;Don't touch
+	!StatusBarPositionOfset = 3 ;&gt;Position the timer so that the minutes and lower units move for the hours
+	!MaxTimer = $00034BBF ;&gt;Max time when incrementing, stop at "59:59.98" or "99:59:59.98".
+	if !ShowHours != 0
+		!MaxTimer = $014996FF
+		!StatusBarPositionOfset = 0
 	endif
+	
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -1593,7 +1600,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		REP #$20
 		LDA.w #(!StartTimerHour*216000)+(!StartTimerMinute*3600)+(!StartTimerSeconds*60)
 		STA !RAMToMeasure
-		LDA.w #(!StartTimerHour*216000)+(!StartTimerMinute*3600)+(!StartTimerSeconds*60)>>16
+		LDA.w #(!StartTimerHour*216000)+(!StartTimerMinute*3600)+(!StartTimerSeconds*60)&gt;&gt;16
 		STA !RAMToMeasure+2
 		SEP #$20
 		
@@ -1621,11 +1628,23 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA !RAMToMeasure+2		;|
 		ADC #$0000			;|
 		STA !RAMToMeasure+2		;/
-		BCC ..NoOverflowDetected	;\Cap timer at $FFFFFFFF (19884:06:28.25 is the maximum, however hours can properly display up to 255)
-		LDA #$FFFF			;|
-		STA !RAMToMeasure		;|
-		STA !RAMToMeasure+2		;/
-		..NoOverflowDetected
+		..Cap
+			LDA !RAMToMeasure
+			SEC
+			SBC.w #!MaxTimer
+			LDA !RAMToMeasure+2
+			SBC.w #!MaxTimer&gt;&gt;16
+			SEP #$20
+			BCC ...NotMaxed
+		
+			...Maxed
+				REP #$20
+				LDA.w #!MaxTimer
+				STA !RAMToMeasure
+				LDA.w #!MaxTimer&gt;&gt;16
+				STA !RAMToMeasure+2
+				SEP #$20
+			...NotMaxed
 	else
 		REP #$20			;\Increment frame counter
 		LDA !RAMToMeasure		;|Skip if timer is already 0 and triggered a code.
@@ -1703,7 +1722,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #$80	;\Example code: Fling player upwards.
 		STA $7D		;/
 		RTL
-	endif</pre></td></tr></table>
+	endif
+</pre></td></tr></table>
 	
 <p>This works by taking a 32-bit frame counter (it must increment by 1 every 1/60th of a second, which is the NTSC SNES's game loop speed) and doing repeated divisions by 60:
 <table><tr><td><pre>Frames / 60 = Q: Seconds R: Frames		;&gt;We have seconds (not wrapped 0-59 yet), and frames (wrapped 0-59, then displayed as 0-<abbr title="Actually 98, due to 59/60 = 0.98[3]">99</abbr>)
@@ -2380,7 +2400,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			STA !OverworldBorderPositionProp+(1*2)
 			STA !OverworldBorderPositionProp+(2*2)
 		RTL</pre></td></tr></table></p>
-<p>16-bit n-digit:
+<p>16-bit N-digit:
 <table><tr><td><pre>
 !RAMToMeasure = $60								;&gt;[2 bytes] RAM address you what to show
 !OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border (tile)
@@ -2986,8 +3006,8 @@ like how the RAM defined in <kbd>!Scratchram_CharacterTileTable</kbd> is being u
 <p>For existing custom sprites, you'll have to edit them to display values.</p>
 
 <h3 id="HUDSprites"><a href="#HUDSpritesBack">^</a>HUD-like sprites</h3>
-<p>I provided a patch that merely writes OAM tiles to the screen (does not occupy any types of sprite slots (sprite slots for normal sprites (the ones that take 12/22 slots, by smw's enemies and pixi), cluster, extended, minor extended, bounce sprite, etc.)).
-See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>.</p>
+<p>I provided a <b>patch</b> that merely writes OAM tiles to the screen (does not occupy any types of sprite slots (sprite slots for normal sprites (the ones that take 12/22 slots, by smw's enemies and pixi), cluster, extended, minor extended, bounce sprite, etc.)).
+See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>. To insert, use asar and patch to your game. Settings are in the patch file (defines pertaining the patch itself) and for global, in <kbd>StatusBarRoutinesDefines/Defines.asm</kbd>.</p>
 <h3>Subroutines in OAMBasedHUD.asm</h3>
 <p>Routines-based inputs is almost the same as the layer 3 status bar, you just have to read the comments and description in the code as well as the info in the subroutines to fully understands how this works and how to use it. I do not want to explain everything
 as it would make this tutorial unnecessarily long.</p>
@@ -3645,6 +3665,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		STZ $05						;/
 		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
 		
+		wdm
 		PHX						;&gt;Push 16-bit stripe index
 		SEP #$30					;&gt;8-bit AXY
 		LDA !RAMToMeasure				;\Convert this number to BCD
@@ -3656,7 +3677,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			JSL HexDec_RemoveLeadingZeroes16Bit 	;&gt;Leading spaces, not zeroes
 		endif
 		REP #$20
-		LDA $02,S					;\$00-$01: Stripe index, will be used for following loop to write each pair of bytes
+		LDA $01,S					;\$00-$01: Stripe index, will be used for following loop to write each pair of bytes
 		STA $00						;/(LDA $xx,s merely reads data in stack, which is better than PLX : STX $xx : PHX)
 		SEP #$20
 		REP #$10
@@ -4451,6 +4472,231 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	RTL
 </pre></td></tr></table>
 </p>
+Timer:
+<table><tr><td><pre>
+!RAMToMeasure = $60							;&gt;[4 bytes] the 32-bit frame counter
+
+;Settings
+!Stripe_X_Pos = 1							;\Stripe tile position
+!Stripe_Y_Pos = 26							;/
+
+ !Decrement = 0								;&gt;0 = increment, 1 = decrement
+ !ShowHours = 0								;&gt;0 = MM:SS.CC, 1 = HH:MM:SS.CC
+;Start timer (used only when set to decrement):
+ !StartTimerHour = 0
+ !StartTimerMinute = 3
+ !StartTimerSeconds = 30
+;Tile Properties
+ !TileProps = %00111000							;&gt;Tile properties
+
+;Don't touch
+	;calculates how many tiles to write
+		!HourOffset = 0 ;&gt;This adjusts so that if the hour is included, shift the last 8 tiles to the right by 3 tiles
+		!Timer_NumberOfTilesMinus1 = 7 ;&gt;"00:00.00" is 8 tiles, -1 = 7
+		if !ShowHours != 0
+			!HourOffset = 3
+			!Timer_NumberOfTilesMinus1 = 10 ;&gt;"00:00:00.00" is 11 tiles, -1 = 10
+		endif
+	;Max time value
+		!MaxTimer = $00034BBF
+		if !ShowHours != 0
+			!MaxTimer = $014996FF
+		endif
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+
+	init:
+	if !Decrement != 0
+		REP #$20
+		LDA.w #(!StartTimerHour*216000)+(!StartTimerMinute*3600)+(!StartTimerSeconds*60)
+		STA !RAMToMeasure
+		LDA.w #(!StartTimerHour*216000)+(!StartTimerMinute*3600)+(!StartTimerSeconds*60)&gt;&gt;16
+		STA !RAMToMeasure+2
+		SEP #$20
+		
+	else
+		REP #$20
+		LDA #$0000
+		STA !RAMToMeasure
+		STA !RAMToMeasure+2
+		SEP #$20
+	endif
+	RTL
+
+	main:
+	.Timer
+	LDA $9D			;\Freeze timer if game is frozen in any way.
+	ORA $13D4|!addr		;|
+	BNE ..StopTimer		;/
+	if !Decrement == 0
+		..Increment
+		REP #$20			;\Increment timer
+		LDA !RAMToMeasure		;|
+		CLC				;|
+		ADC #$0001			;|
+		STA !RAMToMeasure		;|
+		LDA !RAMToMeasure+2		;|
+		ADC #$0000			;|
+		STA !RAMToMeasure+2		;/
+		..Cap
+			LDA !RAMToMeasure
+			SEC
+			SBC.w #!MaxTimer
+			LDA !RAMToMeasure+2
+			SBC.w #!MaxTimer&gt;&gt;16
+			SEP #$20
+			BCC ...NotMaxed
+		
+			...Maxed
+				REP #$20
+				LDA.w #!MaxTimer
+				STA !RAMToMeasure
+				LDA.w #!MaxTimer&gt;&gt;16
+				STA !RAMToMeasure+2
+				SEP #$20
+			...NotMaxed
+	else
+		REP #$20			;\Increment frame counter
+		LDA !RAMToMeasure		;|Skip if timer is already 0 and triggered a code.
+		ORA !RAMToMeasure+2		;|
+		BEQ ..StopTimer			;/
+		LDA !RAMToMeasure		;\Decrement frame counter to 0.
+		SEC				;|
+		SBC #$0001			;|
+		STA !RAMToMeasure		;|
+		LDA !RAMToMeasure+2		;|
+		SBC #$0000			;|
+		STA !RAMToMeasure+2		;|
+		BCS ..NoUnderflow		;|\Failsafe
+		LDA #$0000			;||
+		STA !RAMToMeasure		;||
+		STA !RAMToMeasure+2		;|/
+		
+		..NoUnderflow			;/
+		
+		LDA !RAMToMeasure		;\Check again, AFTER subtracting by 1, so that the code executes only once.
+		ORA !RAMToMeasure+2		;|
+		BNE ..NotDecrementedToZero	;/
+		SEP #$20
+		JSL TimerZero			;&gt;Code to execute once.
+		..NotDecrementedToZero
+	endif
+	..StopTimer
+	REP #$20			;\Get timer format
+	LDA !RAMToMeasure		;|
+	STA $00				;|
+	LDA !RAMToMeasure+2		;|
+	STA $02				;|
+	SEP #$20			;|
+	JSL HexDec_Frames2Timer		;/
+	;Stripe
+		LDA.b #!Stripe_X_Pos				;\Position
+		STA $00						;|
+		LDA.b #!Stripe_Y_Pos				;|
+		STA $01						;/
+		LDA #$05					;\Layer
+		STA $02						;/
+		STZ $03						;&gt;D and RLE
+		LDA.b #!Timer_NumberOfTilesMinus1		;\Number of tiles -1
+		STA $04						;|
+		STZ $05						;/
+		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
+		;Set all tile properties
+			LDA.b #!TileProps
+			STA.l $7F837D+4+(0*2)+1,x	;\Minutes/Hours
+			STA.l $7F837D+4+(1*2)+1,x	;/
+			STA.l $7F837D+4+(2*2)+1,x	;&gt;":"
+			STA.l $7F837D+4+(3*2)+1,x	;\Seconds/Minutes
+			STA.l $7F837D+4+(4*2)+1,x	;/
+			STA.l $7F837D+4+(5*2)+1,x	;&gt;"."/":"
+			STA.l $7F837D+4+(6*2)+1,x	;\Centiseconds/Seconds
+			STA.l $7F837D+4+(7*2)+1,x	;/
+			if !ShowHours != 0
+				STA.l $7F837D+4+(8*2)+1,x	;"."
+				STA.l $7F837D+4+(9*2)+1,x	;\Centiseconds
+				STA.l $7F837D+4+(10*2)+1,x	;/
+			endif
+		
+		PHX						;&gt;Push stripe index into stack
+		SEP #$30
+	if !ShowHours != 0
+		;Hours
+			LDA !Scratchram_Frames2TimeOutput
+			JSL HexDec_EightBitHexDec			;&gt;A = 1s, X = 10s
+			STA $00						;&gt;Store 1s in $00
+			STX $01						;&gt;Store the 10s in $01
+			REP #$30					;\Load the 16-bit stripe index from stack into X
+			LDA $01,s					;|
+			TAX						;/
+			SEP #$20
+			LDA $00						;\1s place
+			STA.l $7F837D+4+(1*2),x				;/
+			LDA $01						;\10s place
+			STA.l $7F837D+4+(0*2),x				;/
+		;Colon symbol
+			LDA #$78
+			STA.l $7F837D+4+(2*2),x
+			SEP #$30
+	endif
+	;Minutes
+		LDA !Scratchram_Frames2TimeOutput+1
+		JSL HexDec_EightBitHexDec			;&gt;A = 1s, X = 10s
+		STA $00						;&gt;Store 1s in $00
+		STX $01						;&gt;Store the 10s in $01
+		REP #$30					;\Load the 16-bit stripe index from stack into X
+		LDA $01,s					;|
+		TAX						;/
+		SEP #$20
+		LDA $00						;\1s place
+		STA.l $7F837D+4+((1+!HourOffset)*2),x		;/
+		LDA $01						;\10s place
+		STA.l $7F837D+4+((0+!HourOffset)*2),x		;/
+	;Colon symbol
+		LDA #$78
+		STA.l $7F837D+4+((2+!HourOffset)*2),x
+		SEP #$30
+	;Seconds
+		LDA !Scratchram_Frames2TimeOutput+2
+		JSL HexDec_EightBitHexDec			;&gt;A = 1s, X = 10s
+		STA $00						;&gt;Store 1s in $00
+		STX $01						;&gt;Store the 10s in $01
+		REP #$10					;\Load the 16-bit stripe index from stack into X
+		LDA $01,s					;|
+		TAX						;/
+		SEP #$20
+		LDA $00						;\1s place
+		STA.l $7F837D+4+((4+!HourOffset)*2),x		;/
+		LDA $01						;\10s place
+		STA.l $7F837D+4+((3+!HourOffset)*2),x		;/
+	;Period symbol
+		LDA #$24
+		STA.l $7F837D+4+((5+!HourOffset)*2),x
+		SEP #$30
+	;Centiseconds
+		LDA !Scratchram_Frames2TimeOutput+3
+		JSL HexDec_EightBitHexDec			;&gt;A = 1s, X = 10s
+		STA $00						;&gt;Store 1s in $00
+		STX $01						;&gt;Store the 10s in $01
+		REP #$10					;\Load the 16-bit stripe index from stack into X
+		LDA $01,s					;|
+		TAX						;/
+		SEP #$20
+		LDA $00						;\1s place
+		STA.l $7F837D+4+((7+!HourOffset)*2),x		;/
+		LDA $01						;\10s place
+		STA.l $7F837D+4+((6+!HourOffset)*2),x		;/
+	;Done
+		PLX
+		SEP #$30
+	RTL
+	
+	if !Decrement != 0
+		TimerZero:
+		LDA #$80	;\Example code: Fling player upwards.
+		STA $7D		;/
+		RTL
+	endif
+</pre></td></tr></table>
 <hr>
 <h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
 <ul>
