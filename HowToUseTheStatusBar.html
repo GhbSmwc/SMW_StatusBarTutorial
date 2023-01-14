@@ -2917,11 +2917,11 @@ main:
 					LDA.b #!OverworldBorderPositionTile : STA $00
 					LDA.b #!OverworldBorderPositionTile&gt;&gt;8 : STA $01
 					LDA.b #!OverworldBorderPositionTile&gt;&gt;16 : STA $02
-					if 2 == $01
-						JSL HexDec_WriteStringDigitsToHUD
-					else
-						JSL HexDec_WriteStringDigitsToHUDFormat2
-					endif
+					LDA.b #!OverworldBorderPositionProp : STA $03
+					LDA.b #!OverworldBorderPositionProp&gt;&gt;8 : STA $04
+					LDA.b #!OverworldBorderPositionProp&gt;&gt;16 : STA $05
+					LDA.b #!TileProps : STA $06
+					JSL HexDec_WriteStringDigitsToHUDFormat2
 					..TooMuchDigits
 			endif
 		else
