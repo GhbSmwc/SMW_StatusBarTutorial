@@ -280,7 +280,7 @@ if !Setting_RemoveOrInstall != 0
 									SBC !Freeram_SpriteStatusBarPatchTest_ValueToRepresent		;|
 									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2	;|
 									SBC !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2	;/
-									BCS 
+									BCS ....MaxNotExceed
 									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;\Max exceeded, set current to max.
 									STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent		;|
 									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2	;|
@@ -363,11 +363,13 @@ if !Setting_RemoveOrInstall != 0
 						STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
 						BRA ...Done
 					...Done
-						LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
-						CMP !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
-						BCS ....MaxNotExceed
-						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
-						....MaxNotExceed
+						if !TwoNumberCapping != 0
+							LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+							CMP !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							BCS ....MaxNotExceed
+							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							....MaxNotExceed
+						endif
 					
 			endif
 		PHB		;\In case if you are going to use tables using 16-bit addressing
@@ -413,7 +415,6 @@ if !Setting_RemoveOrInstall != 0
 						PLX								;>Restore.
 						JSL SupressLeadingZeros						;>Remove leading zeroes of the second number.
 					elseif !SpriteStatusBarPatchTest_Mode == 3
-						WDM
 						LDA #$0A							;\#$0A will be converted to the "/" graphic in the digit table
 						STA !Scratchram_CharacterTileTable,x				;/
 						INX								;>That (above) counts as a character.
@@ -727,7 +728,7 @@ if !Setting_RemoveOrInstall != 0
 					REP #$20						;\Positions
 					LDA #!SpriteStatusBarPatchTest_DisplayXPos		;|
 					STA $00							;|
-					LDA #!SpriteStatusBarPatchTest_DisplayXPos		;|
+					LDA #!SpriteStatusBarPatchTest_DisplayYPos		;|
 					STA $02							;|
 					SEP #$20						;/
 				else
