@@ -91,6 +91,16 @@
     !SpriteStatusBarPatchTest_RepeatIcons_EmptyProp = %00110001 ;YXPPCCCT.
     !SpriteStatusBarPatchTest_RepeatIcons_FullNumb = $91
     !SpriteStatusBarPatchTest_RepeatIcons_FullProp = %00110001
+ ;Misc
+  !TwoNumberCapping = 0
+   ;^When displaying 2 numbers or percentage:
+   ; 0 = Allow first number to be greater than second number.
+   ; 1 = First number cannot be greater than second number.
+   ; Not to be confused with !SpriteStatusBarPatchTest_PercentageDisplayCap
+   ; and the repeated icons' not displaying values greater than max, since
+   ; those are only the display is capped while the actual number may be
+   ; higher.
+   
 
 ;SA-1 handling (don't touch):
 	;SA-1
@@ -143,7 +153,6 @@ if !Setting_RemoveOrInstall != 0
 				;x/y
 				;x%
 				..ControllerValueTest
-					wdm
 					LDA $15
 					BIT.b #%00001000
 					BNE ...Up
@@ -255,12 +264,30 @@ if !Setting_RemoveOrInstall != 0
 					endif
 					...Done
 						if or(or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 3)), equal(!SpriteStatusBarPatchTest_Mode, 4))
-							REP #$20
-							LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
-							CMP !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
-							BCS ....MaxNotExceed
-							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
-							....MaxNotExceed
+							if !TwoNumberCapping != 0
+								REP #$20
+								if !SpriteStatusBarPatchTest_Mode != 3
+									;16-bit max value handler
+									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+									CMP !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+									BCS ....MaxNotExceed
+									STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+									....MaxNotExceed
+								else
+									;32-bit max value handler
+									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;\Max - Current: Carry set if no underflow (Max >= Current), otherwise carry clear.
+									SEC								;|
+									SBC !Freeram_SpriteStatusBarPatchTest_ValueToRepresent		;|
+									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2	;|
+									SBC !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2	;/
+									BCS 
+									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;\Max exceeded, set current to max.
+									STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent		;|
+									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2	;|
+									STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2	;/
+									....MaxNotExceed
+								endif
+							endif
 						endif
 						SEP #$20
 			elseif and(greaterequal(!SpriteStatusBarPatchTest_Mode, 5), lessequal(!SpriteStatusBarPatchTest_Mode, 6))

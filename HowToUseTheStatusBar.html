@@ -4882,4 +4882,32 @@ left to right is much faster).</p>
 		}
 		return Output
 	}
+//These makes all <pre>...</pre> have an effect that double-clicking will select all the text
+//in it, to make it easy to copy code and paste it in your ASM stuff.
+//
+//Credit: https://keestalkstech.com/2014/04/click-to-select-all-on-the-pre-element/
+document.addEventListener('dblclick', e => {
+  let pre = getClosest(e.target, "PRE");
+  if (pre) {
+    let range = new Range();
+    range.setStart(pre, 0);
+    range.setEnd(pre, 1);
+    document.getSelection().removeAllRanges();
+    document.getSelection().addRange(range);
+  }
+});
+
+function getClosest(el, tagName) {
+  tagName = tagName && tagName.toUpperCase();
+
+  if (!tagName || !el)
+    return null;
+
+  do
+    if (el.nodeName === tagName)
+      return el;
+  while (el = el.parentNode);
+
+  return null;
+}
 </script>
