@@ -855,8 +855,15 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
 	;Write to status bar
 		LDA.b #!StatusBarPosition : STA $00
-		LDA.b #!StatusBarPosition>>8 : STA $01
-		LDA.b #!StatusBarPosition>>16 : STA $02
+		LDA.b #!StatusBarPosition&gt;&gt;8 : STA $01
+		LDA.b #!StatusBarPosition&gt;&gt;16 : STA $02
+		if !StatusBar_UsingCustomProperties != 0
+			LDA.b #!StatusBarPositionProps : STA $03
+			LDA.b #!StatusBarPositionProps&gt;&gt;8 : STA $04
+			LDA.b #!StatusBarPositionProps&gt;&gt;16 : STA $05
+			LDA.b #!TileProps
+			STA $06
+		endif
 		if !StatusbarFormat == $01
 			JSL HexDec_WriteStringDigitsToHUD
 		else
@@ -909,6 +916,13 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA.b #!StatusBarPosition : STA $00
 		LDA.b #!StatusBarPosition>>8 : STA $01
 		LDA.b #!StatusBarPosition>>16 : STA $02
+		if !StatusBar_UsingCustomProperties != 0
+			LDA.b #!StatusBarPositionProps : STA $03
+			LDA.b #!StatusBarPositionProps&gt;&gt;8 : STA $04
+			LDA.b #!StatusBarPositionProps&gt;&gt;16 : STA $05
+			LDA.b #!TileProps
+			STA $06
+		endif
 		if !StatusbarFormat == $01
 			JSL HexDec_WriteStringDigitsToHUD
 		else
@@ -942,8 +956,8 @@ Here is an example using 2 16-bit numbers:
 !RAMToMeasure = $60								;&gt;[2 bytes] RAM address you what to show
 !RAMToMeasure2 = $62								;&gt;[2 bytes] Same as above
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar
-!NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 !StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above but tile props (when enabled).
+!NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 !TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -993,8 +1007,15 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
 	;Write to status bar
 		LDA.b #!StatusBarPosition : STA $00		;\Set address to write at a given status bar position.
-		LDA.b #!StatusBarPosition>>8 : STA $01		;|
-		LDA.b #!StatusBarPosition>>16 : STA $02		;/
+		LDA.b #!StatusBarPosition&gt;&gt;8 : STA $01		;|
+		LDA.b #!StatusBarPosition&gt;&gt;16 : STA $02		;/
+		if !StatusBar_UsingCustomProperties != 0
+			LDA.b #!StatusBarPositionProps : STA $03		;\Set address to write at a given status bar position.
+			LDA.b #!StatusBarPositionProps&gt;&gt;8 : STA $04		;|
+			LDA.b #!StatusBarPositionProps&gt;&gt;16 : STA $05		;/
+			LDA.b #!TileProps
+			STA $06
+		endif
 		if !StatusbarFormat == $01
 			JSL HexDec_WriteStringDigitsToHUD
 		else
@@ -1007,8 +1028,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 !RAMToMeasure = $60								;&gt;[4 bytes] RAM address you what to show
 !RAMToMeasure2 = $0F3A|!addr							;&gt;[4 bytes] Same as above
 !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar
-!NumberOfDigitsDisplayed = 9							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 !StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above but tile props (when enabled).
+!NumberOfDigitsDisplayed = 9							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 !TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -1062,8 +1083,15 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
 	;Write to status bar
 		LDA.b #!StatusBarPosition : STA $00		;\Set address to write at a given status bar position.
-		LDA.b #!StatusBarPosition>>8 : STA $01		;|
-		LDA.b #!StatusBarPosition>>16 : STA $02		;/
+		LDA.b #!StatusBarPosition&gt;&gt;8 : STA $01		;|
+		LDA.b #!StatusBarPosition&gt;&gt;16 : STA $02		;/
+		if !StatusBar_UsingCustomProperties != 0
+			LDA.b #!StatusBarPositionProps : STA $03		;\Set address to write at a given status bar position.
+			LDA.b #!StatusBarPositionProps&gt;&gt;8 : STA $04		;|
+			LDA.b #!StatusBarPositionProps&gt;&gt;16 : STA $05		;/
+			LDA.b #!TileProps
+			STA $06
+		endif
 		if !StatusbarFormat == $01
 			JSL HexDec_WriteStringDigitsToHUD
 		else
@@ -1081,10 +1109,12 @@ into $00-$02 (little endian), call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd
 on how long the string are (loop-writes are based on the starting byte of an array, not the last) by taking the position, subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the
 routine to write to the HUD:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[2 bytes] RAM address you what to show
-!RAMToMeasure2 = $62							;&gt;[2 bytes] Same as above
-!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$3E	;&gt;Where to write on the status bar. NOTE: This is now the position of the rightmost/last tile (tiles will be written here and before it).
-!NumberOfDigitsDisplayed = 5						;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!RAMToMeasure = $60								;&gt;[2 bytes] RAM address you what to show
+!RAMToMeasure2 = $62								;&gt;[2 bytes] Same as above
+!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$3E		;&gt;Where to write on the status bar. NOTE: This is now the position of the rightmost/last tile (tiles will be written here and before it).
+!StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$3E	;&gt;Same as above but tile props (when enabled).
+!NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -1131,6 +1161,13 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA.b #!StatusBarPosition : STA $00		;\Set address to write at a given status bar position.
 		LDA.b #!StatusBarPosition>>8 : STA $01		;|
 		LDA.b #!StatusBarPosition>>16 : STA $02		;/
+		if !StatusBar_UsingCustomProperties != 0
+			LDA.b #!StatusBarPositionProps : STA $03		;\Set address to write at a given status bar position.
+			LDA.b #!StatusBarPositionProps&gt;&gt;8 : STA $04		;|
+			LDA.b #!StatusBarPositionProps&gt;&gt;16 : STA $05		;/
+			LDA.b #!TileProps
+			STA $06
+		endif
 		if !StatusbarFormat == $01				;\These offset the write position based on how many
 			JSL HexDec_ConvertToRightAligned		;|characters so that it is right-aligned.
 		else
@@ -1148,10 +1185,12 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	<img src="Readme_Files/RightAligned2Numbers.png"></p>
 	32-bit version:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[4 bytes] RAM address you what to show
-!RAMToMeasure2 = $0F3A|!addr						;&gt;[4 bytes] Same as above
-!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$3E	;&gt;Where to write on the status bar. NOTE: This is now the position of the rightmost/last tile (tiles will be written here and before it).
-!NumberOfDigitsDisplayed = 9						;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!RAMToMeasure = $60								;&gt;[4 bytes] RAM address you what to show
+!RAMToMeasure2 = $0F3A|!addr							;&gt;[4 bytes] Same as above
+!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$3E		;&gt;Where to write on the status bar. NOTE: This is now the position of the rightmost/last tile (tiles will be written here and before it).
+!StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$3E	;&gt;Same as above but tile props (when enabled).
+!NumberOfDigitsDisplayed = 9							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -1202,6 +1241,13 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA.b #!StatusBarPosition : STA $00		;\Set address to write at a given status bar position.
 		LDA.b #!StatusBarPosition>>8 : STA $01		;|
 		LDA.b #!StatusBarPosition>>16 : STA $02		;/
+		if !StatusBar_UsingCustomProperties != 0
+			LDA.b #!StatusBarPositionProps : STA $03		;\Set address to write at a given status bar position.
+			LDA.b #!StatusBarPositionProps&gt;&gt;8 : STA $04		;|
+			LDA.b #!StatusBarPositionProps&gt;&gt;16 : STA $05		;/
+			LDA.b #!TileProps
+			STA $06
+		endif
 		if !StatusbarFormat == $01				;\These offset the write position based on how many
 			JSL HexDec_ConvertToRightAligned		;|characters so that it is right-aligned.
 		else

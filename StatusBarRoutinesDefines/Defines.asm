@@ -102,7 +102,7 @@
 
 	;For [WriteStringDigitsToHUD]
 		if !sa1 == 0
-			!Scratchram_CharacterTileTable = $7F844A
+			!Scratchram_CharacterTileTable = $7F8458
 		else
 			!Scratchram_CharacterTileTable = $40414A
 		endif
@@ -121,7 +121,7 @@
 		; --For X/Y display: (!Setting_32bitHexDec_MaxNumberOfDigits*2)+1
 	;For 32-bit timer frame to Hours:Minutes:Seconds:Centiseconds format.
 		if !sa1 == 0
-			!Scratchram_Frames2TimeOutput = $7F846A
+			!Scratchram_Frames2TimeOutput = $7F8458
 		else
 			!Scratchram_Frames2TimeOutput = $40416A
 		endif
@@ -132,19 +132,19 @@
 		; !Scratchram_Frames2TimeOutput+3 = centiseconds (display 00-99)
 	;For percentage converter and displays
 		if !sa1 == 0
-			!Scratchram_PercentageQuantity = $7F846E
+			!Scratchram_PercentageQuantity = $7F846D
 		else
 			!Scratchram_PercentageQuantity = $40416E
 		endif
 		;^[2 bytes] The quantity
 		if !sa1 == 0
-			!Scratchram_PercentageMaxQuantity = $7F8470
+			!Scratchram_PercentageMaxQuantity = $7F846F
 		else
 			!Scratchram_PercentageMaxQuantity = $404170
 		endif
 		;^[2 bytes] The max quantity.
 		if !sa1 == 0
-			!Scratchram_PercentageFixedPointPrecision = $7F8472
+			!Scratchram_PercentageFixedPointPrecision = $7F8471
 		else
 			!Scratchram_PercentageFixedPointPrecision = $404172
 		endif
