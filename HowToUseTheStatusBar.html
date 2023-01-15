@@ -134,12 +134,6 @@ to edit:<br>
 </ul>
 
 Now, for the RAM address, each byte is each 8x8 tile, meaning each time you go to the next address, its the next 8x8 tile number:<br><br>
-Ram mode:
-<ul>
-<li><input type="radio" name="GameType" id="NormalROM" onclick="Calculate()" checked><label for="NormalROM">Normal game (in bank <kbd>$7E</kbd>)</label></li>
-<li><input type="radio" name="GameType" id="SA1ROM" onclick="Calculate()"><label for="SA1ROM">SA-1 using <kbd>$xxxx</kbd> addressing (after applying <kbd>|!addr</kbd>, in bank <kbd>$00</kbd>)</label></li>
-<li><input type="radio" name="GameType" id="SA1ROM_Long" onclick="Calculate()"><label for="SA1ROM_Long">SA-1 using long (bank <kbd>$40</kbd>) addressing (no need <kbd>|!addr</kbd>)</label></li>
-</ul>
 <span id="SMWStatusBarTable"></span><br>
 All of these bytes stored in RAM <kbd>$7E0EF9-$7E0F2E</kbd> are <kbd>TTTTTTTT</kbd>, which means you can only modify the tile number through RAM in-game. You may be wondering, if I wanted to edit the tiles here,
 what value should I put? Well, <kbd>TTTTTTTT</kbd> is actually <i>what tile number to use</i>, from the tile data. When viewing the tile data stored in <kbd>GFX28</kbd> via <a href="https://www.smwcentral.net/?p=section&a=details&id=15671">YY-CHR</a>,
@@ -507,8 +501,8 @@ digits than the maximum by default. If you wanted to remove leading zeroes, I wi
 
 <p>For the overworld border (<abbr title="So far, there isn't any other patches that lets you edit the overworld border similarly to the status bar.">assuming you're using the Overworld Border+ patch</abbr>),
 which is stored in <kbd>GFX2A</kbd>, after calling the HexDec routine, you must add each digit by #$22 (<a href="Readme_Files/OWB_Digits.png" target="_blank">digit graphics are stored as tile numbers $22-$2B</a>),
-and make sure you are using page 1 and not 0 on the tile properties (example, to display the number &ldquo;<font color="red">1</font><font color="blue">2</font>&rdquo;, the values must be <kbd><font color="red">$01</font>+$22 = $23</kbd>
-for the tens and <kbd><font color="blue">$02</font>+$22 = $24</kbd> for the ones). I'll later explain how to display digits on the overworld border later on this document.</p>
+and make sure you are using page 1 and not 0 on the tile properties (example, to display the number &ldquo;<span style="color: red">1</span><span style="color: blue">2</span>&rdquo;, the values must be <kbd><span style="color: red">$01</span>+$22 = $23</kbd>
+for the tens and <kbd><span style="color: blue">$02</span>+$22 = $24</kbd> for the ones). I'll later explain how to display digits on the overworld border later on this document.</p>
 
 
 <p>Create a text file, name it <kbd>StatusBarTest.asm</kbd>. Edit that text file to include only this code:
@@ -1813,23 +1807,23 @@ As of the time of writing this, the rightmost number on Imamelia's timer isn't t
 	</li>
 	This is commonly done in pseudo 8-bit math to produce a potentially 16-bit number, for example with addition:
 <table><tr><td><pre>
-	;Made-up example: #$<font color="blue">12</font><font color="red">34</font> + #$<font color="blue"><u>56</font><font color="red">78</u></font> without carry set.
-		LDA <font color="red">#$34</font>	;\Low byte
+	;Made-up example: #$<span style="color: blue">12</span><span style="color: red">34</span> + #$<span style="color: blue">56</span><span style="color: red">78</span> without carry set.
+		LDA <span style="color: red">#$34</span>	;\Low byte
 		CLC		;|#$34 + #$78 = #$AC
-		ADC <font color="red"><u>#$78</u></font>	;|
+		ADC <span style="color: red">#$78</span>	;|
 		STA $00		;/
-		LDA <font color="blue"><u>#$12</u></font>	;\High byte
-		ADC <font color="blue"><u>#$56</u></font>	;|>If this second number is 8-bit, (for example, $78, you treat it as it has leading zeroes: $0078)
+		LDA <span style="color: blue">#$12</span>	;\High byte
+		ADC <span style="color: blue">#$56</span>	;|>If this second number is 8-bit, (for example, $78, you treat it as it has leading zeroes: $0078)
 		STA $01		;/(#$12 + #$56 = #$68)
 		
 		;$00 to $01 = #$68AC
-	;Another example: #$<font color="blue">FE</font><font color="red">FF</font> + #$<u><font color="blue">02</font><font color="red">01</font></u>, when the carry are set when they overflow
-		LDA <font color="red">#$FF</font>	;\Low byte, #$FF + #$01 = #$0100, carry set and A as 8-bit = #$00.
+	;Another example: #$<span style="color: blue">FE</span><span style="color: red">FF</span> + #$<span style="color: blue">02</span><span style="color: red">01</span>, when the carry are set when they overflow
+		LDA <span style="color: red">#$FF</span>	;\Low byte, #$FF + #$01 = #$0100, carry set and A as 8-bit = #$00.
 		CLC		;|
-		ADC <font color="red">#$01</font>	;|
+		ADC <span style="color: red">#$01</span>	;|
 		STA $00		;/
-		LDA <font color="blue"><u>#$FE</u></font>	;\High byte, #$FE + #$02 + 1 (+1 because of the carry set) = #$0101, A as 8-bit = #$01
-		ADC <font color="blue"><u>#$02</u></font>	;|carry set after this since A went above #$FF.
+		LDA <span style="color: blue">#$FE</span>	;\High byte, #$FE + #$02 + 1 (+1 because of the carry set) = #$0101, A as 8-bit = #$01
+		ADC <span style="color: blue">#$02</span>	;|carry set after this since A went above #$FF.
 		STA $01		;/
 		
 		;$00 to $01 = #$0100, carry set. The actual correct math is #$FEFF + #$0201 = #$10100 but the low 2 bytes are stored in $00-$01.</pre></td></tr></table>
@@ -1863,7 +1857,7 @@ Here are the maximums values of the frame value and their timer equivalents:
 <hr>
 <h2 id="Percentage"><a href="#PercentageBack">^</a>Display a percentage</h2>
 <p>This tutorial display a number representing a percentage of something. Because we are dealing with integers here (The SNES does not support floating point numbers), we have to multiply first before we divide, as every
-arithmetic operation <a href="https://en.wikipedia.org/wiki/Rounding">rounds</a> (specifically, division) the number to an integer.
+arithmetic operation <a href="https://en.wikipedia.org/wiki/Rounding">rounds</a> (specifically, division) the number to an integer:
 <table><tr><td><pre>Improper way of dividing integers:
 	Percentage = (Amount / TotalAmount) * PercentagePrecision
 	
@@ -4808,6 +4802,10 @@ left to right is much faster).</p>
 	<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript">Mozilla</a>: For documenting a lot of Javascript for me to make these scripts in this package</li>
 	<li>StackOverflow for various help relating javascript. And thanks to Elias Zamaria and T.J. Crowder on <a href="https://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript">this post</a>
 	to let me display a javascript-generated number using comma notation to seperate digits into groups of 3.</li>
+	<li><a href="https://keestalkstech.com/2014/04/click-to-select-all-on-the-pre-element/">KeesTalksTech</a> and <a href="https://www.sanwebe.com/2014/04/select-all-text-in-element-on-click">sanwebe</a> for a javascript code that allow the codes
+	presented here to be easily selected by simply double-clicking on them.</li>
+	
+	
 </ul>
 <script>
 	function Calculate() {
@@ -4817,14 +4815,13 @@ left to right is much faster).</p>
 			let StartOfLineXPos = 2n
 			let OnSecondRow = 0n
 			let StatusBarAddress = ParseBigIntValue("0EF9", 16)
-			if (document.getElementById("SA1ROM").checked == true) {
-				StatusBarAddress = ParseBigIntValue("6EF9", 16)
-			} else if (document.getElementById("SA1ROM_Long").checked == true) {
-				StatusBarAddress = ParseBigIntValue("400EF9", 16)
-			}
+			let StatusBarAddress_vanilla = ParseBigIntValue("0EF9", 16)
+			let StatusBarAddress_SA1 = ParseBigIntValue("6EF9", 16)
+			let StatusBarAddress_SA1Long = ParseBigIntValue("400EF9", 16)
+			
 			var Output = ""
 			Output += "<table>"
-			Output += "<tr><th>Tile number/index</th><th>Coordinate</th><th>RAM address</th><th>default tiles and properties ROM address (%TTTTTTTT, %YXPCCCTT)</th></tr>"
+			Output += "<tr><th>Tile number/index</th><th>Coordinate</th><th>RAM address (Vanilla/SA-1/SA-1 long)</th><th>default tiles and properties ROM address (%TTTTTTTT, %YXPCCCTT)</th></tr>"
 			for (LoopCount = 0n; LoopCount < 55n; LoopCount++) {
 				if (LoopCount == 28n) {
 					Output += "<tr><th colspan='4'>Second line</th></tr>"
@@ -4835,7 +4832,7 @@ left to right is much faster).</p>
 				Output += "<tr>"
 				Output += "<td><kbd>" + LoopCount.toString(10) + "</kbd> (<kbd>$" + LoopCount.toString(16).toUpperCase() + "</kbd>)</td>"
 				Output += "<td><kbd>(" + (StartOfLineXPos+(LoopCount-OnSecondRow)).toString(10) + "," + CurrentRowYPos.toString(10) + ")</kbd> (<kbd>($" + (StartOfLineXPos+(LoopCount-OnSecondRow)).toString(16).toUpperCase() + ",$" + CurrentRowYPos.toString(16).toUpperCase() + ")</kbd>)</td>"
-				Output += "<td><kbd>$" + pad((StatusBarAddress+LoopCount).toString(16).toUpperCase(), 4) + "</kbd></td>"
+				Output += "<td><kbd>$" + pad((StatusBarAddress_vanilla+LoopCount).toString(16).toUpperCase(), 4) + "</kbd>/<kbd>$" + pad((StatusBarAddress_SA1+LoopCount).toString(16).toUpperCase(), 4) + "</kbd>/<kbd>$" + pad((StatusBarAddress_SA1Long+LoopCount).toString(16).toUpperCase(), 4) + "</kbd></td>"
 				Output += "<td><kbd>$00" + (ParseBigIntValue("8C89", 16)+(LoopCount*2n)).toString(16).toUpperCase() + "</kbd>, <kbd>$00" + ((ParseBigIntValue("8C89", 16)+(LoopCount*2n))+1n).toString(16).toUpperCase() + "</kbd></td>"
 				Output += "</tr>"
 			}
@@ -4886,13 +4883,14 @@ left to right is much faster).</p>
 //These makes all <pre>...</pre> have an effect that double-clicking will select all the text
 //in it, to make it easy to copy code and paste it in your ASM stuff.
 //
-//Credit: https://keestalkstech.com/2014/04/click-to-select-all-on-the-pre-element/
+//Credit:
+// https://keestalkstech.com/2014/04/click-to-select-all-on-the-pre-element/
+// https://www.sanwebe.com/2014/04/select-all-text-in-element-on-click
 document.addEventListener('dblclick', e => {
   let pre = getClosest(e.target, "PRE");
   if (pre) {
     let range = new Range();
-    range.setStart(pre, 0);
-    range.setEnd(pre, 1);
+    range.selectNodeContents(pre);
     document.getSelection().removeAllRanges();
     document.getSelection().addRange(range);
   }
@@ -4911,4 +4909,5 @@ function getClosest(el, tagName) {
 
   return null;
 }
+
 </script>
