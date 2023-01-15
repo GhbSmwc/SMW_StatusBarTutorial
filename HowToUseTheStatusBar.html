@@ -2302,7 +2302,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	RTL
 </pre></td></tr></table>
 Please note that this only supports status bars whose rows are all 32 tiles each, with each rows are lined up vertically, and each rows are contiguous to each other, else your tiles will not line up vertically.
-Only Super status bar patch, SMB3 status bar, and OWB+ patch have these at the time of writing this.
+Only Super status bar patch, SMB3 status bar, and OWB+ patch have these at the time of writing this. Also note that this is not to be used for stripe images, as stripe images have their own dedicated vertical version
+of tile writes.
 </p>
 
 <h2 id="GraphicalBar"><a href="#GraphicalBarBack">^</a>Display a graphical bar</h2>
