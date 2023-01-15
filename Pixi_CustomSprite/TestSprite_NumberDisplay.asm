@@ -31,6 +31,10 @@
 ;      Precision = 1 [99.95% <= X < 100%] will display 99.9%
 ;      Precision = 2 [99.995% <= X < 100%] will display 99.99%
 ;    1 = yes.
+;extra_byte_4: Capping the actual number (when 2 numbers or percentage are displayed)
+; Not to be confused with EXB3's capping flag, which only caps the displayed number.
+;  0 = no
+;  1 = yes
 
 ;It makes use of the RAM defined as "!Scratchram_CharacterTileTable"
 ;And writes them to OAM.
@@ -137,14 +141,17 @@ SpriteCode:
 					SEP #$20			;/
 				...Done
 					...CheckIfMaxExceed
-						LDA !extra_byte_1
-						CMP #$01
-						BNE .DoneWithControllingNumbers
+						LDA !extra_byte_1,x			;\If zero, skip
+						BEQ .DoneWithControllingNumbers		;/
+						CMP #$03				;\If 3 or higher, skip
+						BCS .DoneWithControllingNumbers		;/
+						LDA !extra_byte_4,x			;\If the cap setting is 0, skip
+						BEQ .DoneWithControllingNumbers		;/
 						REP #$20
-						LDA !Default_RAMToDisplay2
-						CMP !Default_RAMToDisplay
-						BCS ...NotExceed
-						STA !Default_RAMToDisplay
+						LDA !Default_RAMToDisplay2		;\Value2 (max) compares Value1 (current)
+						CMP !Default_RAMToDisplay		;/
+						BCS ...NotExceed			;>If Value2 >= Value1 (or Value1 not exceeding), pass
+						STA !Default_RAMToDisplay		;>Otherwise (value1 exceeds max), set Value1 to max (the capping).
 						...NotExceed
 						SEP #$20
 					BRA .DoneWithControllingNumbers
