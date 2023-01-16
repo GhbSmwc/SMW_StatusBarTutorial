@@ -80,7 +80,10 @@ SpriteCode:
 	;by each of this sprite per frame (2 of this means increment/decrement by 2, for example.)
 		PHB : PHK : PLB
 		LDA $9D						;\Don't do anything when the game is frozen
-		BNE .SkipFreeze					;/
+		;BNE .SkipFreeze					;/>Branch out of bounds.
+		BEQ +
+		JMP .SkipFreeze
+		+
 		LDA !extra_byte_1,x				;\Check state of the sprite to determine how the numbers are controlled.
 		CMP #$03					;/
 		BCS .TimerMode					
@@ -165,8 +168,41 @@ SpriteCode:
 			ADC #$0000					;|
 			STA !Default_RAMToDisplay2			;/
 			SEP #$20					;>Therefore, we increase a 32-bit number with the use of the carry bit from ADC.
+			
+			LDA !extra_byte_1,x
+			CMP #$03
+			BNE ..HourCap
+			
+			..MinuteCap ;$00034BBF (59:59.98) is the max
+				REP #$20
+				LDA #$4BBF
+				SEC
+				SBC !Default_RAMToDisplay
+				LDA #$0003
+				SBC !Default_RAMToDisplay2
+				BCS ...NoExceed
+				LDA #$4BBF
+				STA !Default_RAMToDisplay
+				LDA #$0003
+				STA !Default_RAMToDisplay2
+				...NoExceed
+				BRA .DoneWithControllingNumbers
+			..HourCap ;$014996FF (99:59:59.98) is the max
+				REP #$20
+				LDA #$96FF
+				SEC
+				SBC !Default_RAMToDisplay
+				LDA #$0149
+				SBC !Default_RAMToDisplay2
+				BCS ...NoExceed
+				LDA #$96FF
+				STA !Default_RAMToDisplay
+				LDA #$0149
+				STA !Default_RAMToDisplay2
+				...NoExceed
 		.SkipFreeze
 		.DoneWithControllingNumbers
+		SEP #$20
 	;Handle graphics
 		JSR DrawSprite
 	;And done.
@@ -307,7 +343,7 @@ Graphics:
 			LDX $15E9|!addr					;>Not sure if changing the index 8/16bit mode would destroy this, but here just in case.
 			LDA !extra_byte_3,x
 			AND.b #%00000010
-			BEQ +
+			BNE +
 			
 			CPY #$01					;\Avoid rounding to 0
 			BNE +						;|
@@ -320,7 +356,7 @@ Graphics:
 			
 			LDA !extra_byte_3,x
 			AND.b #%00000100
-			BEQ +
+			BNE +
 			
 			CPY #$02					;\Avoid rounding to 100
 			BNE +						;|
