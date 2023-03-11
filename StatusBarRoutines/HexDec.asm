@@ -1157,7 +1157,7 @@ CountingAnimation16Bit:
 ;  $02 = Layer 1
 ;  $03 = Layer 2
 ;  $05 = Layer 3
-;-$03: Direction and RLE: %DR00000000
+;-$03: Direction and RLE: %DR000000
 ;  D = Direction: 0 = horizontal (rightwards), 1 = vertical (downwards)
 ;  R = RLE: 0 = no (manually write different tiles), 1 = yes (write one
 ;   tile multiple times, based on input $04-$05).
