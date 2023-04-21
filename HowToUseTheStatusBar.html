@@ -653,7 +653,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	<kbd>!Scratchram_32bitHexDecOutput</kbd>.<br>
 	
 	Here is an example using the previously mentioned number, with <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> set to <kbd>9</kbd>, using default <kbd>!Scratchram_32bitHexDecOutput</kbd>.
-	Again, the digits stored in each bytes are ordered in decreasing significant decimal digits (<abbr title="!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)">last byte</abbr> is always
+	Again, the digits stored in each byte are ordered in decreasing significant decimal digits (<abbr title="!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)">last byte</abbr> is always
 	the 1s place, regardless of <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd>'s value)
 	<table>
 	<tr><th>Define relative address</th><th>Default RAM address (normal/Sa-1)</th><th>Output value</th></tr>
@@ -1100,7 +1100,7 @@ Again, use the debugger if you wanted to test the values using the memory editor
 <h4 id="RightAligned"><a href="#RightAlignedBack">^</a>Right aligned display</h3>
 
 <p>But what about right-aligned number display? First things first, if you are displaying a single number, this routine isn't necessary as calling the HexDec routines and replacing leading zeroes with leading spaces
-is automatically right-aligned, therefore only use these routines if you are displaying X/Y. Here is how you do it: After checking if there are too many characters, you then store the RAM address of the <i>rightmost tile position</i>
+is automatically right-aligned, therefore only use these routines (below) if you are displaying X/Y. Here is how you do it: After checking if there are too many characters, you then store the RAM address of the <i>rightmost tile position</i>
 into $00-$02 (little endian), call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedFormat2</kbd> if using the [TTTTTTTT, YXPCCCTT] format), which will modify the position of where to write the digits based
 on how long the string are (loop-writes are based on the starting byte of an array, not the last) by taking the position, subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the
 routine to write to the HUD:
@@ -2174,7 +2174,7 @@ You may be wondering, why am I using 16-bit on some areas (including within the 
 <hr>
 <h2 id="RepeatedSymbol"><a href="#RepeatedSymbolBack">^</a>Displaying repeated symbols n times</h2>
 <p>You probably have seen something like this in most video games that represents individual health using repeated collection of icons with none, some, or all of them &ldquo;filled&rdquo; and/or empty, for example
-4/5 filled shows 5 symbols with 4 of them filled:<br>
+4/5 filled shows 5 symbols with the first 4 of them filled:<br>
 <font size="10">&#9642;&#9642;&#9642;&#9642;&#9643;</font><br>
 SMW actually does this with its yoshi coin counter (some or all of them shows a coin symbol with the rest showing tile $FC). This is often used whenever a number of something is a small amount. Code follows (make sure you insert
 &ldquo;<kbd>RepeatedSymbols.asm</kbd>&rdquo; into uberasm tool's library as well):
@@ -2297,7 +2297,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	endif
 	RTL
 </pre></td></tr></table>
-Please note that this only supports status bars whose rows are all 32 tiles each, with each rows are lined up vertically, and each rows are contiguous to each other, else your tiles will not line up vertically.
+Please note that this only supports status bars whose rows are all 32 tiles each, with each rows are lined up vertically, and each row are contiguous to each other, else your tiles will not line up vertically.
 Only Super status bar patch, SMB3 status bar, and OWB+ patch have these at the time of writing this. Also note that this is not to be used for stripe images, as stripe images have their own dedicated vertical version
 of tile writes.
 </p>
@@ -2330,7 +2330,7 @@ Reason this package not including this is because too much information to be had
 <hr>
 <h2 id="OverworldBorder"><a href="#OverworldBorderBack">^</a>Displaying stuff on the overworld border</h2>
 <p>You may be asking, how do I display information on the overworld border? Well, I have good news, because the only thing you have to do is convert the tile numbering for the status bar to
-the tile numbering of the overworld border, if you are dealing with displaying digits, for non-digit based things like the repeated symbols, just use a different tile number. The graphical
+the tile numbering of the overworld border, if you are dealing with displaying digits. For non-digit based things like the repeated symbols, just use a different tile number. The graphical
 bar to be used on the OWB is already covered in that package. So only the numerical display we'll discuss here.</p>
 
 <p>Please note that for testing some codes below, specifically ones that call subroutines that at least write tile properties into the status bar/OWB+, <b>requires</b> having <kbd>!StatusBar_UsingCustomProperties</kbd>
@@ -3025,7 +3025,7 @@ before transfered into the PPU. SMW reserves the later half (OAM slots 64-127) f
 	<li>We have more information to write to display for sprite tiles.</li>
 	<li>We have to explicitly write their X/Y position, whereas the layer 3, each tile is placed in a grid and have their own address. This also means that OAM can overlap.</li>
 	<li>When writing tiles, we need to find out if the tile is used or not, and what's used can dynamically change, while the layer 3 status bar is mostly static.</li>
-	<li>When using aligned digits display, you no longer have to clear out the tiles prior drawing your digits, since at the beginning of each frame clears out the OAM by setting each OAM Y position to <kbd>$F0</kbd></li>
+	<li>When using aligned digits display, you no longer have to clear out the tiles prior drawing your digits, since at the beginning of each frame, the game clears out the OAM by setting each OAM Y position to <kbd>$F0</kbd></li>
 </ul>
 </p>
 
@@ -3052,7 +3052,7 @@ like how the RAM defined in <kbd>!Scratchram_CharacterTileTable</kbd> is being u
 <p>I provided a <b>patch</b> that merely writes OAM tiles to the screen (does not occupy any types of sprite slots (sprite slots for normal sprites (the ones that take 12/22 slots, by smw's enemies and pixi), cluster, extended, minor extended, bounce sprite, etc.)).
 See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>. To insert, use asar and patch to your game. Settings are in the patch file (defines pertaining the patch itself) and for global, in <kbd>StatusBarRoutinesDefines/Defines.asm</kbd>.</p>
 <h3>Subroutines in OAMBasedHUD.asm</h3>
-<p>Routines-based inputs is almost the same as the layer 3 status bar, you just have to read the comments and description in the code as well as the info in the subroutines to fully understands how this works and how to use it. I do not want to explain everything
+<p>Routines-based inputs is almost the same as the layer 3 status bar, you just have to read the comments and description in the code as well as the info in the subroutines to fully understand how this works and how to use it. I do not want to explain everything
 as it would make this tutorial unnecessarily long.</p>
 
 <p>Here are the subroutines to use. There are 2 variations, with the first one being for pixi sprites and the other with the <kbd>OAMOnly</kbd> (and 16-bit centering) in the name which writes OAM directly without using sprite slots at all.</p>
