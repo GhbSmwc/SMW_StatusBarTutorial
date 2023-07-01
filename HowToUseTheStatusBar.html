@@ -596,7 +596,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	RTL
 </pre></td></tr></table></p>
 
-<p>What about if I wanted to convert 16-bit numbers (or if you have 3-4 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit HexDec
+<p>What about if I wanted to convert 16-bit numbers (or if you have 3-5 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit HexDec
 converters. Here is the code in question (up to 65535). Example, RAM $60 contains the value <kbd>$1234</kbd> (in memory, its <kbd>$34, $12</kbd>), I write my 16-bit number to address
 <kbd>$00-$01</kbd>, then call the subroutine <kbd>SixteenBitHexDecDivision</kbd> after that, the digits of 4660 are stored. Note that this is ordered in decreasing significant decimal digits
 (<abbr title="!Scratchram_16bitHexDecOutput+4">last</abbr> byte = 1s, second-last = 10s...):
