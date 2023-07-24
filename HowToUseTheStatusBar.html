@@ -734,7 +734,7 @@ unused digits always showing 0 on the millions (1000000s) and beyond (so don't d
 <a href="https://www.youtube.com/watch?v=v3-a-zqKfgA">this video</a> came out on how to convert binary to decimal for display.</p>
 
 <h4 id="RemoveLeadingZeroes"><a href="#RemoveLeadingZeroesBack">^</a>Removing leading zeroes (leading spaces)</h4>
-	<p>I've also provided routines that removes leading zeroes by simply replacing the first n digits with tile $FC in the digits table (I call this &ldquo;leading spaces&rdquo;). After calling the the JSL routines to convert them into decimal
+	<p>I've also provided routines that removes leading zeroes by simply replacing the first n digits with tile $FC in the digits table (I call these &ldquo;leading spaces&rdquo;). After calling the the JSL routines to convert them into decimal
 	digits, you then call <kbd>RemoveLeadingZeroes16Bit</kbd> or <kbd>RemoveLeadingZeroes32Bit</kbd> before writing to the status bar. Make sure you match the 16 and 32 bits between hexdec and removing leading zeroes routines. For the 8-bit versions,
 	a routine isn't necessary:
 	<ul>
