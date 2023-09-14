@@ -1240,7 +1240,6 @@ SetupStripe:
 			STA $7F837D+6,x		;/
 			REP #$20
 			LDA $04			;\NumberOfBytes = (NumberOfTiles-1)*2
-			INC
 			ASL			;|
 			SEP #$20		;/
 			BRA ..Write
