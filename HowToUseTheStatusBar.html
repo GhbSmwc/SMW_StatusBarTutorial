@@ -803,8 +803,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 with an icon (or a &ldquo;label&rdquo;) to the left of the number when the number have a small number of digits, you'll have a space in between the icon and the digits, which looks ugly, especially if the number
 have a huge number of digits it can display up to. Or, if you wanted the number display to look more compact. For example, a 5-digit, 16-bit number:<br>
 <img src="Readme_Files/LeadingSpaces.png"><br><br>
-The first routine, <kbd>SupressLeadingZeros</kbd> works like this: Search all the digits in <kbd>!Scratchram_16bitHexDecOutput</kbd>, and copy all the non-leading zero digits on and after the first (leftmost) digit and paste them into
-<kbd>!Scratchram_CharacterTileTable</kbd>. You've now have a &ldquo;compressed string&rdquo; table stored. After this routine, The X register now contains a number incremented for every character being written.
+The first routine, <kbd>SupressLeadingZeros</kbd> works like this: Search all the digits in <kbd>!Scratchram_16bitHexDecOutput</kbd> from left-to-right, and copy all the non-leading zero digits
+on and after the first (leftmost) digit and paste them into <kbd>!Scratchram_CharacterTileTable</kbd>. You've now have a &ldquo;compressed string&rdquo; table stored. After this routine, The X register now contains a number incremented for every character being written.
 See picture below:<br>
 <img src="Readme_Files/NoLeadingZeroesLeftAligned.png"><br>
 When written to the status bar:<br>
