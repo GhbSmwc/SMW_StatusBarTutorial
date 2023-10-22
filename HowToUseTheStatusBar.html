@@ -3032,7 +3032,7 @@ before transfered into the PPU. SMW reserves the later half (OAM slots 64-127) f
 <p>The good news is that most of the stuff are handled by subroutines from here, so you only need to know the basics of programming sprites as well as the inputs/outputs of the subroutines.</p>
 
 <p>Note: These stuff here always handle HUD tiles as 8x8s, and very likely your sprite be composed 16x16 tiles, this means you have to manually set the size bit and have Y = <kbd>$FF</kbd> before calling
-<kbd>%FinishOAMWrite()</kbd> (or <kbd>JSL $01B7B3</kbd>). To do that, see the previously link about the format</p>
+<kbd>%FinishOAMWrite()</kbd> (or <kbd>JSL $01B7B3</kbd>). To do that, see the previously link about the format.</p>
 
 <p>The first thing is to insert the graphics, see <kbd>StatusBarTutorial/ExGFX</kbd>. Filenames are obvious.</p>
 
