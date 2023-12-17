@@ -3708,7 +3708,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		STZ $05						;/
 		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
 		
-		wdm
 		PHX						;&gt;Push 16-bit stripe index
 		SEP #$30					;&gt;8-bit AXY
 		LDA !RAMToMeasure				;\Convert this number to BCD
@@ -4377,7 +4376,6 @@ main:
 				SEP #$30
 				RTL
 			elseif !RightAligned == 0 ;left aligned, N-digit precision
-				wdm
 				LDA #$7F					;\!Scratchram_16bitHexDecOutput+5 to !!Scratchram_16bitHexDecOutput+7: RAM containing stripe tile data to write
 				STA !Scratchram_16bitHexDecOutput+5+2		;|
 				REP #$30					;|
