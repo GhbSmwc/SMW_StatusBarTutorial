@@ -882,9 +882,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;-!Scratchram_Frames2TimeOutput (4 bytes): timer in real world
 	; units format:
 	; -!Scratchram_Frames2TimeOutput+0 = hour
-	; -!Scratchram_Frames2TimeOutput+1 = minutes
-	; -!Scratchram_Frames2TimeOutput+2 = seconds
-	; -!Scratchram_Frames2TimeOutput+3 = centiseconds (display 00 to 99 (actually 00-98 because 59/60 = 0.98[3]))
+	; -!Scratchram_Frames2TimeOutput+1 = minutes (value ranges from 0-59 (#$00-#$3B))
+	; -!Scratchram_Frames2TimeOutput+2 = seconds (value ranges from 0-59 (#$00-#$3B))
+	; -!Scratchram_Frames2TimeOutput+3 = centiseconds (display 00 to 99 (actually 00-98 because 59/60 = 0.98[3], (#$00-#$62)))
 	;Overwritten:
 	;-$00 to $05 was used by division routine
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

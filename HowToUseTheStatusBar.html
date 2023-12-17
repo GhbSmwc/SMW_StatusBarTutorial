@@ -1767,6 +1767,43 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	endif
 </pre></td></tr></table>
 	
+<p>The routine that converts the total number of frames into units of time, <kbd>Frames2Timer</kbd>:
+<table>
+	<tr>
+		<th>Subroutine</th>
+		<th>Input</th>
+		<th>Output</th>
+	</tr>
+	<tr>
+		<td><kbd>Frames2Timer</kbd></td>
+		<td><kbd>$00</kbd>-<kbd>$03</kbd> (32-bit/4-byte): Total number of frames, little endian as always.</td>
+		<td><kbd>Scratchram_Frames2TimeOutput+0</kbd> to <kbd>!Scratchram_Frames2TimeOutput+3</kbd> (4 bytes):<br><br>
+			<table>
+				<tr>
+					<th>!Scratchram_Frames2TimeOutput data</th>
+					<th>Units of time</th>
+				</tr>
+				<tr>
+					<td><kbd>!Scratchram_Frames2TimeOutput+0</kbd></td>
+					<td>Hour</td>
+				</tr>
+				<tr>
+					<td><kbd>!Scratchram_Frames2TimeOutput+1</kbd></td>
+					<td>Minute (value ranges from 0-59 (<kbd>#$00</kbd>-<kbd>#$3B</kbd>))</td>
+				</tr>
+				<tr>
+					<td><kbd>!Scratchram_Frames2TimeOutput+2</kbd></td>
+					<td>Seconds (value ranges from 0-59 (<kbd>#$00</kbd>-<kbd>#$3B</kbd>))</td>
+				</tr>
+				<tr>
+					<td><kbd>!Scratchram_Frames2TimeOutput+3</kbd></td>
+					<td>Approximate centiseconds, calculated via <kbd><abbr title="Rounds nearest to integer; 0&le;X&lt;0.5 rounds down, 0.5&le;X&lt;1 rounds up.">RoundHalfUp</abbr>((Frames MOD 60)*100/60)</kbd>. The value ranges from 0-98 (<kbd>#$00</kbd>-<kbd>#$62</kbd>)), supposedly should be 0-99, but 59/60 is  0.98[3] (bracketed means repeating digits) would round to .98.</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+</p>
 <p>This works by taking a 32-bit frame counter (it must increment by 1 every 1/60th of a second, which is the NTSC SNES's game loop speed) and doing repeated divisions by 60:
 <table><tr><td><pre>Frames / 60 = Q: Seconds R: Frames		;&gt;We have seconds (not wrapped 0-59 yet), and frames (wrapped 0-59, then displayed as 0-<abbr title="Actually 98, due to 59/60 = 0.98[3]">99</abbr>)
 Seconds / 60 = Q: Minutes R: Seconds		;&gt;We have minutes (not wrapped 0-59 yet), and seconds (wrapped 0-59)
@@ -2166,6 +2203,65 @@ which after the HexDec routine, you can write the first n digits, then the decim
 <tr><td>101 (101/1000)</td><td>10.1%</td><td><kbd>!Default_PercentagePrecision = 1</kbd></td><td>Write the decimal point between the 1s and 10s place of the fixed point number. This results in the 1s becoming the tenths, 10s become the 1s and so on.</td></tr>
 <tr><td>2004 (2004/10000)</td><td>20.04%</td><td><kbd>!Default_PercentagePrecision = 2</kbd></td><td>Write the decimal point between the 10s and 100s of the fixed point number. This results in the 1s becoming the hundredths, 10s becomes the tenths, and so on.</td></tr>
 </table><br>
+The function <kbd>ConvertToPercentage</kbd>:
+<table>
+	<tr>
+		<th>Input</th>
+		<th>Output</th>
+	</tr>
+	<tr>
+		<td>
+			<table>
+				<tr><th>RAM</th><th>Description</th></tr>
+				<tr><td><kbd>!Scratchram_PercentageQuantity</kbd> to <kbd>!Scratchram_PercentageQuantity+1</kbd> (2 bytes)</td><td>Numerator of the fraction</td></tr>
+				<tr><td><kbd>!Scratchram_PercentageMaxQuantity</kbd> to <kbd>!Scratchram_PercentageMaxQuantity+1</kbd> (2 bytes)</td><td>Denominator of the fraction</td></tr>
+				<tr>
+					<td>
+						<kbd>Scratchram_PercentageFixedPointPrecision</kbd> (1 byte)
+					</td>
+					<td>Number of digits after decimal point, ranges from <kbd>#$00</kbd> to <kbd>#$02</kbd><br><br>
+						<table>
+							<tr>
+								<th>Value</th>
+								<th>description</th>
+							</tr>
+							<tr>
+								<td><kbd>#$00</kbd></td>
+								<td>Whole percentages. A scaling of 1</td>
+							</tr>
+							<tr>
+								<td><kbd>#$01</kbd></td>
+								<td>1/10th of percentage. A scaling of 1/10</td>
+							</tr>
+							<tr>
+								<td><kbd>#$02</kbd></td>
+								<td>1/100th of percentage. A scaling of 1/100</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+		</td>
+		<td>
+			<table>
+				<tr><th>RAM</th><th>Description</th></tr>
+				<tr><td><kbd>$00</kbd>-<kbd>$03</kbd> (4 bytes)</td><td>Percentage, using fixed point (e.g. 100.00% with <kbd>!Scratchram_PercentageFixedPointPrecision == #$02</kbd> would be 10000 (<kbd>#$2710</kbd>) would be stored here). Why is this 32-bit? To prevent potential overflows.</td></tr>
+				<tr><td><kbd>Y register (8-bit/1-byte, not stored)</kbd></td><td>Rounding to 0% (Y=$01) or 100% (Y=$02) detection. Use to prevent misleading displays.</td></tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table>
+	<tr><th>Destroyed</th><th>description</th></tr>
+	<tr>
+		<td>
+			<kbd>$06</kbd>-<kbd>$07</kbd> (2 bytes)
+		</td>
+		<td>
+			Needed to compare the remainder with half the denominator (for rounding).
+		</td>
+	</tr>
+</table>
 I've made a left-aligned code that automatically writes the decimal point, so no worries if you wanted this format. That template code should have everything you need.<br><br>
 
 You may be wondering, why am I using 16-bit on some areas (including within the <kbd>ConvertToPercentage</kbd>) when I don't need to? Well, this is designed to prevent potential overflows and displaying wrong values.
@@ -2299,7 +2395,87 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 </pre></td></tr></table>
 Please note that this only supports status bars whose rows are all 32 tiles each, with each rows are lined up vertically, and each row are contiguous to each other, else your tiles will not line up vertically.
 Only Super status bar patch, SMB3 status bar, and OWB+ patch have these at the time of writing this. Also note that this is not to be used for stripe images, as stripe images have their own dedicated vertical version
-of tile writes.
+of tile writes.<br><br>
+
+The functions:
+
+<table>
+	<tr>
+		<th>Subroutine name</th>
+		<th>Input</th>
+		<th>Output</th>
+		<th>Notes</th>
+	</tr>
+	<tr>
+		<td>
+			<kbd>WriteRepeatedSymbols</kbd> / <kbd>WriteRepeatedSymbolsLeftwards</kbd> (including <kbd>Format2</kbd>)
+		</td>
+		<td>
+			<table>
+				<tr>
+					<th>Input</th>
+					<th>description</th>
+				</tr>
+				<tr><td><kbd>$00</kbd></td><td>Amount filled</td></tr>
+				<tr><td><kbd>$01</kbd></td><td>Total amount (Maximum)</td></tr>
+				<tr><td><kbd>$02</kbd></td><td>Tile number for empty</td></tr>
+				<tr><td><kbd>$03</kbd></td><td>Tile number for full</td></tr>
+				<tr><td><kbd>$04</kbd>-<kbd>$06</kbd> (3 bytes)</td><td>Status bar address to write tile numbers</td></tr>
+				<tr><td><kbd>$07</kbd></td><td>Tile properties for empty*</td></tr>
+				<tr><td><kbd>$08</kbd></td><td>Tile properties for full*</td></tr>
+				<tr><td><kbd>$09</kbd>-<kbd>$0B</kbd> (3 bytes)</td><td>Status bar address to write tile properties*</td></tr>
+			</table><br>
+		</td>
+		<td>
+			<table>
+				<tr>
+					<th>Output</th>
+					<th>description</th>
+				</tr>
+				<tr><td><kbd>RAM_In_Addr04</kbd> to <kbd>[RAM_In_Addr04 + ((ValueIn01-1) * !StatusbarFormat)]</kbd></td><td>Repeated tiles in question</td></tr>
+				<tr><td><kbd>RAM_In_Addr09</kbd> to <kbd>[RAM_In_Addr09 + ((ValueIn01-1) * !StatusbarFormat)]</kbd></td><td>Repeated tile properties in question.*</td></tr>
+				<tr><td><kbd>$00</kbd></td><td>How much extra fills if exceeding max, otherwise 0; <kbd>FillsLeft = <abbr title="Picks highest number; e.g. max(-1, 0) returns 0">max</abbr>(AmountFilled - TotalAmount, 0)</kbd></td></tr>
+				<tr><td><kbd>$01</kbd></td><td>Will be zero, used as a count down how many tiles left to write.</td></tr>
+			</table>
+		</td>
+		<td>You can use this for stripe images, both vertical and horizontal. If using leftwards on a vertical stripe, it goes upwards, otherwise (rightwards) it goes downwards.</td>
+	</tr>
+	<tr>
+		<td>
+			<kbd>WriteRepeatedSymbolsWriteVertically</kbd> (again, including <kbd>Format2</kbd>)
+		</td>
+		<td>
+			<table>
+				<tr><th>Input</th><th>description</th></tr>
+				<tr><td><kbd>$00</kbd></td><td>Amount filled</td></tr>
+				<tr><td><kbd>$01</kbd></td><td>Total amount (Maximum)</td></tr>
+				<tr><td><kbd>$02</kbd></td><td>Tile number for empty</td></tr>
+				<tr><td><kbd>$03</kbd></td><td>Tile number for full</td></tr>
+				<tr><td><kbd>$04</kbd>-<kbd>$06</kbd> (3 bytes)</td><td>Status bar address to write tile numbers</td></tr>
+				<tr><td><kbd>$07</kbd></td><td>Tile properties for empty*</td></tr>
+				<tr><td><kbd>$08</kbd></td><td>Tile properties for full*</td></tr>
+				<tr><td><kbd>$09</kbd>-<kbd>$0B</kbd> (3 bytes)</td><td>Status bar address to write tile properties*</td></tr>
+				<tr><td><kbd>$0C</kbd></td><td>Direction: <kbd>#$00 = upwards</kbd>, <kbd>#$01 = downwards</kbd>.</td></tr>
+			</table><br>
+		</td>
+		<td>
+			<table>
+				<tr><th>Output</th><th>Description</th></tr>
+				<tr><td><kbd>[RAM_In_Addr04]-(X*32*!StatusbarFormat)</kbd> where X increases from 0 to <kbd>NumberOfTiles-1</kbd>
+				for upwards, <kbd>[RAM_In_Addr04]+(X*32*!StatusbarFormat)</kbd> where X increases from 0 to
+				<kbd>NumberOfTiles-1</kbd> for downwards.</td><td>Tiles written to the status bar.</td></tr>
+				<tr><td><kbd>[RAM_In_Addr09]-(X*32*!StatusbarFormat)</kbd> where X increases from 0 to <kbd>NumberOfTiles-1</kbd>
+				for upwards, <kbd>[RAM_In_Addr09]+(X*32*!StatusbarFormat)</kbd> where X increases from 0 to
+				<kbd>NumberOfTiles-1</kbd> for downwards.</td><td>Tiles properties written to the status bar.*</td></tr>
+				<tr><td><kbd>$00</kbd></td><td>How much extra fills if exceeding max, otherwise 0; <kbd>FillsLeft = max(AmountFilled - TotalAmount, 0)</kbd></td></tr>
+				<tr><td><kbd>$01</kbd></td><td>Will be zero, used as a count down how many tiles left to write.</td></tr>
+			</table><br>
+		</td>
+		<td>Don't use this for stripe.</td>
+	</tr>
+</table>
+<br>
+*If <kbd>!StatusBar_UsingCustomProperties</kbd> set to 1.
 </p>
 
 <h2 id="GraphicalBar"><a href="#GraphicalBarBack">^</a>Display a graphical bar</h2>

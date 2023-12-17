@@ -23,14 +23,13 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ; --$08 (1 byte): Tile properties for full
 ; --$09-$0B (3 bytes): The status bar address of tile properties to write
 
-;Output: 
+;Output:
+; -$00: How many extra fills if exceeding max, otherwise 0; FillsLeft = max(AmountFilled - TotalAmount, 0)
+; -$01: will be 0 as they're being used to count how many tiles left to write.
 ; -RAM_In_Addr04 to [RAM_In_Addr04 + ((ValueIn01-1) * !StatusbarFormat)] The
 ;  repeated tiles in question.
 ; -RAM_In_Addr09 to [RAM_In_Addr09 + ((ValueIn01-1) * !StatusbarFormat)] The
 ;   repeated tile properties in question.
-;Overwritten:
-; $00-$01: will be 0 as they're being used to count
-;  how many tiles left to write.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WriteRepeatedSymbols:
 	LDY #$00
@@ -181,6 +180,8 @@ WriteRepeatedSymbolsLeftwardsFormat2:
 ;  --$09-$0B (3 bytes): Same as $04-$06 but for tile properties.
 ; -$0C (1 byte): Direction, only use these values: $00 = upwards, $01 = downwards
 ;Output:
+; -$00: How many extra fills if exceeding max, otherwise 0; FillsLeft = max(AmountFilled - TotalAmount, 0)
+; -$01: will be 0 as they're being used to count how many tiles left to write.
 ; -[RAM_In_Addr04]-(X*32*!StatusbarFormat) where X increases from 0 to NumberOfTiles-1
 ;  for upwards, [RAM_In_Addr04]+(X*32*!StatusbarFormat) where X increases from 0 to
 ;  NumberOfTiles-1 for downwards:
