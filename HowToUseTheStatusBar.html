@@ -597,9 +597,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 </pre></td></tr></table></p>
 
 <p>What about if I wanted to convert 16-bit numbers (or if you have 3-5 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit HexDec
-converters. Here is the code in question (up to 65535). Example, RAM $60 contains the value <kbd>$1234</kbd> (in memory, its <kbd>$34, $12</kbd>), I write my 16-bit number to address
-<kbd>$00-$01</kbd>, then call the subroutine <kbd>SixteenBitHexDecDivision</kbd> after that, the digits of 4660 are stored. Note that this is ordered in decreasing significant decimal digits
-(<abbr title="!Scratchram_16bitHexDecOutput+4">last</abbr> byte = 1s, second-last = 10s...):
+converters. Introducing <kbd>SixteenBitHexDecDivision</kbd>. Here is the following code in question (up to 65535). Example, RAM $60 contains the value <kbd>$1234</kbd>
+(in memory, its <kbd>$34, $12</kbd>), I write my 16-bit number to address <kbd>$00-$01</kbd>, then call the subroutine <kbd>SixteenBitHexDecDivision</kbd> after that,
+the digits of 4660 are stored. Note that this is ordered in decreasing significant decimal digits (<abbr title="!Scratchram_16bitHexDecOutput+4">last</abbr> byte = 1s, second-last = 10s...):
 <table>
 <tr><th>Define relative address</th><th>RAM address (normal/Sa-1)</th><th>Output value</th></tr>
 <tr><td><kbd>!Scratchram_16bitHexDecOutput+0</kbd></td><td><kbd>$02/$04</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; for 10000s place)</td></tr>
@@ -997,7 +997,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			JSL HexDec_SixteenBitHexDecDivision		;/
 			PLX						;&gt;Restore.
 		;Remove leading zeroes and have it as a character table
-			JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+			JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 		;Prevent writing too much characters.
 			CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
@@ -1073,7 +1073,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			JSL HexDec_ThirtyTwoBitHexDecDivision		;/
 			PLX						;&gt;Restore.
 		;Remove leading zeroes and have it as a character table
-			JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+			JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 		;Prevent writing too much characters.
 			CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
@@ -1149,7 +1149,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			JSL HexDec_SixteenBitHexDecDivision		;/
 			PLX						;&gt;Restore.
 		;Remove leading zeroes and have it as a character table
-			JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+			JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 	;Prevent writing too much characters.
 		CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
 		BCS ..TooMuchDigits				;/not being cleared from the previous code.
@@ -1229,7 +1229,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			JSL HexDec_ThirtyTwoBitHexDecDivision		;/
 			PLX						;&gt;Restore.
 		;Remove leading zeroes and have it as a character table
-			JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+			JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 	;Prevent writing too much characters.
 		CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
 		BCS ..TooMuchDigits				;/not being cleared from the previous code.
@@ -2794,7 +2794,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				JSL HexDec_SixteenBitHexDecDivision		;/
 				PLX						;&gt;Restore.
 			;Remove leading zeroes and have it as a character table
-				JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+				JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 			;Prevent writing too much characters.
 				CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
 				BCS ..TooMuchDigits				;/not being cleared from the previous code.
@@ -2890,7 +2890,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 				JSL HexDec_ThirtyTwoBitHexDecDivision		;/
 			;Remove leading zeroes and have it as a character table
 				LDX #$00					;&gt;Start at character position 0.
-				JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+				JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 		;"/" symbol
 				LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
 				STA !Scratchram_CharacterTileTable,x		;/
@@ -3199,7 +3199,7 @@ main:
 before transfered into the PPU. SMW reserves the later half (OAM slots 64-127) for its main sprites. Unlike layer 3 status bar handling:
 <ul>
 	<li>We have more information to write to display for sprite tiles.</li>
-	<li>We have to explicitly write their X/Y position, whereas the layer 3, each tile is placed in a grid and have their own address. This also means that OAM can overlap.</li>
+	<li>We have to explicitly write their X/Y position, in pixels whereas the layer 3, each tile is placed in a grid and have their own address. Stripe is somewhat similar but is confined to a grid. This also means that OAM can overlap.</li>
 	<li>When writing tiles, we need to find out if the tile is used or not, and what's used can dynamically change, while the layer 3 status bar is mostly static.</li>
 	<li>When using aligned digits display, you no longer have to clear out the tiles prior drawing your digits, since at the beginning of each frame, the game clears out the OAM by setting each OAM Y position to <kbd>$F0</kbd></li>
 </ul>
@@ -3569,7 +3569,7 @@ as it would make this tutorial unnecessarily long.</p>
 	<td>
 		<p>Writes repeated icons into OAM.</p>
 		<p>Horizontal and vertical displacement refers to each displacement (in pixels) of each tile starting from the first tile being written. Negative numbers (<kbd>$80-$FF</kbd>) would write each tile to the left or up and positive numbers (<kbd>$01-$7F</kbd>)
-		would write each to the right or down. This also means it affects the &ldquo;fill direction&rdquo; (e.g if horizontal displacement is <kbd>$F8</kbd>, the icons fill right-to-left) A displacement of <kbd>$00</kbd> means all the icons will be on
+		would write each to the right or down. This also means it affects the &ldquo;fill direction&rdquo; (e.g if horizontal displacement is <kbd>$F8</kbd>, the icons fill right-to-left). A displacement of <kbd>$00</kbd> means all the icons will be on
 		the vertical and/or horizontal axis. Normally, you'll want a displacement value of <kbd>$F8</kbd> or <kbd>$08</kbd> on one axis with the other being <kbd>$00</kbd>. Examples follows:
 		<img src="Readme_Files/RepeatedIconsDisplacements.png">
 		</p>
@@ -3666,7 +3666,7 @@ as it would make this tutorial unnecessarily long.</p>
 			</tr>
 		</table>
 	</td>
-	<td>Calculates the X and Y position (of the first tile) of the repeating icons to be centered around a given point. For more information, see the <a id="SpritePositioningInfo_Back2" href="Readme_Files/SpritePositining.html">this info</a></td>
+	<td>Calculates the X and Y position (of the first tile) of the repeating icons to be centered around a given point. For more information, see <a id="SpritePositioningInfo_Back2" href="Readme_Files/SpritePositining.html">this info</a>.</td>
 </tr>
 </table>
 <hr>
