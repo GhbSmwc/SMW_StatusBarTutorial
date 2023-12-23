@@ -443,7 +443,12 @@ should increment the highword), before calling the routine, and also write the m
 	</tr>
 	<tr>
 		<td><kbd>SupressLeadingZeros</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast2</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast3</kbd>, and <kbd>SupressLeadingZeros32Bit</kbd></td>
-		<td>5 digits</td>
+		<td>
+			<ul>
+			<li>5 digits for <kbd>SupressLeadingZeros</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast2</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast3</kbd></li><br>
+			<li>N digits, with N equal to <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> for <kbd>SupressLeadingZeros32Bit</kbd></li>
+			</ul>
+		</td>
 		<td>
 			<table>
 				<tr>
@@ -2471,7 +2476,7 @@ The functions:
 				<tr><td><kbd>$01</kbd></td><td>Will be zero, used as a count down how many tiles left to write.</td></tr>
 			</table><br>
 		</td>
-		<td>Don't use this for stripe.</td>
+		<td>Don't use this for stripe. Only supports <a href="https://en.wikipedia.org/wiki/Row-_and_column-major_order">row-major</a>-based layer 3 tilemaps for status bar and OWB, whose tiles are all 32 tiles wide</td>
 	</tr>
 </table>
 <br>
