@@ -342,7 +342,7 @@ and if you are tired of using branches, then an even simpler approach is to use 
 
 <p>To display a single digit, just store the value directly to the tile RAM. Digits are correctly displayed if the value is 0-9. Any value greater than 9 will display other symbol or graphics besides digits.</p>
 
-<p>But how do you display multi-digits on the status bar? Well, you use a subroutine that would wrap each digits just like how our real-world decimal number works
+<p>But how do you display multi-digits on the status bar? Well, you need to have a code that obtain decimal digits that wraps at every 10<sup>n</sup> unit.
 (ones place reset every 10s, 10s digit resets every 100th value, and the 1000s digit resets every 10000s, and so on). The routines, <kbd>HexDec</kbd> converts a given number to
 <a href="https://en.wikipedia.org/wiki/Binary-coded_decimal">binary-coded decimal (BCD, unpacked)</a> to write each digit tiles onto the status bar. Thankfully,
 the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have to convert digit numbers to digit graphics.</p>
@@ -572,13 +572,13 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	STA !StatusBarPosition				;&gt; Write 100s place
 	RTL
 </pre></td></tr></table><br>
-The reason why this works is because A is the modulo result of A/10 of the input. Modulo is the division remainder, and can be used to wrap a number
-into a range of <kbd>0</kbd> to <kbd>Divisor-1</kbd> (in this case, 0-9). This is the same as repeated subtraction until the number cannot be subtracted any more (without going into the negatives).
-To handle the higher digits, the loop also counts every successful subtractions by 10, which is how X increases every 10th value. When handling the 100s digit, you
-basically divided the value by 10 again, which is <kbd>!RAMToMeasure/10/10</kbd>, which is the same as <kbd>!RAMToMeasure/(10^2)</kbd> which leads to <kbd>!RAMToMeasure/100</kbd>,
+How this works is that it uses <a href="https://en.wikipedia.org/wiki/Euclidean_division">euclidean division</a>. The subroutine <kbd>HexDec_EightBitHexDec</kbd>
+subtract the input A by 10 repeatedly until A is less than 10, it also counts how many times it subtracted, and have that value in the X register. Because euclidean division
+is essentially repeated subtraction, the output X is the quotient (rounded down) and A is the remainder. With the X register increasing every 10th value, this can represent the
+10s place (since in decimal, 10s place increases at every 10th unit), and with the A register being in the 0-9 range, can represent the ones place (since real-world decimal will wrap when exceeding 9).
+When handling the 100s digit, you basically divided the value by 10 again, which is <kbd>!RAMToMeasure/10/10</kbd>, which is the same as <kbd>!RAMToMeasure/(10^2)</kbd> which leads to <kbd>!RAMToMeasure/100</kbd>,
 resulting A now being the 10s place wrapping every 100 and X increasing every 100. Because the maximum value stored in an 8-bit byte is 255, there is no way the hundreds place digit
-will be able to glitch out at 1000. For more information how base conversion works, I found a wikipedia article on positional notation
-<a href="https://en.wikipedia.org/wiki/Positional_notation#Base_conversion">on converting radixes</a>.</p>
+will be able to glitch out at 1000. For more information how base conversion works, I found a wikipedia article on positional notation <a href="https://en.wikipedia.org/wiki/Positional_notation#Base_conversion">on converting radixes</a>.</p>
 
 <p id="Left2RightHexDec">Do note that this method have a cost: The higher the number to convert to BCD, the more subtractions by 10<sup>1 &rightarrow; (NumberOfDigits-1)</sup> it would take to get all the
 digits outputted, not really harsh since this is 8-bit, so up to 25 iterations for a 2-digit (plus up to 2 more for 10s and 100s by calling the HexDec routine again). However, if you

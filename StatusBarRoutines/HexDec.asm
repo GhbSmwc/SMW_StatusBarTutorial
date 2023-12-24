@@ -167,7 +167,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;HexDec routines.
 ;Converts a given number to binary-coded-decimal
-;(unpacked) digits.
+;(unpacked) digits, via repeated-subtraction or division.
 ;For testing purposes, insert this file to Uberasm Tool's
 ;libary folder.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
