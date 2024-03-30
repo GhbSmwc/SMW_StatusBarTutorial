@@ -1565,10 +1565,6 @@ the display value for you:
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
-	init:
-	LDA #$80
-	STA $7D
-	RTL
 	main:
 	.ChangeAnimation
 		LDA.b #!RAMToMeasure		;\$04-$06: A RAM address containing the Actual number
