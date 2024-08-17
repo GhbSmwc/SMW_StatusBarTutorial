@@ -4124,11 +4124,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			STA $03						;/
 			SEP #$20					
 		endif
-		if !StatusbarFormat == $01
-			JSL HexDec_WriteStringDigitsToHUD
-		else
-			JSL HexDec_WriteStringDigitsToHUDFormat2
-		endif
+		JSL HexDec_WriteStringDigitsToHUDFormat2
 	..StringTooLong
 	RTL
 </pre></td></tr></table>
@@ -4278,11 +4274,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			STA $03						;/
 			SEP #$20					
 		endif
-		if !StatusbarFormat == $01
-			JSL HexDec_WriteStringDigitsToHUD
-		else
-			JSL HexDec_WriteStringDigitsToHUDFormat2
-		endif
+		JSL HexDec_WriteStringDigitsToHUDFormat2
 	..StringTooLong
 	RTL
 </pre></td></tr></table>
@@ -4487,11 +4479,7 @@ main:
 					LDA.b #!TileProps	;\Tile Properties
 					STA $06			;/
 					LDX $07			;&gt;Number of characters
-					if !StatusbarFormat == $01
-						JSL HexDec_WriteStringDigitsToHUD
-					else
-						JSL HexDec_WriteStringDigitsToHUDFormat2
-					endif
+					JSL HexDec_WriteStringDigitsToHUDFormat2
 					RTL
 					..TooMuchDigits
 						PLX
@@ -4610,11 +4598,7 @@ main:
 					LDA #!TileProps				;\Tile properties to use
 					STA $06					;/
 					LDX $07
-					if !StatusbarFormat == $01
-						JSL HexDec_WriteStringDigitsToHUD
-					else
-						JSL HexDec_WriteStringDigitsToHUDFormat2
-					endif
+					JSL HexDec_WriteStringDigitsToHUDFormat2
 					RTL
 				..TooMuchDigits
 				PLX
