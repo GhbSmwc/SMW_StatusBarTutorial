@@ -64,7 +64,7 @@
 	
 	<a href="../HowToUseTheStatusBar.html#Stripe_BackTOC">Back to readme</a>
 	<h1>Stripe header converter</h1>
-	<p>This tools is for debugging if you are wondering if something goes wrong related to the stripe header and you want it in a easily readable format to see if anything is wrong.</p>
+	<p>This tool is for debugging if you are wondering if something goes wrong related to the stripe header and you want it in a easily readable format to see if anything is wrong.</p>
 <table>
 	<tr>
 		<th>Raw byte form</th>
@@ -86,7 +86,7 @@
 		<td colspan="2"><pre id="HideBinaryDisplayIfError">
 EHHHYXyy yyyxxxxx DRllllll LLLLLLLL<br><span id="BinaryDisplay">00000000 00000000 00000000 00000000</span></pre>
 			
-			<kbd>Number of tiles: <span id="HTML_NumberOfTiles">0 (No tiles)</span></kbd><br>
+			<kbd>Number of tiles: <span id="HTML_NumberOfTiles">0 (No tiles)</span><span id="LeftOverByteMessage" style="color:red" hidden> (1 leftover byte)</span></kbd><br>
 			<kbd>Layer: <span id="WhichLayer">Invalid Layer, using value 0</span></kbd>
 		</td>
 	</tr>
@@ -119,7 +119,7 @@ EHHHYXyy yyyxxxxx DRllllll LLLLLLLL<br><span id="BinaryDisplay">00000000 0000000
 			document.getElementById("StripeHeader_X_hex").value = pad((ParseBigIntValue(document.getElementById("StripeHeader_X").value, 10)).toString(16).toUpperCase(), 2)
 			document.getElementById("StripeHeader_L_hex").value = pad((ParseBigIntValue(document.getElementById("StripeHeader_L").value, 10)).toString(16).toUpperCase(), 4)
 			
-			document.getElementById("BinaryDisplay").innerHTML = (pad(ByteArray[0].toString(2), 8)) + " " + (pad(ByteArray[1].toString(2), 8)) + " " + (pad(ByteArray[2].toString(2), 8)) + " " + (pad(ByteArray[3].toString(2), 8))
+			document.getElementById("BinaryDisplay").textContent = (pad(ByteArray[0].toString(2), 8)) + " " + (pad(ByteArray[1].toString(2), 8)) + " " + (pad(ByteArray[2].toString(2), 8)) + " " + (pad(ByteArray[3].toString(2), 8))
 			GetNumberOfTiles()
 			GetLayerData()
 		} else {
@@ -154,7 +154,7 @@ EHHHYXyy yyyxxxxx DRllllll LLLLLLLL<br><span id="BinaryDisplay">00000000 0000000
 		ByteArray[2] |= ((ParseBigIntValue(document.getElementById("StripeHeader_L").value, 10) & 16383n) >> 8n)
 		
 		document.getElementById("RawByteString").value = ((pad(ByteArray[0].toString(16), 2)) + (pad(ByteArray[1].toString(16), 2)) + (pad(ByteArray[2].toString(16), 2)) + (pad(ByteArray[3].toString(16), 2))).toUpperCase()
-		document.getElementById("BinaryDisplay").innerHTML = (pad(ByteArray[0].toString(2), 8)) + " " + (pad(ByteArray[1].toString(2), 8)) + " " + (pad(ByteArray[2].toString(2), 8)) + " " + (pad(ByteArray[3].toString(2), 8))
+		document.getElementById("BinaryDisplay").textContent = (pad(ByteArray[0].toString(2), 8)) + " " + (pad(ByteArray[1].toString(2), 8)) + " " + (pad(ByteArray[2].toString(2), 8)) + " " + (pad(ByteArray[3].toString(2), 8))
 		GetNumberOfTiles()
 		GetLayerData()
 	}
@@ -232,7 +232,7 @@ EHHHYXyy yyyxxxxx DRllllll LLLLLLLL<br><span id="BinaryDisplay">00000000 0000000
 						Radix = parseInt(document.activeElement.dataset.input_number_radix)
 					}
 				let InputNumber = ParseBigIntValue(document.activeElement.value, Radix) //This gets the number
-				if (!e) var e = window.event;
+				if (!e) e = window.event;
 				if (e.target) target = e.target;
 				else if (e.srcElement) target = e.srcElement;
 				
@@ -279,12 +279,15 @@ EHHHYXyy yyyxxxxx DRllllll LLLLLLLL<br><span id="BinaryDisplay">00000000 0000000
 			DivsionRemainder = (ParseBigIntValue(document.getElementById("StripeHeader_L").value, 10) % 2n)
 		}
 		if (NumberOfTiles > 0n) {
-			document.getElementById("HTML_NumberOfTiles").innerHTML = NumberOfTiles.toString(10)
-			if (DivsionRemainder != 0n) {
-				document.getElementById("HTML_NumberOfTiles").innerHTML += " <span style='color: #ff0000;'>(1 leftover byte)</style></span>"
-			}
+			document.getElementById("HTML_NumberOfTiles").textContent = NumberOfTiles.toString(10)
+			document.getElementById("LeftOverByteMessage").hidden = DivsionRemainder == 0n
+//			if (DivsionRemainder != 0n) {
+//				document.getElementById("LeftOverByteMessage").hidden = false
+//			} else {
+//				document.getElementById("LeftOverByteMessage").hidden = true
+//			}
 		} else {
-			document.getElementById("HTML_NumberOfTiles").innerHTML = "0 (No tiles)"
+			document.getElementById("HTML_NumberOfTiles").textContent = "0 (No tiles)"
 		}
 	}
 	function GetLayerData() {
@@ -298,6 +301,6 @@ EHHHYXyy yyyxxxxx DRllllll LLLLLLLL<br><span id="BinaryDisplay">00000000 0000000
 			"Invalid layer, using HHH value 6", //6 = ?
 			"Invalid layer, using HHH value 7" //7 = ?
 		]
-		document.getElementById("WhichLayer").innerHTML = ListOfHHHValue[parseInt(document.getElementById("StripeHeader_HHH").value)]
+		document.getElementById("WhichLayer").textContent = ListOfHHHValue[parseInt(document.getElementById("StripeHeader_HHH").value)]
 	}
 </script>

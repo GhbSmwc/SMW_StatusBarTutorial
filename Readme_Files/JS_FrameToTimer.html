@@ -39,7 +39,7 @@ Seconds:<input type="number" value="00" min="0" max="59" id="TimerSeconds" oncha
 Frames within seconds: <input type="number" value="00" min="0" max="59" id="TimerFramesWithinSeconds" onchange="TimerTo32BitFrame()">
 </td>
 <td>
-	<kbd><span id="GameDisplay"></span></kbd>
+	<kbd><span id="GameDisplay" style="font-family: monospace">00:00:00.00</span></kbd>
 </td>
 </tr>
 </table>
@@ -77,7 +77,7 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 						Radix = parseInt(document.activeElement.dataset.input_number_radix)
 					}
 				let InputNumber = ParseBigIntValue(document.activeElement.value, Radix) //This gets the number
-				if (!e) var e = window.event;
+				if (!e) e = window.event;
 				if (e.target) target = e.target;
 				else if (e.srcElement) target = e.srcElement;
 				
@@ -98,41 +98,41 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 		document.getElementById("TimerMinutes").value = "00"
 		document.getElementById("TimerSeconds").value = "00"
 		document.getElementById("TimerFramesWithinSeconds").value = "00"
-		document.getElementById("GameDisplay").innerHTML = "00:00:00.00"
+		document.getElementById("GameDisplay").textContent = "00:00:00.00"
 	}
 	function ThirtyTwoBitFrameToTimer() {
-		var ThirtyTwoBitFrame = BigintClamp(BigintClamp(CorrectHexBigIntValue(document.getElementById("Timer32BitFrame").value)), 0n, 4294967295n)
+		let ThirtyTwoBitFrame = BigintClamp(BigintClamp(CorrectHexBigIntValue(document.getElementById("Timer32BitFrame").value)), 0n, 4294967295n)
 		document.getElementById("Timer32BitFrame").value = pad(ThirtyTwoBitFrame.toString(16).toUpperCase(), 8n)
 		
-		var TimeFrameWithinSeconds = ThirtyTwoBitFrame % 60n // 60 frames per second (or 1 frame every 1/60th of a second). MOD by 60 gives you a looping counter 0-59, which is later converted to 0-99 by doing [Centiseconds = ((FrameCount MOD 60)*100) / 60]
+		let TimeFrameWithinSeconds = ThirtyTwoBitFrame % 60n // 60 frames per second (or 1 frame every 1/60th of a second). MOD by 60 gives you a looping counter 0-59, which is later converted to 0-99 by doing [Centiseconds = ((FrameCount MOD 60)*100) / 60]
 		document.getElementById("TimerFramesWithinSeconds").value = pad(TimeFrameWithinSeconds.toString(10), 2n)
 		
-		var TimeSeconds = (ThirtyTwoBitFrame/60n) % 60n // Every 60th frame is 1 second
+		let TimeSeconds = (ThirtyTwoBitFrame/60n) % 60n // Every 60th frame is 1 second
 		document.getElementById("TimerSeconds").value = pad(TimeSeconds.toString(10), 2n)
 		
-		var TimeMinutes = (ThirtyTwoBitFrame/3600n) % 60n // ThirtyTwoBitFrame / 60 = number of seconds, divide by 60 again gets the minutes., therefore, [(ThirtyTwoBitFrame/60)/60] simplified to [ThirtyTwoBitFrame/(60*60)]. (invisible denominator of 1, then reciprocal)
+		let TimeMinutes = (ThirtyTwoBitFrame/3600n) % 60n // ThirtyTwoBitFrame / 60 = number of seconds, divide by 60 again gets the minutes., therefore, [(ThirtyTwoBitFrame/60)/60] simplified to [ThirtyTwoBitFrame/(60*60)]. (invisible denominator of 1, then reciprocal)
 		document.getElementById("TimerMinutes").value = pad(TimeMinutes.toString(10), 2n)
 		
-		var TimeHours = (ThirtyTwoBitFrame/216000n) // ThirtyTwoBitFrame divide by 60 gives seconds, divide by 60 again to get minutes, divide by 60 again to get hours, therefore [ThirtyTwoBitFrame/60/60/60] -> [ThirtyTwoBitFrame/(60*60*60)]
+		let TimeHours = (ThirtyTwoBitFrame/216000n) // ThirtyTwoBitFrame divide by 60 gives seconds, divide by 60 again to get minutes, divide by 60 again to get hours, therefore [ThirtyTwoBitFrame/60/60/60] -> [ThirtyTwoBitFrame/(60*60*60)]
 		document.getElementById("TimerHours").value = pad(TimeHours.toString(10), 2n)
 		
 		InGameDisplay(TimeHours, TimeMinutes, TimeSeconds, TimeFrameWithinSeconds)
 	
 	}
 	function TimerTo32BitFrame() {
-		var TimeHours = BigintClamp(CorrectDecBigIntValue(document.getElementById("TimerHours").value), 0n, 19884n)
+		let TimeHours = BigintClamp(CorrectDecBigIntValue(document.getElementById("TimerHours").value), 0n, 19884n)
 		document.getElementById("TimerHours").value = pad(TimeHours.toString(10), 2n)
 		
-		var TimeMinutes = BigintClamp(CorrectDecBigIntValue(document.getElementById("TimerMinutes").value), 0n, 59n)
+		let TimeMinutes = BigintClamp(CorrectDecBigIntValue(document.getElementById("TimerMinutes").value), 0n, 59n)
 		document.getElementById("TimerMinutes").value = pad(TimeMinutes.toString(10), 2n)
 		
-		var TimeSeconds = BigintClamp(CorrectDecBigIntValue(document.getElementById("TimerSeconds").value), 0n, 59n)
+		let TimeSeconds = BigintClamp(CorrectDecBigIntValue(document.getElementById("TimerSeconds").value), 0n, 59n)
 		document.getElementById("TimerSeconds").value = pad(TimeSeconds.toString(10), 2n)
 		
-		var TimeFrameWithinSeconds =  BigintClamp(CorrectDecBigIntValue(document.getElementById("TimerFramesWithinSeconds").value), 0n, 59n)
+		let TimeFrameWithinSeconds =  BigintClamp(CorrectDecBigIntValue(document.getElementById("TimerFramesWithinSeconds").value), 0n, 59n)
 		document.getElementById("TimerFramesWithinSeconds").value = pad(TimeFrameWithinSeconds.toString(10), 2n)
 	
-		var ThirtyTwoBitFrame = (TimeHours*216000n)+(TimeMinutes*3600n)+(TimeSeconds*60n)+TimeFrameWithinSeconds
+		let ThirtyTwoBitFrame = (TimeHours*216000n)+(TimeMinutes*3600n)+(TimeSeconds*60n)+TimeFrameWithinSeconds
 		document.getElementById("Timer32BitFrame").value = pad(ThirtyTwoBitFrame.toString(16).toUpperCase(), 8n)
 		
 		//Prevent entering a timer value that would result a frame counter greater than $FFFFFFFF.
@@ -145,13 +145,13 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 			}
 	}
 	function InGameDisplay(Hrs, Min, Sec, Jiffy) {
-		var Centiseconds = (Jiffy*100n)/60n
+		let Centiseconds = (Jiffy*100n)/60n
 		//Round up if remainder is at least half
 			if ((Jiffy*100n) % 60n >= 30n) {
 				Centiseconds++
 			}
 	
-		document.getElementById("GameDisplay").innerHTML = pad(Hrs, 2n) + ":" + pad(Min, 2n) + ":" + pad(Sec, 2n) + "." + pad(Centiseconds, 2n)
+		document.getElementById("GameDisplay").textContent = pad(Hrs, 2n) + ":" + pad(Min, 2n) + ":" + pad(Sec, 2n) + "." + pad(Centiseconds, 2n)
 	
 	}
 	function BigintClamp(num, min, max) {
@@ -184,7 +184,7 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 		return CanConvertStringToBigInt = BigInt(String)
 	}
 	function pad(num, size) {
-		var s = num+"";
+		let s = num+"";
 		while (s.length < size) s = "0" + s;
 		return s;
 	}

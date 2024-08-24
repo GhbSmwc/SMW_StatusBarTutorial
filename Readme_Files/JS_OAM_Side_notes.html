@@ -135,57 +135,100 @@ number), and <kbd>$7E0420-$7E049F</kbd> (each byte is an OAM slot, formatted as 
 You really don't have to worry about the high bit X position since after finishing your OAM write and calling <kbd>%FinishOAMWrite()</kbd> (or <kbd>JSL $01B7B3</kbd>) will automatically handle the high bit X position for you.
 However, we still need to worry about the size bit as previously mentioned.
 
-<span id="Output"></span>
+<table id="Output"></table>
 
 <script>
-	function pad(num, size) {
-		//This adds leading zeroes. [size] is the number of digits at minimum to show (less than that will fill this with 0s).
-		var s = num+"";
-		while (s.length < size) s = "0" + s;
-		return s;
-	}
 	function GenerateOAMTable() {
-		var SlotNumberCount = 0n
-		var HTMLTable = ""
+		let Address_0200 = BigInt("0x0200")
+		let Address_0420 = BigInt("0x0420")
+		let OutputTable = document.getElementById("Output")
+	
+		let TableRow_Header = document.createElement("tr")
 		
-		//Generate table
-		HTMLTable += "<table>"
-		HTMLTable += "<th>Slot</th><th>Index</th><th>Normal sprite OAM slot numbering (by $15EA/$33A2)</th><th>Normal sprite OAM index numbering (by $15EA/$33A2)</th><th>$0200</th><th>$0420</th>"
-		while (SlotNumberCount < 128n) {
-			//Generate HTML table
-				//Start of row
-					HTMLTable += "<tr>"
-				//Slot number
-					HTMLTable += "<td align='center'><kbd>" + pad(SlotNumberCount.toString(10), 3) + " ($" + pad(SlotNumberCount.toString(16).toUpperCase(), 2) + ")</kbd></td>"
-				//OAM Index
-					HTMLTable += "<td align='center'><kbd>" + pad((SlotNumberCount*4n).toString(10), 3) + " ($" + pad((SlotNumberCount*4n).toString(16).toUpperCase(), 3) + ")</kbd></td>"
-				//Normal sprite slot OAM numbering
-					HTMLTable += "<td align='center'>"
-					if (SlotNumberCount < 64n) {
-						HTMLTable += "N/A"
-					} else {
-						HTMLTable += "<kbd>" + pad((SlotNumberCount-64n).toString(10), 2) + " ($" + pad((SlotNumberCount-64n).toString(16).toUpperCase(), 2) + ")</kbd>"
-					}
-					HTMLTable += "</td>"
-				//Normal sprite slot OAM index numbering
-					HTMLTable += "<td align='center'>"
-					if (SlotNumberCount < 64n) {
-						HTMLTable += "N/A"
-					} else {
-						HTMLTable += "<kbd>" + pad(((SlotNumberCount-64n)*4n).toString(10), 3) + " ($" + pad(((SlotNumberCount-64n)*4n).toString(16).toUpperCase(), 3) + ")</kbd>"
-					}
-					HTMLTable += "</td>"
-				//$0200
-					HTMLTable += "<td align='center'><kbd>$" + pad((BigInt("0x0200")+(SlotNumberCount*4n)).toString(16).toUpperCase(), 4) + "-$" + pad((BigInt("0x0200")+(SlotNumberCount*4n)+3n).toString(16).toUpperCase(), 4) + "</kbd></td>"
-				//$0420
-					HTMLTable += "<td align='center'><kbd>$" + pad((BigInt("0x00420")+SlotNumberCount).toString(16).toUpperCase(), 4) + "</kbd></td>"
-				//End of row
-					HTMLTable += "</tr>"
-			//Next
-				SlotNumberCount++
+		let TableRow_Header_SlotNum = document.createElement("th")
+		TableRow_Header_SlotNum.appendChild(document.createTextNode("Slot"))
+		TableRow_Header.appendChild(TableRow_Header_SlotNum)
+		
+		let TableRow_Header_Index = document.createElement("th")
+		TableRow_Header_Index.appendChild(document.createTextNode("Index (x4)"))
+		TableRow_Header.appendChild(TableRow_Header_Index)
+		
+		let TableRow_Header_153A_Numbering = document.createElement("th")
+		TableRow_Header_153A_Numbering.appendChild(document.createTextNode("Normal sprite OAM slot numbering (by $15EA/$33A2)"))
+		TableRow_Header.appendChild(TableRow_Header_153A_Numbering)
+		
+		let TableRow_Header_153A_NumberingTimes4 = document.createElement("th")
+		TableRow_Header_153A_NumberingTimes4.appendChild(document.createTextNode("Normal sprite OAM index numbering (by $15EA/$33A2)"))
+		TableRow_Header.appendChild(TableRow_Header_153A_NumberingTimes4)
+		
+		let TableRow_Header_0200_Addressing = document.createElement("th")
+		TableRow_Header_0200_Addressing.appendChild(document.createTextNode("$0200"))
+		TableRow_Header.appendChild(TableRow_Header_0200_Addressing)
+		
+		let TableRow_Header_0420_Addressing = document.createElement("th")
+		TableRow_Header_0420_Addressing.appendChild(document.createTextNode("$0420"))
+		TableRow_Header.appendChild(TableRow_Header_0420_Addressing)
+		
+		OutputTable.appendChild(TableRow_Header)
+		
+		for (let SlotNumberCount = 0n; SlotNumberCount < 128n; SlotNumberCount++) {
+			let TableRow_Slot = document.createElement("tr")
+			
+			let TableCell_Slot = document.createElement("td")
+			TableCell_Slot.style.fontFamily = "monospace"
+			TableCell_Slot.style.whiteSpace = "nowrap"
+			TableCell_Slot.style.textAlign = "center"
+			TableCell_Slot.appendChild(document.createTextNode(SlotNumberCount.toString(10).padStart(3, "0") + " ($" + SlotNumberCount.toString(16).toUpperCase().padStart(2, "0") + ")"))
+			TableRow_Slot.appendChild(TableCell_Slot)
+			
+			let TableCell_IndexTimes4 = document.createElement("td")
+			TableCell_IndexTimes4.style.fontFamily = "monospace"
+			TableCell_IndexTimes4.style.whiteSpace = "nowrap"
+			TableCell_IndexTimes4.style.textAlign = "center"
+			TableCell_IndexTimes4.appendChild(document.createTextNode((SlotNumberCount*4n).toString(10).padStart(3, "0") + " ($" + (SlotNumberCount*4n).toString(16).toUpperCase().padStart(4, "0") + ")"))
+			TableRow_Slot.appendChild(TableCell_IndexTimes4)
+			
+			let TableCell_15EA = document.createElement("td")
+			TableCell_15EA.style.fontFamily = "monospace"
+			TableCell_15EA.style.whiteSpace = "nowrap"
+			TableCell_15EA.style.textAlign = "center"
+			let Text_15EA = "N/A"
+			if (SlotNumberCount >= 64n) {
+				let SecondHalfNumbering = SlotNumberCount - 64n
+				Text_15EA = SecondHalfNumbering.toString(10).padStart(2, "0") + " ($" + SecondHalfNumbering.toString(16).toUpperCase().padStart(2, "0") + ")"
+			}
+			TableCell_15EA.appendChild(document.createTextNode(Text_15EA))
+			TableRow_Slot.appendChild(TableCell_15EA)
+			
+			let TableCell_15EATimes4 = document.createElement("td")
+			TableCell_15EATimes4.style.fontFamily = "monospace"
+			TableCell_15EATimes4.style.whiteSpace = "nowrap"
+			TableCell_15EATimes4.style.textAlign = "center"
+			let Text_15EATimes4 = "N/A"
+			if (SlotNumberCount >= 64n) {
+				let SecondHalfNumbering = SlotNumberCount - 64n
+				Text_15EATimes4 = (SecondHalfNumbering*4n).toString(10).padStart(3, "0") + " ($" + (SecondHalfNumbering*4n).toString(16).toUpperCase().padStart(2, "0") + ")"
+			}
+			TableCell_15EATimes4.appendChild(document.createTextNode(Text_15EATimes4))
+			TableRow_Slot.appendChild(TableCell_15EATimes4)
+			
+			let TableCell_0200 = document.createElement("td")
+			TableCell_0200.style.fontFamily = "monospace"
+			TableCell_0200.style.whiteSpace = "nowrap"
+			TableCell_0200.style.textAlign = "center"
+			TableCell_0200.appendChild(document.createTextNode( "$" + (Address_0200 + (SlotNumberCount*4n)).toString(16).toUpperCase().padStart(4, "0") + "-$" + (Address_0200 + (SlotNumberCount*4n) + 3n).toString(16).toUpperCase().padStart(4, "0") ))
+			TableRow_Slot.appendChild(TableCell_0200)
+			
+			let TableCell_0420 = document.createElement("td")
+			TableCell_0420.style.fontFamily = "monospace"
+			TableCell_0420.style.whiteSpace = "nowrap"
+			TableCell_0420.style.textAlign = "center"
+			TableCell_0420.appendChild(document.createTextNode( "$" + (Address_0420+SlotNumberCount).toString(16).toUpperCase().padStart(4, "0")))
+			TableRow_Slot.appendChild(TableCell_0420)
+			
+			
+			
+			OutputTable.appendChild(TableRow_Slot)
 		}
-		HTMLTable += "</table>"
-		document.getElementById("Output").innerHTML = HTMLTable
 	}
-
 </script>

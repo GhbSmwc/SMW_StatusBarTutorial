@@ -29,7 +29,8 @@
 	<kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd>: <input id="MaxNumberOfDigits" type="number" min="1" max="10" value="10" onchange="ComputeDataUsage()"><br>
 	<button onclick="Reset()">Reset</button>
 	<hr>
-	<span id="OutputDisplay"></span>
+	<span id="BytesUsed" style="font-family: monospace"></span>
+	<table id="OutputDisplay"></table>
 </html>
 <script>
 	window.onload = function() {
@@ -47,22 +48,47 @@
 		let NumberOfDigits = BigintClamp(CorrectDecBigIntValue(ParseBigIntValue(document.getElementById("MaxNumberOfDigits").value, 10)), 1n, 10n)
 		document.getElementById("MaxNumberOfDigits").value = NumberOfDigits.toString(10)
 		
-		let OutputHTML = ""
-		
-		OutputHTML += "Number of bytes used: <kbd>" + NumberOfDigits.toString(10) + "</kbd> (<kbd>$" + RAMOutputDigits.toString(16).toUpperCase() + "</kbd> to <kbd>$" + (RAMOutputDigits + (NumberOfDigits-1n)).toString(16).toUpperCase() + "</kbd>)<br>"
-		
-		OutputHTML += "<table>"
-		OutputHTML += "<tr><th>Output RAM address</th><th>Place value</th><th>Digit index</th></tr>"
-		for (let Index = 0n; Index < NumberOfDigits; Index++) {
-			OutputHTML += "<tr>"
-			OutputHTML += "<td><kbd>$" + (RAMOutputDigits + Index).toString(16).toUpperCase() + "</kbd> (<kbd>!Scratchram_32bitHexDecOutput+" + Index.toString(10) + "</kbd>)</td>"
-			OutputHTML += "<td>" + numberWithCommas((10n**(NumberOfDigits - Index - 1n)).toString(10)) + "&apos;s place</td>"
-			OutputHTML += "<td>" + (NumberOfDigits-1n-Index).toString(10) + "</td>"
-			OutputHTML += "</tr>"
+		let OutputTable = document.getElementById("OutputDisplay")
+		while (OutputTable.lastElementChild) {
+			OutputTable.removeChild(OutputTable.lastElementChild)
 		}
-		OutputHTML += "</table>"
-		//Done
-			document.getElementById("OutputDisplay").innerHTML = OutputHTML
+		document.getElementById("BytesUsed").textContent = "Number of bytes used: " + NumberOfDigits.toString(10) + " ($" + RAMOutputDigits.toString(16).toUpperCase() + "-$" + (RAMOutputDigits + (NumberOfDigits-1n)).toString(16).toUpperCase() + ")"
+		let Table_Row_Header = document.createElement("tr")
+		
+		let Table_Header_OuputRAM = document.createElement("th")
+		Table_Header_OuputRAM.appendChild(document.createTextNode("Output RAM"))
+		Table_Row_Header.appendChild(Table_Header_OuputRAM)
+		
+		let Table_Header_PlaceValue = document.createElement("th")
+		Table_Header_PlaceValue.appendChild(document.createTextNode("Place value"))
+		Table_Row_Header.appendChild(Table_Header_PlaceValue)
+		
+		let Table_Header_DigitIndex = document.createElement("th")
+		Table_Header_DigitIndex.appendChild(document.createTextNode("Digit Index"))
+		Table_Row_Header.appendChild(Table_Header_DigitIndex)
+		
+		OutputTable.appendChild(Table_Row_Header)
+		
+		for (let i = 0n; i<NumberOfDigits; i++) {
+			let Row_Digit = document.createElement("tr")
+			
+			let TableCell_RAMAddress = document.createElement("td")
+			TableCell_RAMAddress.style.fontFamily = "monospace"
+			TableCell_RAMAddress.appendChild(document.createTextNode("$" + (RAMOutputDigits + i).toString(16).toUpperCase() + " (!Scratchram_32bitHexDecOutput+" + i.toString(10) + ")"))
+			Row_Digit.appendChild(TableCell_RAMAddress)
+			
+			let TableCell_DigitsPlace = document.createElement("td")
+			TableCell_DigitsPlace.style.fontFamily = "monospace"
+			TableCell_DigitsPlace.appendChild(document.createTextNode(numberWithCommas((10n**(NumberOfDigits - i - 1n)).toString(10)) + "\'s place"))
+			Row_Digit.appendChild(TableCell_DigitsPlace)
+			
+			let TableCell_Index = document.createElement("td")
+			TableCell_Index.style.fontFamily = "monospace"
+			TableCell_Index.appendChild(document.createTextNode((NumberOfDigits-1n-i).toString(10)))
+			Row_Digit.appendChild(TableCell_Index)
+			
+			OutputTable.appendChild(Row_Digit)
+		}
 	}
 	function CorrectDecBigIntValue(String) {
 		//This converts the user's input decimal string (negative numbers not allowed)
@@ -103,7 +129,7 @@
 						Radix = parseInt(document.activeElement.dataset.input_number_radix)
 					}
 				let InputNumber = ParseBigIntValue(document.activeElement.value, Radix) //This gets the number
-				if (!e) var e = window.event;
+				if (!e) e = window.event;
 				if (e.target) target = e.target;
 				else if (e.srcElement) target = e.srcElement;
 				

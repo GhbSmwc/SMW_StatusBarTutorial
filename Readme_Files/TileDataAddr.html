@@ -54,7 +54,9 @@
 	Tile address start: $<input type="text" onchange="Calculate()" value="8000" id="TileAddressStart" class="AnyRadixNumberInput" data-input_number_radix="16"><button onclick="BigintIncreaseDecreaseHexInput(1n, 'TileAddressStart', 0n, 65535n)">+</button><button onclick="BigintIncreaseDecreaseHexInput(-1n, 'TileAddressStart', 0n, 65535n)">-</button>
 	<button onclick="reset()">Reset</button>
 	<hr>
-	<span id="Output"></span>
+	<div style="border: 1px solid white; overflow: scroll; height: 500px;">
+		<table id="Output"></table>
+	</div>
 
 
 
@@ -91,7 +93,7 @@
 						Radix = parseInt(document.activeElement.dataset.input_number_radix)
 					}
 				let InputNumber = ParseBigIntValue(document.activeElement.value, Radix) //This gets the number
-				if (!e) var e = window.event;
+				if (!e) e = window.event;
 				if (e.target) target = e.target;
 				else if (e.srcElement) target = e.srcElement;
 				
@@ -113,25 +115,46 @@
 	}
 	function Calculate() {
 		//Correct inputs
-			var TileAddress = BigintClamp(CorrectHexBigIntValue(document.getElementById("TileAddressStart").value), 0n, BigInt("0xFFFF"))
-			document.getElementById("TileAddressStart").value = pad(TileAddress.toString(16).toUpperCase(), 4)
-			var TileNumbCount = 0n
-			var Output = ""
-			document.getElementById("Output").innerHTML = ""
-			
-			Output += "<table>"
-			Output += "<tr><th colspan='2'>Tile character/number</th><th>Address</th></tr>"
-			for (TileNumbCount = 0n; TileNumbCount < 1024n; TileNumbCount++) {
-				//2^10 = 1024 possible 8x8 tile numbers, if you were to count all the pages.
-				Output += "<tr>"
-				Output += "<td><kbd>$" + pad(TileNumbCount.toString(16).toUpperCase(), 3) + "</kbd></td>"
-				Output += "<td><kbd>$" + pad((TileNumbCount % 256n).toString(16).toUpperCase(), 2) + "</kbd>, page " + (TileNumbCount/256n).toString(10) + "</td>"
-				Output += "<td><kbd>$" + pad((TileAddress + (TileNumbCount * 16n)).toString(16).toUpperCase(), 4) + "</kbd></td>"
-				Output += "</tr>"
+			let TileAddress = BigintClamp(CorrectHexBigIntValue(document.getElementById("TileAddressStart").value), 0n, BigInt("0xFFFF"))
+			document.getElementById("TileAddressStart").value = TileAddress.toString(16).toUpperCase().padStart(4, "0")
+			let OutputTable = document.getElementById("Output")
+			while (OutputTable.lastElementChild) {
+				OutputTable.removeChild(OutputTable.lastElementChild)
 			}
-			Output += "<table>"
+			let TableHeaderTitleRow = document.createElement("tr")
 			
-			document.getElementById("Output").innerHTML = Output
+			let Cell_Title_TileNum = document.createElement("th")
+			Cell_Title_TileNum.colSpan = "2"
+			Cell_Title_TileNum.appendChild(document.createTextNode("Tile character/number"))
+			TableHeaderTitleRow.appendChild(Cell_Title_TileNum)
+			
+			let Cell_Title_Address = document.createElement("th")
+			Cell_Title_Address.appendChild(document.createTextNode("Address"))
+			TableHeaderTitleRow.appendChild(Cell_Title_Address)
+			
+			OutputTable.appendChild(TableHeaderTitleRow)
+			
+			for (i=0n; i< 1024n; i++) {
+				let TableRowItem = document.createElement("tr")
+				
+				let Cell_Index = document.createElement("td")
+				Cell_Index.style.fontFamily = "monospace"
+				Cell_Index.appendChild(document.createTextNode("$" + i.toString(16).toUpperCase().padStart(3, "0")))
+				TableRowItem.appendChild(Cell_Index)
+				
+				let Cell_TileNumPage = document.createElement("td")
+				Cell_TileNumPage.style.fontFamily = "monospace"
+				Cell_TileNumPage.appendChild(document.createTextNode("$" + (i%256n).toString(16).toUpperCase().padStart(2, "0") + ", Page " + (i/256n).toString(10)))
+				TableRowItem.appendChild(Cell_TileNumPage)
+				
+				let CurrentTileAddress = TileAddress + (i*16n)
+				let Cell_TileAddress = document.createElement("td")
+				Cell_TileAddress.style.fontFamily = "monospace"
+				Cell_TileAddress.appendChild(document.createTextNode("$" + CurrentTileAddress.toString(16).toUpperCase().padStart(4, "0")))
+				TableRowItem.appendChild(Cell_TileAddress)
+				
+				OutputTable.appendChild(TableRowItem)
+			}
 	}
 	function BigintClamp(num, min, max) {
 		//Restrict a number within a specified range, bigInt edition.
@@ -153,11 +176,6 @@
 			String = 0n
 		}
 		return CanConvertHexStringToBigInt = BigInt("0x" + String)
-	}
-	function pad(num, size) {
-		var s = num+"";
-		while (s.length < size) s = "0" + s;
-		return s;
 	}
 	function ParseBigIntValue(string, radix) {
 		//Acts more closely to parseInt, unlike other methods (other functions, like CorrectBinBigIntValue)

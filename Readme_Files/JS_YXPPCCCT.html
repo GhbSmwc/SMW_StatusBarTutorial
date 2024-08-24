@@ -46,7 +46,7 @@ Binary: <kbd>%</kbd><input type="text" onchange="UserInputBin()" class="BinNumbe
 	window.onload = Reset()
 	//These makes hex input texts behave like a number input, pressing UP/DOWN on the arrow keys to increment/decrement a hex input.
 		window.onload = function(){
-			var FocusedElement = document.activeElement;
+			let FocusedElement = document.activeElement;
 			if(FocusedElement.addEventListener ) {
 				FocusedElement.addEventListener('keydown',this.keyHandler,false);
 			} else if(FocusedElement.attachEvent ) {
@@ -55,9 +55,9 @@ Binary: <kbd>%</kbd><input type="text" onchange="UserInputBin()" class="BinNumbe
 		}
 		function keyHandler(e) {
 			if (((e.code == "ArrowUp")||e.code == "ArrowDown")&&((/(^|\s.*?)HexNumberInput($|\s.*?)/).test(document.activeElement.className))) {
-				var target;
-				var InputNumber = BigInt(CorrectHexBigIntValue(document.activeElement.value))
-				if (!e) var e = window.event;
+				let target;
+				let InputNumber = BigInt(CorrectHexBigIntValue(document.activeElement.value))
+				if (!e) e = window.event;
 				if (e.target) target = e.target;
 				else if (e.srcElement) target = e.srcElement;
 				
@@ -127,26 +127,26 @@ Binary: <kbd>%</kbd><input type="text" onchange="UserInputBin()" class="BinNumbe
 	//Pad zeroes if fewer digits
 		function pad(num, size) {
 			//This adds leading zeroes. [size] is the number of digits at minimum to show (less than that will fill this with 0s).
-			var s = num+"";
+			let s = num+"";
 			while (s.length < size) s = "0" + s;
 			return s;
 		}
 	//Main functions
 		function UserInputHex() {
-			var InputProp = BigintClamp(CorrectHexBigIntValue(document.getElementById("PropertiesHexInput").value), 0n, 255n)
+			let InputProp = BigintClamp(CorrectHexBigIntValue(document.getElementById("PropertiesHexInput").value), 0n, 255n)
 			document.getElementById("PropertiesHexInput").value = pad(InputProp.toString(16).toUpperCase(), 2)
 			document.getElementById("PropertiesBinInput").value = pad(InputProp.toString(2).toUpperCase(), 8)
 			PropertiesData(InputProp)
 		}
 		function UserInputBin() {
-			var InputProp = BigintClamp(CorrectBinBigIntValue(document.getElementById("PropertiesBinInput").value), 0n, 255n)
+			let InputProp = BigintClamp(CorrectBinBigIntValue(document.getElementById("PropertiesBinInput").value), 0n, 255n)
 			document.getElementById("PropertiesBinInput").value = pad(InputProp.toString(2).toUpperCase(), 8)
 			document.getElementById("PropertiesHexInput").value = pad(InputProp.toString(16).toUpperCase(), 2)
 			PropertiesData(InputProp)
 		}
 		function InputLunarMagicPaletteNumber() {
 			//Convert offset +8 to 0-based palette numbering
-				var PaletteLunarMagicNumb = BigintClamp(CorrectHexBigIntValue(document.getElementById("InputLunarMagicPaletteNumber").value), 8n, 15n)
+				let PaletteLunarMagicNumb = BigintClamp(CorrectHexBigIntValue(document.getElementById("InputLunarMagicPaletteNumber").value), 8n, 15n)
 				document.getElementById("InputLunarMagicPaletteNumber").value = PaletteLunarMagicNumb.toString(16).toUpperCase()
 				document.getElementById("InputPaletteNumber").value = (PaletteLunarMagicNumb - 8n).toString(10)
 			//Update info
@@ -154,39 +154,39 @@ Binary: <kbd>%</kbd><input type="text" onchange="UserInputBin()" class="BinNumbe
 		}
 		function InputPropertiesData() { //Individual data
 			//Page number
-				var PageNumb = 0n
+				let PageNumb = 0n
 				if (document.getElementById("InputPageNumber").checked == true) {
 					PageNumb = 1n
 				}
 			//Palette
-				var PaletteNumb = BigintClamp(CorrectDecBigIntValue(document.getElementById("InputPaletteNumber").value), 0n, 7n)
+				let PaletteNumb = BigintClamp(CorrectDecBigIntValue(document.getElementById("InputPaletteNumber").value), 0n, 7n)
 				document.getElementById("InputLunarMagicPaletteNumber").value = (PaletteNumb + 8n).toString(16).toUpperCase()
 				document.getElementById("InputPaletteNumber").value = PaletteNumb.toString(10)
 			//Priority
-				var PriorityNumb = BigintClamp(CorrectDecBigIntValue(document.getElementById("InputPriorityNumber").value), 0n, 3n)
+				let PriorityNumb = BigintClamp(CorrectDecBigIntValue(document.getElementById("InputPriorityNumber").value), 0n, 3n)
 				document.getElementById("InputPriorityNumber").value = PriorityNumb.toString(10)
 			//XFlip
-				var XFlipNumb = 0n
+				let XFlipNumb = 0n
 				if (document.getElementById("InputXFlipNumber").checked == true) {
 					XFlipNumb = 1n
 				}
 			//YFlip
-				var YFlipNumb = 0n
+				let YFlipNumb = 0n
 				if (document.getElementById("InputYFlipNumber").checked == true) {
 					YFlipNumb = 1n
 				}
 			//Assemble byte
-				var PropByte = (YFlipNumb << 7n) + (XFlipNumb << 6n) + (PriorityNumb << 4n) + (PaletteNumb << 1n) + PageNumb
+				let PropByte = (YFlipNumb << 7n) + (XFlipNumb << 6n) + (PriorityNumb << 4n) + (PaletteNumb << 1n) + PageNumb
 				document.getElementById("PropertiesHexInput").value = pad(PropByte.toString(16).toUpperCase(), 2)
 				document.getElementById("PropertiesBinInput").value = pad(PropByte.toString(2).toUpperCase(), 8)
 		}
 	//Update the properties data
 		function PropertiesData(InputProp) {
-			var PageNumb = InputProp & 1n //the T in YXPPCCCT
-			var PaletteNumb = ((InputProp >> 1n) & 7n) //The CCC
-			var PriorityNumb = ((InputProp >> 4n) & 3n) //PP
-			var XFlipNumb = ((InputProp >> 6n) & 1n) //X
-			var YFlipNumb = ((InputProp >> 7n) & 1n) //Y
+			let PageNumb = InputProp & 1n //the T in YXPPCCCT
+			let PaletteNumb = ((InputProp >> 1n) & 7n) //The CCC
+			let PriorityNumb = ((InputProp >> 4n) & 3n) //PP
+			let XFlipNumb = ((InputProp >> 6n) & 1n) //X
+			let YFlipNumb = ((InputProp >> 7n) & 1n) //Y
 			
 			//Page number
 				if (PageNumb == 0n) {

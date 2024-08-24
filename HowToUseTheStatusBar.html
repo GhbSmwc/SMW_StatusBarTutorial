@@ -136,7 +136,7 @@ to edit:<br>
 </ul>
 
 Now, for the RAM address, each byte is each 8x8 tile, meaning each time you go to the next address, its the next 8x8 tile number:<br><br>
-<span id="SMWStatusBarTable"></span><br>
+<table id="SMWStatusBarTable"></table><br>
 All of these bytes stored in RAM <kbd>$7E0EF9-$7E0F2E</kbd> are <kbd>TTTTTTTT</kbd>, which means you can only modify the tile number through RAM in-game. You may be wondering, if I wanted to edit the tiles here,
 what value should I put? Well, <kbd>TTTTTTTT</kbd> is actually <i>what tile number to use</i>, from the tile data. When viewing the tile data stored in <kbd>GFX28</kbd> via <a href="https://www.smwcentral.net/?p=section&a=details&id=15671">YY-CHR</a>,
 you can find what tile graphic to use by hovering your mouse over the 8x8 tile you want to use. After this, you should see on the bottom bar of the window showing what tile number that is:<br>
@@ -4976,33 +4976,78 @@ left to right is much faster).</p>
 			let StartOfLineXPos = 2n
 			let OnSecondRow = 0n
 			let StatusBarAddress = ParseBigIntValue("0EF9", 16)
-			let StatusBarAddress_vanilla = ParseBigIntValue("0EF9", 16)
 			let StatusBarAddress_SA1 = ParseBigIntValue("6EF9", 16)
 			let StatusBarAddress_SA1Long = ParseBigIntValue("400EF9", 16)
 			
-			var Output = ""
-			Output += "<table>"
-			Output += "<tr><th>Tile number/index</th><th>Coordinate</th><th>RAM address (Vanilla/SA-1/SA-1 long)</th><th>default tiles and properties ROM address (%TTTTTTTT, %YXPCCCTT)</th></tr>"
-			for (LoopCount = 0n; LoopCount < 55n; LoopCount++) {
-				if (LoopCount == 28n) {
-					Output += "<tr><th colspan='4'>Second line</th></tr>"
+			let StatusBarDefaultTileAddress = ParseBigIntValue("008C89", 16)
+			
+			let OutputTable = document.getElementById("SMWStatusBarTable")
+			while (OutputTable.lastElementChild) {
+				OutputTable.removeChild(OutputTable.lastElementChild)
+			}
+			
+			let TableRow_Header = document.createElement("tr")
+			
+			let TableHeaderCell_Index = document.createElement("th")
+			TableHeaderCell_Index.appendChild(document.createTextNode("Tile number/index"))
+			TableRow_Header.appendChild(TableHeaderCell_Index)
+			
+			let TableHeaderCell_Coordinate = document.createElement("th")
+			TableHeaderCell_Coordinate.appendChild(document.createTextNode("Coordinate"))
+			TableRow_Header.appendChild(TableHeaderCell_Coordinate)
+			
+			let TableHeaderCell_StatusBarRAM = document.createElement("th")
+			TableHeaderCell_StatusBarRAM.appendChild(document.createTextNode("RAM address (Vanilla/SA-1/SA-1 long)"))
+			TableRow_Header.appendChild(TableHeaderCell_StatusBarRAM)
+			
+			let TableHeaderCell_DefaultTiles = document.createElement("th")
+			TableHeaderCell_DefaultTiles.appendChild(document.createTextNode("default tiles and properties ROM address (%TTTTTTTT, %YXPCCCTT)"))
+			TableRow_Header.appendChild(TableHeaderCell_DefaultTiles)
+			
+			OutputTable.appendChild(TableRow_Header)
+			
+			for (let i=0n; i<55n; i++) {
+				if (i == 28n) {
+					let TableRow_SecondRowMsg = document.createElement("tr")
+					let TableCell_SecondRowMsg = document.createElement("th")
+					TableCell_SecondRowMsg.appendChild(document.createTextNode("Second line"))
+					TableCell_SecondRowMsg.colSpan = "4"
+					TableRow_SecondRowMsg.appendChild(TableCell_SecondRowMsg)
+					OutputTable.appendChild(TableRow_SecondRowMsg)
+				
 					CurrentRowYPos = 3n
 					StartOfLineXPos = 3n
 					OnSecondRow = 28n
 				}
-				Output += "<tr>"
-				Output += "<td><kbd>" + LoopCount.toString(10) + "</kbd> (<kbd>$" + LoopCount.toString(16).toUpperCase() + "</kbd>)</td>"
-				Output += "<td><kbd>(" + (StartOfLineXPos+(LoopCount-OnSecondRow)).toString(10) + "," + CurrentRowYPos.toString(10) + ")</kbd> (<kbd>($" + (StartOfLineXPos+(LoopCount-OnSecondRow)).toString(16).toUpperCase() + ",$" + CurrentRowYPos.toString(16).toUpperCase() + ")</kbd>)</td>"
-				Output += "<td><kbd>$" + pad((StatusBarAddress_vanilla+LoopCount).toString(16).toUpperCase(), 4) + "</kbd>/<kbd>$" + pad((StatusBarAddress_SA1+LoopCount).toString(16).toUpperCase(), 4) + "</kbd>/<kbd>$" + pad((StatusBarAddress_SA1Long+LoopCount).toString(16).toUpperCase(), 4) + "</kbd></td>"
-				Output += "<td><kbd>$00" + (ParseBigIntValue("8C89", 16)+(LoopCount*2n)).toString(16).toUpperCase() + "</kbd>, <kbd>$00" + ((ParseBigIntValue("8C89", 16)+(LoopCount*2n))+1n).toString(16).toUpperCase() + "</kbd></td>"
-				Output += "</tr>"
+				let TableRow_TileData = document.createElement("tr")
+				
+				let TableCell_TileIndex = document.createElement("td")
+				TableCell_TileIndex.style.fontFamily = "monospace"
+				TableCell_TileIndex.appendChild(document.createTextNode(i.toString(10).padStart(2, "0") + " ($" + i.toString(16).toUpperCase().padStart(2, "0") + ")"))
+				TableRow_TileData.appendChild(TableCell_TileIndex)
+				
+				let TableCell_Coordinate = document.createElement("td")
+				TableCell_Coordinate.style.fontFamily = "monospace"
+				TableCell_Coordinate.appendChild(document.createTextNode("(" + (StartOfLineXPos+i-OnSecondRow).toString(10) + ", " + CurrentRowYPos.toString(10) + "), Hex: ($" + (StartOfLineXPos+i-OnSecondRow).toString(16).toUpperCase() + ", $" + CurrentRowYPos.toString(16).toUpperCase() + ")" ))
+				TableRow_TileData.appendChild(TableCell_Coordinate)
+				
+				let TableCell_Addresses = document.createElement("td")
+				TableCell_Addresses.style.fontFamily = "monospace"
+				TableCell_Addresses.appendChild(document.createTextNode("$" + (StatusBarAddress+i).toString(16).toUpperCase().padStart(4, "0") + "/$" + (StatusBarAddress_SA1+i).toString(16).toUpperCase().padStart(4, "0") + "/$" + (StatusBarAddress_SA1Long+i).toString(16).toUpperCase().padStart(6, "0")))
+				TableRow_TileData.appendChild(TableCell_Addresses)
+				
+				let TableCell_DefaultTiles = document.createElement("td")
+				TableCell_DefaultTiles.style.fontFamily = "monospace"
+				TableCell_DefaultTiles.appendChild(document.createTextNode("$" + (StatusBarDefaultTileAddress+(i*2n)).toString(16).toUpperCase().padStart(6, "0") + ", $" + (StatusBarDefaultTileAddress+(i*2n)+1n).toString(16).toUpperCase().padStart(6, "0")))
+				TableRow_TileData.appendChild(TableCell_DefaultTiles)
+				
+				
+				OutputTable.appendChild(TableRow_TileData)
 			}
-			Output += "<table>"
-			document.getElementById("SMWStatusBarTable").innerHTML = Output
 		
 	}
 	function pad(num, size) {
-		var s = num+"";
+		let s = num+"";
 		while (s.length < size) s = "0" + s;
 		return s;
 	}
