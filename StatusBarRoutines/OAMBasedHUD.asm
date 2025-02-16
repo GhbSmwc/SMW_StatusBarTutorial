@@ -1,4 +1,5 @@
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;NOTE: Not for use on uberasm tool, for shared subroutines called by custom sprites or
 ;Patch_SpriteStatusBarTest.asm
 

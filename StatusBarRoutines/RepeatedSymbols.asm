@@ -1,6 +1,5 @@
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
-
 ;Routines listed
 ; - Horizontal (can be used on stripe image)
 ; -- WriteRepeatedSymbols

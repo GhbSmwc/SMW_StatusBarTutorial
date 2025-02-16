@@ -1,3 +1,27 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;SA-1 handling (don't touch here)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Only include this if there is no SA-1 detection, such as including this
+;in a (seperate) patch.
+if defined("sa1") == 0
+	!dp = $0000
+	!addr = $0000
+	!sa1 = 0
+	!gsu = 0
+
+	if read1($00FFD6) == $15
+		sfxrom
+		!dp = $6000
+		!addr = !dp
+		!gsu = 1
+	elseif read1($00FFD5) == $23
+		sa1rom
+		!dp = $3000
+		!addr = $6000
+		!sa1 = 1
+	endif
+endif
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Defines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -75,6 +99,10 @@
 	;Position to display most things onto the HUD for various elements (numbers, repeated icons, etc.)
 		!StatusBar_TestDisplayElement_PosX = 0
 		!StatusBar_TestDisplayElement_PosY = 0
+	;Position to display right-aligned numbers (This is the position of the rightmost tile, a position entered here will take this
+	;position and anything to the left)
+		!StatusBar_TestDisplayRightAlignedNumber_PosX = 31
+		!StatusBar_TestDisplayRightAlignedNumber_PosY = 0
 	;RAM to display its amount. The number of bytes used on each of these are obvious. Also obvious to avoid running multiple ASM
 	;files for a level using the same RAM at the same time.
 		;For 8-bit counters
@@ -85,6 +113,7 @@
 			!StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes = $62
 		;32-bit counters
 			!StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes = $60
+			!StatusBar_TestDisplayElement_RAMToDisplay2_4Bytes = $0F3A|!addr
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Don't edit unless you know what you're doing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -112,4 +141,7 @@
 	if !UsingCustomStatusBar != 0
 		!Default_GraphicalBar_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
 		!Default_GraphicalBar_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
+		
+		!Default_GraphicalBar_RightAlignedText_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayRightAlignedNumber_PosX, !StatusBar_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
+		!Default_GraphicalBar_RightAlignedText_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayRightAlignedNumber_PosX, !StatusBar_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
 	endif
