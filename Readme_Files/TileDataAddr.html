@@ -29,29 +29,16 @@
 	<p>Perhaps, you came to this place because you don't want to use YY-CHR and/or just find the tile graphic directly from the game itself. I have good news,
 	this is also possible via a debugger. Consider looking at this image:<br>
 	<img src="TileViewer.png"><br>
-	When you select a tile, you are not given the tile number, but rather the address, as shown circled. For a vanilla SMW, conversion is thankfully the middle two hex digits
-	of the 4, for example, selecting the &ldquo;9&rdquo; graphic is address <kbd>$8<u>09</u>0</kbd>, which is tile <kbd>$09</kbd>, this implies that
-	<abbr title="2BPP = 2 bits per pixel, 8x8 tiles have 64 pixels total, so 2 bits * 64 pixels = 128 bits per 8x8 tile, 128 bits = 16 bytes">each 8x8 tile is <kbd>$10</kbd> bytes long</abbr>.
-	For other pages of the tile graphic (equivalent to the <kbd>TT</kbd> bits in <kbd>YXPCCCTT</kbd>, will be mentioned later), the leftmost digit of the 4 correspond to what page number it is:
-	<table>
-	<tr><td><kbd>Tile data address</kbd></td><td>Page number</td></tr>
-	<tr><td><kbd>$8XX0</kbd></td><td>Page 0</td></tr>
-	<tr><td><kbd>$9XX0</kbd></td><td>Page 1</td></tr>
-	<tr><td><kbd>$AXX0</kbd></td><td>Page 2</td></tr>
-	<tr><td><kbd>$BXX0</kbd></td><td>Page 3</td></tr>
-	</table><br>
+	When you select a tile, you are not given the tile number, but rather the address, as shown circled.<br><br>
 	Now, there is a reason why I use the same <kbd>TT</kbd> in tile properties as the tile number <kbd>TTTTTTTT</kbd>, its because technically, the tile number is 10 bits, but we usually
 	deal with 8 bits at a time instead of 16, so the remaining upper 2 bits are referred as the page number. Therefore tile data is actually 16-bit together (<kbd>%YXPCCCTTTTTTTTTT</kbd>),
 	but we mainly use tile numbers <kbd>$00-$FF</kbd> on page 0.</p>
 	
-	<p>Note: Bsnes+ refers these tile numbers as &ldquo;characters&rdquo;, according if you were to look at the S-PPU &rightarrow; Tilemap Viewer and select the tiles. Same goes with the
+	<p>Note: Mesen refers these tile numbers as &ldquo;tile index&rdquo;, according if you were to look at the tilemap viewer and select the tiles. Same goes with the
 	SNES dev Manuel and <kbd>regs.txt</kbd>.</p>
 	
-	<p>I am not really sure if it is possible to have layer 3 be offset and its address becomes not a multiple of <kbd>$10</kbd> (say, a tile data instead of being <kbd>$0000-$000F</kbd>, it is
-	<kbd>$0001-$0010</kbd>), so I designed a javascript tool in the case of this misalignment
-	occurs.</p>
-	
-	Tile address start: $<input type="text" onchange="Calculate()" value="8000" id="TileAddressStart" class="AnyRadixNumberInput" data-input_number_radix="16"><button onclick="BigintIncreaseDecreaseHexInput(1n, 'TileAddressStart', 0n, 65535n)">+</button><button onclick="BigintIncreaseDecreaseHexInput(-1n, 'TileAddressStart', 0n, 65535n)">-</button>
+	Tile address start: $<input type="text" onchange="Calculate()" value="4000" id="TileAddressStart" class="AnyRadixNumberInput" data-input_number_radix="16"><br>
+	Tile address spacing: $<input type="text" onchange="Calculate()" value="8" id="TileAddressSpacing" class="AnyRadixNumberInput" data-input_number_radix="16"><br>
 	<button onclick="reset()">Reset</button>
 	<hr>
 	<div style="border: 1px solid white; overflow: scroll; height: 500px;">
@@ -110,13 +97,15 @@
 		}
 
 	function reset() {
-		document.getElementById("TileAddressStart").value = "8000"
+		document.getElementById("TileAddressStart").value = "4000"
 		Calculate()
 	}
 	function Calculate() {
 		//Correct inputs
 			let TileAddress = BigintClamp(CorrectHexBigIntValue(document.getElementById("TileAddressStart").value), 0n, BigInt("0xFFFF"))
 			document.getElementById("TileAddressStart").value = TileAddress.toString(16).toUpperCase().padStart(4, "0")
+			
+			let TileAddressSpacing = BigintClamp(CorrectHexBigIntValue(document.getElementById("TileAddressSpacing").value), 0n, BigInt("0x1000"))
 			let OutputTable = document.getElementById("Output")
 			while (OutputTable.lastElementChild) {
 				OutputTable.removeChild(OutputTable.lastElementChild)
@@ -147,7 +136,7 @@
 				Cell_TileNumPage.appendChild(document.createTextNode("$" + (i%256n).toString(16).toUpperCase().padStart(2, "0") + ", Page " + (i/256n).toString(10)))
 				TableRowItem.appendChild(Cell_TileNumPage)
 				
-				let CurrentTileAddress = TileAddress + (i*16n)
+				let CurrentTileAddress = TileAddress + (i*TileAddressSpacing)
 				let Cell_TileAddress = document.createElement("td")
 				Cell_TileAddress.style.fontFamily = "monospace"
 				Cell_TileAddress.appendChild(document.createTextNode("$" + CurrentTileAddress.toString(16).toUpperCase().padStart(4, "0")))

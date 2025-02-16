@@ -137,7 +137,7 @@ All of these bytes stored in RAM <kbd>$7E0EF9-$7E0F2E</kbd> are <kbd>TTTTTTTT</k
 what value should I put? Well, <kbd>TTTTTTTT</kbd> is actually <i>what tile number to use</i>, from the tile data. When viewing the tile data stored in <kbd>GFX28</kbd> via <a href="https://www.smwcentral.net/?p=section&a=details&id=15671">YY-CHR</a>,
 you can find what tile graphic to use by hovering your mouse over the 8x8 tile you want to use. After this, you should see on the bottom bar of the window showing what tile number that is:<br>
 <img src="Readme_Files/TileNumber.png"><br>
-Of course, you can view the tile &ldquo;number&rdquo; with bsnes+'s &ldquo;Tile Viewer&rdquo; (Debugger &rightarrow; S-PPU &rightarrow; Tile Viewer), it will only display its <i>tilemap address</i> (bottom bar of window).
+Of course, you can view the tile &ldquo;number&rdquo; with Mesen's &ldquo;Tile Viewer&rdquo; (Debugger &rightarrow; Tile viewer (not to be confused with tile<b>map</b> viewer)), it will only display its <i>tilemap address</i> on the right panel as well as the hover on your mouse cursor.
 I've made a conversion <a id="TileDataAddr" href="Readme_Files/TileDataAddr.html">cheatsheet here</a>.
 
 Now you have the value you need. Just write that desired tile number to any tile number you want to write (either debugger or uberasm, if uberasm tool, you have to save, insert to your game, and run it to view the changes). For example, to write an
@@ -525,7 +525,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 <p>Now save, and insert in either as gamemode under number 14 (level), or level. Then run the tool to apply the changes.</p>
 
-<p>Test the game (using a debugger, bsnes+) by going to the level that you inserted this created ASM file (or any level if using gamemode 14), you should see the
+<p>Test the game (using a debugger) by going to the level that you inserted this created ASM file (or any level if using gamemode 14), you should see the
 digits displayed on the HUD. Again, palettes, X/Y flips and other weird shenanigans can happen if you use SMW's vanilla status bar without
 editing the default values. Now depending on what RAM to use set by <kbd>!RAMToMeasure</kbd>, it could display <kbd>00</kbd> or <kbd>[&lt;digits 0-9 or glitched tile here&gt;&lt;digits 0-9&gt;]</kbd>,
 then on the debugger window, go to memory editor and search for the RAM you set for <kbd>!RAMToMeasure</kbd> (example: <kbd>$60</kbd>, <kbd>$3060</kbd> for SA-1), edit the value in that byte to be any values $00-$63. It should
