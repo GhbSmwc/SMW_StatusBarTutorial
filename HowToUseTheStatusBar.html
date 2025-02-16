@@ -319,7 +319,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	+
 	LDA #$01
 	++
-	STA !Default_GraphicalBar_Pos_Tile
+	STA !Default_TestElement_Pos_Tile
 	RTL</pre></td></tr></table><br>
 and if you are tired of using branches, then an even simpler approach is to use tables:
 <table><tr><td><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -329,7 +329,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	TAX
 	LDA Table,x
-	STA !Default_GraphicalBar_Pos_Tile
+	STA !Default_TestElement_Pos_Tile
 	RTL
 	
 	Table:
@@ -523,9 +523,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	main:
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	JSL HexDec_EightBitHexDec				;&gt;Get digits, A = 1s, X = 10s
-	STA !Default_GraphicalBar_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 1s place
+	STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 1s place
 	TXA							;&gt;if you are using status bar patches, STX $xxxxxx will not work.
-	STA !Default_GraphicalBar_Pos_Tile			;&gt;Write 10s place
+	STA !Default_TestElement_Pos_Tile			;&gt;Write 10s place
 	RTL
 </pre></td></tr></table></p>
 
@@ -563,12 +563,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	main:
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	JSL HexDec_EightBitHexDec
-	STA !Default_GraphicalBar_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
+	STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
 	TXA							;&gt;Call again to get the 10s and 100s.
 	JSL HexDec_EightBitHexDec
-	STA !Default_GraphicalBar_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 10s place
+	STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 10s place
 	TXA							;&gt;STX $xxxxxx don't exists.
-	STA !Default_GraphicalBar_Pos_Tile			;&gt; Write 100s place
+	STA !Default_TestElement_Pos_Tile			;&gt; Write 100s place
 	RTL
 </pre></td></tr></table><br>
 How this works is that it uses <a href="https://en.wikipedia.org/wiki/Euclidean_division">euclidean division</a>. The subroutine <kbd>HexDec_EightBitHexDec</kbd>
@@ -590,11 +590,11 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	main:
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	JSL HexDec_EightBitHexDec3Digits			;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
-	STA !Default_GraphicalBar_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
+	STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
 	TXA							;\Write 10s place
-	STA !Default_GraphicalBar_Pos_Tile+(1*!StatusbarFormat)	;/
+	STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;/
 	TYA							;\Write 100s place.
-	STA !Default_GraphicalBar_Pos_Tile			;/
+	STA !Default_TestElement_Pos_Tile			;/
 	RTL
 </pre></td></tr></table></p>
 
@@ -632,7 +632,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDX.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA.b !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1),x
-			STA !Default_GraphicalBar_Pos_Tile,x
+			STA !Default_TestElement_Pos_Tile,x
 			DEX
 			BPL -
 		else
@@ -640,7 +640,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDY.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
-			STA !Default_GraphicalBar_Pos_Tile,x
+			STA !Default_TestElement_Pos_Tile,x
 			DEY
 			DEX #2
 			BPL -
@@ -694,7 +694,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDX.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA !Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
-			STA !Default_GraphicalBar_Pos_Tile,x
+			STA !Default_TestElement_Pos_Tile,x
 			DEX
 			BPL -
 		else
@@ -705,7 +705,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			TYX												;&gt;Sigh, LDA $xxxxxx,y does not exist.
 			LDA (!Scratchram_32bitHexDecOutput)+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
 			PLX
-			STA !Default_GraphicalBar_Pos_Tile,x
+			STA !Default_TestElement_Pos_Tile,x
 			DEY
 			DEX #2
 			BPL -
@@ -736,7 +736,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	main:
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	JSL HexDec_EightBitHexDec
-	STA !Default_GraphicalBar_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 1s place
+	STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 1s place
 	TXA							;&gt;if you are using status bar patches, STX $xxxxxx will not work.
 	BNE .NotLeadingZero
 	
@@ -744,7 +744,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	LDA #!StatusBarBlankTile				;&gt;Blank tile
 	
 	.NotLeadingZero
-	STA !Default_GraphicalBar_Pos_Tile			;&gt;Write 10s place
+	STA !Default_TestElement_Pos_Tile			;&gt;Write 10s place
 	RTL</pre></td></tr></table>
 		</li>
 		<li>For 3-digit numbers, use this code template:
@@ -756,7 +756,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	.DisplayNumbers
 		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 		JSL HexDec_EightBitHexDec3Digits					;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
-		STA !Default_GraphicalBar_Pos_Tile+(2*!StatusbarFormat)			;&gt;Write 1s place (will always show)
+		STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)			;&gt;Write 1s place (will always show)
 	
 		..HandleHundreds
 			CPY #$00							;\Is the 100s place nonzero? Yes, then leave that and the 10s showing up
@@ -764,12 +764,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		
 			...NoHundreds
 				LDA #!StatusBarBlankTile				;\Erase the 100s digit
-				STA !Default_GraphicalBar_Pos_Tile			;/
+				STA !Default_TestElement_Pos_Tile			;/
 				BRA ..HandleTens					;&gt;Check if the next digit is also part of the leading zero.
 		
 			...HundredsNonZero
 				TYA
-				STA !Default_GraphicalBar_Pos_Tile			;&gt;Write 100s place
+				STA !Default_TestElement_Pos_Tile			;&gt;Write 100s place
 				BRA ..HandleTens_WriteTens				;&gt;If at least 100, 10s shouldn't be omitted.
 		
 		..HandleTens
@@ -779,7 +779,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				LDX #!StatusBarBlankTile				;&gt;If 0, replace 10s digit with blank.
 			...WriteTens
 				TXA							;\Write 10s place
-				STA !Default_GraphicalBar_Pos_Tile+(1*!StatusbarFormat)	;/
+				STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;/
 	.Done
 	RTL</pre></td></tr></table></li>
 	</ul>
@@ -812,10 +812,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #(!NumberOfDigitsDisplayed-1)*!StatusbarFormat
 		-
 		LDA #!StatusBarBlankTile
-		STA !Default_GraphicalBar_Pos_Tile,x
+		STA !Default_TestElement_Pos_Tile,x
 		if !StatusBar_UsingCustomProperties != 0
 			LDA.b #!TileProps
-			STA !Default_GraphicalBar_Pos_Prop,x
+			STA !Default_TestElement_Pos_Prop,x
 		endif
 		DEX #!StatusbarFormat
 		BPL -
@@ -833,13 +833,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
 	;Write to status bar
-		LDA.b #!Default_GraphicalBar_Pos_Tile : STA $00
-		LDA.b #!Default_GraphicalBar_Pos_Tile&gt;&gt;8 : STA $01
-		LDA.b #!Default_GraphicalBar_Pos_Tile&gt;&gt;16 : STA $02
+		LDA.b #!Default_TestElement_Pos_Tile : STA $00
+		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;8 : STA $01
+		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;16 : STA $02
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!Default_GraphicalBar_Pos_Prop : STA $03
-			LDA.b #!Default_GraphicalBar_Pos_Prop&gt;&gt;8 : STA $04
-			LDA.b #!Default_GraphicalBar_Pos_Prop&gt;&gt;16 : STA $05
+			LDA.b #!Default_TestElement_Pos_Prop : STA $03
+			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;8 : STA $04
+			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;16 : STA $05
 			LDA.b #!TileProps
 			STA $06
 		endif
@@ -866,10 +866,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #(!NumberOfDigitsDisplayed-1)*!StatusbarFormat
 		-
 		LDA #!StatusBarBlankTile
-		STA !Default_GraphicalBar_Pos_Tile,x
+		STA !Default_TestElement_Pos_Tile,x
 		if !StatusBar_UsingCustomProperties != 0
 			LDA.b #!TileProps
-			STA !Default_GraphicalBar_Pos_Prop,x
+			STA !Default_TestElement_Pos_Prop,x
 		endif
 		DEX #!StatusbarFormat
 		BPL -
@@ -889,13 +889,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
 	;Write to status bar
-		LDA.b #!Default_GraphicalBar_Pos_Tile : STA $00
-		LDA.b #!Default_GraphicalBar_Pos_Tile&gt;&gt;8 : STA $01
-		LDA.b #!Default_GraphicalBar_Pos_Tile&gt;&gt;16 : STA $02
+		LDA.b #!Default_TestElement_Pos_Tile : STA $00
+		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;8 : STA $01
+		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;16 : STA $02
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!Default_GraphicalBar_Pos_Prop : STA $03
-			LDA.b #!Default_GraphicalBar_Pos_Prop&gt;&gt;8 : STA $04
-			LDA.b #!Default_GraphicalBar_Pos_Prop&gt;&gt;16 : STA $05
+			LDA.b #!Default_TestElement_Pos_Prop : STA $03
+			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;8 : STA $04
+			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;16 : STA $05
 			LDA.b #!TileProps
 			STA $06
 		endif
@@ -943,10 +943,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat	;&gt;2 NumberOfDigitsDisplayed due to 2 numbers displayed, plus 1 because of the "/" symbol.
 		-
 		LDA #!StatusBarBlankTile
-		STA !Default_GraphicalBar_Pos_Tile,x
+		STA !Default_TestElement_Pos_Tile,x
 		if !StatusBar_UsingCustomProperties != 0
 			LDA.b #!TileProps
-			STA !Default_GraphicalBar_Pos_Prop,x
+			STA !Default_TestElement_Pos_Prop,x
 		endif
 		DEX #!StatusbarFormat
 		BPL -
@@ -979,13 +979,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)		;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits					;/not being cleared from the previous code.
 	;Write to status bar
-		LDA.b #!Default_GraphicalBar_Pos_Tile : STA $00			;\Set address to write at a given status bar position.
-		LDA.b #!Default_GraphicalBar_Pos_Tile&gt;&gt;8 : STA $01		;|
-		LDA.b #!Default_GraphicalBar_Pos_Tile&gt;&gt;16 : STA $02		;/
+		LDA.b #!Default_TestElement_Pos_Tile : STA $00			;\Set address to write at a given status bar position.
+		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;8 : STA $01		;|
+		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;16 : STA $02		;/
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!Default_GraphicalBar_Pos_Prop : STA $03		;\Set address to write at a given status bar position.
-			LDA.b #!Default_GraphicalBar_Pos_Prop&gt;&gt;8 : STA $04	;|
-			LDA.b #!Default_GraphicalBar_Pos_Prop&gt;&gt;16 : STA $05	;/
+			LDA.b #!Default_TestElement_Pos_Prop : STA $03		;\Set address to write at a given status bar position.
+			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;8 : STA $04	;|
+			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;16 : STA $05	;/
 			LDA.b #!TileProps
 			STA $06
 		endif
@@ -1013,10 +1013,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat	;&gt;2 NumberOfDigitsDisplayed due to 2 numbers displayed, plus 1 because of the "/" symbol.
 		-
 		LDA #!StatusBarBlankTile
-		STA !Default_GraphicalBar_Pos_Tile,x
+		STA !Default_TestElement_Pos_Tile,x
 		if !StatusBar_UsingCustomProperties != 0
 			LDA.b #!TileProps
-			STA !Default_GraphicalBar_Pos_Prop,x
+			STA !Default_TestElement_Pos_Prop,x
 		endif
 		DEX #!StatusbarFormat
 		BPL -
@@ -1053,13 +1053,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)			;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits						;/not being cleared from the previous code.
 	;Write to status bar
-		LDA.b #!Default_GraphicalBar_Pos_Tile : STA $00				;\Set address to write at a given status bar position.
-		LDA.b #!Default_GraphicalBar_Pos_Tile&gt;&gt;8 : STA $01		;|
-		LDA.b #!Default_GraphicalBar_Pos_Tile&gt;&gt;16 : STA $02		;/
+		LDA.b #!Default_TestElement_Pos_Tile : STA $00				;\Set address to write at a given status bar position.
+		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;8 : STA $01		;|
+		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;16 : STA $02		;/
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!Default_GraphicalBar_Pos_Prop : STA $03			;\Set address to write at a given status bar position.
-			LDA.b #!Default_GraphicalBar_Pos_Prop&gt;&gt;8 : STA $04	;|
-			LDA.b #!Default_GraphicalBar_Pos_Prop&gt;&gt;16 : STA $05	;/
+			LDA.b #!Default_TestElement_Pos_Prop : STA $03			;\Set address to write at a given status bar position.
+			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;8 : STA $04	;|
+			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;16 : STA $05	;/
 			LDA.b #!TileProps
 			STA $06
 		endif
@@ -1094,7 +1094,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat	;&gt;2 NumberOfDigitsDisplayed due to 2 numbers displayed, plus 1 because of the "/" symbol.
 		-
 		LDA #!StatusBarBlankTile
-		STA !Default_GraphicalBar_RightAlignedText_Pos_Tile-((((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat),x
+		STA !Default_TestElement_RightAlignedText_Pos_Tile-((((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat),x
 		DEX #!StatusbarFormat
 		BPL -
 	;First number
@@ -1126,13 +1126,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)					;\Failsafe to avoid writing more characters than intended would write onto tiles
 		BCS ..TooMuchDigits								;/not being cleared from the previous code.
 	;Calculate where to write for right-aligned 2-number display
-		LDA.b #!Default_GraphicalBar_RightAlignedText_Pos_Tile : STA $00		;\Set address to write at a given status bar position.
-		LDA.b #!Default_GraphicalBar_RightAlignedText_Pos_Tile&gt;&gt;8 : STA $01		;|
-		LDA.b #!Default_GraphicalBar_RightAlignedText_Pos_Tile&gt;&gt;16 : STA $02		;/
+		LDA.b #!Default_TestElement_RightAlignedText_Pos_Tile : STA $00		;\Set address to write at a given status bar position.
+		LDA.b #!Default_TestElement_RightAlignedText_Pos_Tile&gt;&gt;8 : STA $01		;|
+		LDA.b #!Default_TestElement_RightAlignedText_Pos_Tile&gt;&gt;16 : STA $02		;/
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!Default_GraphicalBar_RightAlignedText_Pos_Prop : STA $03	;\Set address to write at a given status bar position.
-			LDA.b #!Default_GraphicalBar_RightAlignedText_Pos_Prop&gt;&gt;8 : STA $04	;|
-			LDA.b #!Default_GraphicalBar_RightAlignedText_Pos_Prop&gt;&gt;16 : STA $05	;/
+			LDA.b #!Default_TestElement_RightAlignedText_Pos_Prop : STA $03	;\Set address to write at a given status bar position.
+			LDA.b #!Default_TestElement_RightAlignedText_Pos_Prop&gt;&gt;8 : STA $04	;|
+			LDA.b #!Default_TestElement_RightAlignedText_Pos_Prop&gt;&gt;16 : STA $05	;/
 			LDA.b #!TileProps
 			STA $06
 		endif
@@ -1167,7 +1167,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat	;&gt;2 NumberOfDigitsDisplayed due to 2 numbers displayed, plus 1 because of the "/" symbol.
 		-
 		LDA #!StatusBarBlankTile
-		STA !Default_GraphicalBar_RightAlignedText_Pos_Tile-((((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat),x
+		STA !Default_TestElement_RightAlignedText_Pos_Tile-((((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat),x
 		DEX #!StatusbarFormat
 		BPL -
 	;First number
@@ -1203,13 +1203,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)				;\Failsafe to avoid writing more characters than intended would write onto tiles
 		BCS ..TooMuchDigits							;/not being cleared from the previous code.
 	;Calculate where to write for right-aligned 2-number display
-		LDA.b #!Default_GraphicalBar_RightAlignedText_Pos_Tile : STA $00		;\Set address to write at a given status bar position.
-		LDA.b #!Default_GraphicalBar_RightAlignedText_Pos_Tile&gt;&gt;8 : STA $01		;|
-		LDA.b #!Default_GraphicalBar_RightAlignedText_Pos_Tile&gt;&gt;16 : STA $02		;/
+		LDA.b #!Default_TestElement_RightAlignedText_Pos_Tile : STA $00		;\Set address to write at a given status bar position.
+		LDA.b #!Default_TestElement_RightAlignedText_Pos_Tile&gt;&gt;8 : STA $01		;|
+		LDA.b #!Default_TestElement_RightAlignedText_Pos_Tile&gt;&gt;16 : STA $02		;/
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!Default_GraphicalBar_RightAlignedText_Pos_Prop : STA $03	;\Set address to write at a given status bar position.
-			LDA.b #!Default_GraphicalBar_RightAlignedText_Pos_Prop&gt;&gt;8 : STA $04	;|
-			LDA.b #!Default_GraphicalBar_RightAlignedText_Pos_Prop&gt;&gt;16 : STA $05	;/
+			LDA.b #!Default_TestElement_RightAlignedText_Pos_Prop : STA $03	;\Set address to write at a given status bar position.
+			LDA.b #!Default_TestElement_RightAlignedText_Pos_Prop&gt;&gt;8 : STA $04	;|
+			LDA.b #!Default_TestElement_RightAlignedText_Pos_Prop&gt;&gt;16 : STA $05	;/
 			LDA.b #!TileProps
 			STA $06
 		endif
@@ -1259,68 +1259,64 @@ I usually call this a &ldquo;record effect&rdquo; on my older ASM works, but thi
 <tr>
 <td>
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[1 byte] RAM address of the actual number
-!Freeram_Adder = $62							;&gt;[1 byte] RAM address that adds to !RAMToMeasure
-!Freeram_Subtractor = $0DC3						;&gt;[1 byte] RAM address that subtracts to !RAMToMeasure
-!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
-
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
 	.Adder
-	LDA !Freeram_Adder
+	LDA !StatusBar_TestDisplayElement_CountAnimation1_1Byte
 	BEQ ..Done
 	
 	..Increment
-	DEC			;\Decrement on every step (frame)
-	STA !Freeram_Adder	;|for every adder value.
-	LDA !RAMToMeasure	;|
-	CMP #$FF
-	BEQ ..Cancel
-	INC			;|
-	STA !RAMToMeasure	;/
+	DEC							;\Decrement on every step (frame)
+	STA !StatusBar_TestDisplayElement_CountAnimation1_1Byte	;|for every adder value.
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte	;|
+	CMP #$FF						;|\If maxed, stop incrementing
+	BEQ ..Cancel						;|/
+	INC							;|
+	STA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte	;/
 	BRA ..Done
 	
 	..Cancel
-	;Prevent overflow. Note: Merely capping the number by writing to !RAMToMeasure will not cancel
+	;Prevent overflow. Note: Merely capping the number by writing to !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte will not cancel
 	;how much remaining to add, so if you happen to hit this maximum, while the adder is nonzero,
-	;then set !RAMToMeasure to a lower value, it will still increase from that lower value. Same
-	;thing applies to subtraction when it bottoms out at 0 with !Freeram_Subtractor being nonzero
-	;when !RAMToMeasure is > 0.
+	;then set !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte to a lower value, it will still increase from that lower value. Same
+	;thing applies to subtraction when it bottoms out at 0 with !StatusBar_TestDisplayElement_CountAnimation2_1Byte being nonzero
+	;when !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte is &gt; 0.
 		LDA #$00		;&gt;STZ $xxxxxx does not exist.
-		STA !Freeram_Adder
+		STA !StatusBar_TestDisplayElement_CountAnimation1_1Byte
 	..Done
 	
 	.Subtracter
-	LDA !Freeram_Subtractor
+	LDA !StatusBar_TestDisplayElement_CountAnimation2_1Byte
 	BEQ ..Done
 	
 	..Decrement
 	DEC
-	STA !Freeram_Subtractor
-	LDA !RAMToMeasure
+	STA !StatusBar_TestDisplayElement_CountAnimation2_1Byte
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	BEQ ..Cancel
 	DEC
-	STA !RAMToMeasure
+	STA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	BRA ..Done
 	
 	..Cancel
 	;Prevent underflow
 		LDA #$00
-		STA !Freeram_Subtractor
+		STA !StatusBar_TestDisplayElement_CountAnimation2_1Byte
 	..Done
 
 	.DisplayStatusBar
-	LDA !RAMToMeasure
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	JSL HexDec_EightBitHexDec3Digits
-	STA !StatusBarPosition+(2*!StatusbarFormat)	;&gt;Write 1s place
-	TXA						;\Write 10s place
-	STA !StatusBarPosition+(1*!StatusbarFormat)	;/
-	TYA						;\Write 100s place.
-	STA !StatusBarPosition				;/
+	STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
+	TXA							;\Write 10s place
+	STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;/
+	TYA							;\Write 100s place.
+	STA !Default_TestElement_Pos_Tile			;/
 	RTL
 	;Also note that if you have both adder and subtractor nonzero, they will cancel
-	;each other out as both will increase and decrease together (results !RAMToMeasure
+	;each other out as both will increase and decrease together (results !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	;will stay the same), until one or the other is zero and starts adding or subtracting,
 	;whatever is greater. For example, Adder is 30 and Subtracter is 5, results 5 frames
 	;of no change, then increments by 1 25 times.</pre></td></tr></table>
@@ -1330,43 +1326,39 @@ take <kbd>!Freeram_Adder</kbd>, then add <kbd>CLC : ADC.b &lt;AdderAmount&gt;</k
 </td>
 <td>
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[1 byte] RAM address of the actual number
-!RAMToMeasure2 = $62							;&gt;[1 byte] RAM address of the displayed amount
-!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
-
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
 	.CountingAnimation
-	LDA !RAMToMeasure2
-	CMP !RAMToMeasure
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_1Byte
+	CMP !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	BEQ ..NoChange
 	BCC ..LessThan
 	
 	..GreaterThan
-	LDA !RAMToMeasure2
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_1Byte
 	DEC
 	BRA ..Write
 	
 	..LessThan
-	LDA !RAMToMeasure2
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_1Byte
 	INC
 	
 	..Write
-	STA !RAMToMeasure2
+	STA !StatusBar_TestDisplayElement_RAMToDisplay2_1Byte
 	
 	..NoChange
 	
 	.DisplayStatusBar
-	LDA !RAMToMeasure2
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_1Byte
 	JSL HexDec_EightBitHexDec3Digits
-	STA !StatusBarPosition+(2*!StatusbarFormat)	;&gt;Write 1s place
-	TXA						;\Write 10s place
-	STA !StatusBarPosition+(1*!StatusbarFormat)	;/
-	TYA						;\Write 100s place.
-	STA !StatusBarPosition				;/
-	RTL
-</pre></td></tr></table><br>
+	STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
+	TXA							;\Write 10s place
+	STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;/
+	TYA							;\Write 100s place.
+	STA !Default_TestElement_Pos_Tile			;/
+	RTL</pre></td></tr></table><br>
 If you want the counter to count even slower instead of once per frame, under the sublabel
 <kbd>.CountingAnimation</kbd>, and before the first <kbd>LDA</kbd> add this code:
 <table><tr><td><pre>	LDA $13
@@ -1441,59 +1433,61 @@ AddLivesInstantly:
 For the &ldquo;Mere display counting&rdquo; you can alleviate the lengthy counting animation by taking the absolute difference of the display amount and actual amount, and check if the difference is too big, would
 subtract/add by a larger amount, therefore instead of subtracting by a set amount per frame, you subtract by the proportion of the difference size. Here is an example using 16-bit number:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[2 bytes] RAM address of the actual number
-!RAMToMeasure2 = $62							;&gt;[2 bytes] RAM address of the displayed amount
-!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
+;!StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes is the actual amount that you can write to.
+;!StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes is the display animation, something you most likely won't touch.
+
 !NumberOfDigitsDisplayed = 5						;&gt;Number of digits shown.
 !ChangeDivisorRate = 60							;&gt;Scaling of increment/decrement rate. Higher number = slower.
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	main:
 	.CountingAnimation
 	REP #$20
-	LDA !RAMToMeasure2
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes
 	SEC
-	SBC !RAMToMeasure
-	BEQ ..Done			;&gt;Safty check just in case it increments/decrements when it doesn't need to
-	BCS ..Postive			;&gt;Unsigned check of difference (alternative to BPL), making use of the 16-bit's carry flag as an extra bit, allowing 0-65535 instead of 0-32768
+	SBC !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes
+	BEQ ..Done							;&gt;Safty check just in case it increments/decrements when it doesn't need to
+	BCS ..Positive							;&gt;Unsigned check of difference (alternative to BPL), making use of the 16-bit's carry flag as an extra bit, allowing 0-65535 instead of 0-32768
 	
 	..Negative
-	;Add upwards towards !RAMToMeasure.
-	EOR #$FFFF			;\Invert sign of number
-	INC				;/
-	STA $00				;\ChangePerFrame = floor(Difference/60) + 1
-	LDA.w #!ChangeDivisorRate	;|
-	STA $02				;|
-	SEP #$20			;|
-	JSL HexDec_MathDiv		;/
+	;Add upwards towards !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes.
+	EOR #$FFFF							;\Invert sign of number
+	INC								;/
+	STA $00								;\ChangePerFrame = floor(Difference/60) + 1
+	LDA.w #!ChangeDivisorRate					;|
+	STA $02								;|
+	SEP #$20							;|
+	JSL HexDec_MathDiv						;/
 	REP #$20
-	INC $00				;&gt;Shouldn't add by 0
-	LDA !RAMToMeasure2		;\The bigger the difference, the faster it increments.
-	CLC				;|
-	ADC $00				;/
+	INC $00								;&gt;Shouldn't add by 0
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes		;\The bigger the difference, the faster it increments.
+	CLC								;|
+	ADC $00								;/
 	BRA ..Write
 	
-	..Postive
-	;Subtract downwards towards !RAMToMeasure.
-	STA $00				;\ChangePerFrame = floor(Difference/60) + 1
-	LDA.w #!ChangeDivisorRate	;|
-	STA $02				;|
-	SEP #$20			;|
-	JSL HexDec_MathDiv		;/
+	..Positive
+	;Subtract downwards towards !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes.
+	STA $00								;\ChangePerFrame = floor(Difference/60) + 1
+	LDA.w #!ChangeDivisorRate					;|
+	STA $02								;|
+	SEP #$20							;|
+	JSL HexDec_MathDiv						;/
 	REP #$20
-	INC $00				;&gt;Shouldn't subtract by 0
-	LDA !RAMToMeasure2		;\The bigger the difference, the faster it decrements.
-	SEC				;|
-	SBC $00				;/
+	INC $00								;&gt;Shouldn't subtract by 0
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes		;\The bigger the difference, the faster it decrements.
+	SEC								;|
+	SBC $00								;/
 	
 	..Write
-	STA !RAMToMeasure2
+	STA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes
 	
 	..Done
 	
 	.DisplayStatusBar
-	LDA !RAMToMeasure2
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes
 	STA $00
 	JSL HexDec_SixteenBitHexDecDivision
 	JSL HexDec_RemoveLeadingZeroes16Bit
@@ -1503,7 +1497,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			LDX.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA.b !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1),x
-			STA !StatusBarPosition,x
+			STA !Default_TestElement_Pos_Tile,x
 			DEX
 			BPL -
 		else
@@ -1511,7 +1505,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			LDY.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
-			STA !StatusBarPosition,x
+			STA !Default_TestElement_Pos_Tile,x
 			DEY
 			DEX #2
 			BPL -
@@ -1521,9 +1515,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 Alternatively, I developed a subroutine that you can supply any RAM addresses as the input for the subroutine <kbd>CountingAnimation16Bit</kbd> (both RAMs must be 16-bit) and it will increment/decrement
 the display value for you:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[2 bytes] RAM address of the actual number
-!RAMToMeasure2 = $62							;&gt;[2 bytes] RAM address of the displayed amount
-!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
 !NumberOfDigitsDisplayed = 5						;&gt;Number of digits shown.
 !ChangeDivisorRate = 60							;&gt;Scaling of increment/decrement rate. Higher number = slower.
 
@@ -1531,38 +1525,38 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	main:
 	.ChangeAnimation
-		LDA.b #!RAMToMeasure		;\$04-$06: A RAM address containing the Actual number
-		STA $04				;|
-		LDA.b #!RAMToMeasure&gt;&gt;8		;|
-		STA $05				;|
-		LDA.b #!RAMToMeasure&gt;&gt;16	;|
-		STA $06				;/
+		LDA.b #!StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes	;\$04-$06: A RAM address containing the Actual number
+		STA $04								;|
+		LDA.b #!StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes&gt;&gt;8	;|
+		STA $05								;|
+		LDA.b #!StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes&gt;&gt;16	;|
+		STA $06								;/
 		
-		LDA.b #!RAMToMeasure2		;\$07-$09: A RAM address containing the gradually changing number
-		STA $07				;|
-		LDA.b #!RAMToMeasure2&gt;&gt;8	;|
-		STA $08				;|
-		LDA.b #!RAMToMeasure2&gt;&gt;16	;|
-		STA $09				;/
+		LDA.b #!StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes	;\$07-$09: A RAM address containing the gradually changing number
+		STA $07								;|
+		LDA.b #!StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes&gt;&gt;8	;|
+		STA $08								;|
+		LDA.b #!StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes&gt;&gt;16	;|
+		STA $09								;/
 		
-		LDA #!ChangeDivisorRate		;\$0A: Rate
-		STA $0A				;/
+		LDA #!ChangeDivisorRate						;\$0A: Rate
+		STA $0A								;/
 		
-		JSL HexDec_CountingAnimation16Bit	;&gt;Perform gradual counting animation (This uses $00-$03 for division routine, therefore destroyed)
+		JSL HexDec_CountingAnimation16Bit				;&gt;Perform gradual counting animation (This uses $00-$03 for division routine, therefore destroyed)
 	.DisplayStatusBar
 		REP #$20
-		LDA !RAMToMeasure2
+		LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes
 		STA $00
 		SEP #$20
 		JSL HexDec_SixteenBitHexDecDivision
-		JSL HexDec_RemoveLeadingZeroes16Bit	;&gt;Remove if you want leading zeroes.
+		JSL HexDec_RemoveLeadingZeroes16Bit				;&gt;Remove if you want leading zeroes.
 	
 	;Write to status bar
 		if !StatusbarFormat == $01
 			LDX.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA.b !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1),x
-			STA !StatusBarPosition,x
+			STA !Default_TestElement_Pos_Tile,x
 			DEX
 			BPL -
 		else
@@ -1570,7 +1564,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			LDY.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
-			STA !StatusBarPosition,x
+			STA !Default_TestElement_Pos_Tile,x
 			DEY
 			DEX #2
 			BPL -
