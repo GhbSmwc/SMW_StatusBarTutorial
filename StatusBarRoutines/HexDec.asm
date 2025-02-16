@@ -1057,7 +1057,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 					..RoundDone
 						SEP #$20
 						RTL
-			PercentageFixedPointScaling
+			PercentageFixedPointScaling:
 				dw 100		;>Integer not scaled at all
 				dw 1000		;>Scaled by 1/10 to display the tenths place
 				dw 10000	;>Scaled by 1/100 to display the hundredths place.
