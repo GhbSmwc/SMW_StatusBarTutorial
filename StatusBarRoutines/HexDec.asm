@@ -99,7 +99,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			STA $04
 			SEP #$20
 			RTL
-	if !sa1 == 0
+	if !CPUMode == 0
 		;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		; 16bit * 16bit unsigned Multiplication
 		;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -273,7 +273,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 			
 		SixteenBitHexDecDivision:
-			if !sa1 == 0
+			if !CPUMode == 0
 				PHX
 				PHY
 
@@ -921,7 +921,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		
 		.ConvertFramesToCentiseconds
 		;simply put [Frames*100/60], highest [Frames*100 should be 5900] shouldn't overflow in unsigned 16-bit.
-		if !sa1 == 0
+		if !CPUMode == 0
 			LDA !Scratchram_Frames2TimeOutput+3	;\Frames*100
 			STA $4202				;|
 			LDA.b #100				;|
@@ -976,7 +976,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		STA !Scratchram_Frames2TimeOutput+3
 		RTL
 		
-		if !sa1 == 0
+		if !CPUMode == 0
 			WaitCalculation:	;>The register to perform multiplication and division takes 8/16 cycles to complete.
 			RTS
 		endif
