@@ -162,9 +162,13 @@ lines of the item box:
 </table>
 If you modify these hardcoded values through a debugger, the changes will only apply on the next level reload, since the hardcoded upload only occurs on level load.</p>
 
-<p>You may be wondering, why did I include the tile coordinate in these tables? Well, is because of Mesen's ability to display the tile coordinates in the tilemap viewer (Debug &rightarrow; Tilemap viewer, and select &ldquo;Layer 3&rdquo;):<br>
+<p>You may be wondering, why did I include the tile coordinate in these tables? Well, is because of Mesen (or any emulator debugger)'s ability to display the tile coordinates in the tilemap viewer
+(Debug &rightarrow; Tilemap viewer, and select &ldquo;Layer 3&rdquo;):<br>
 <img src="Readme_Files/TileCoordinate.png"><br>
 and then you can use that coordinate and CTRL+F here on this HTML file to locate what RAM/ROM address to modify, which is way easier than to trial-and-error modifying each address to find the desired location.</p>
+
+<p>Furthermore, I also included a function for the asar assembler to auto-convert coordinates to tile data address: in <kbd>StatusBarDefines.asm</kbd>, at the bottom (<kbd>PatchedStatusBarXYToAddress</kbd> and
+<kbd>VanillaStatusBarXYToAddress</kbd>). See for yourself.</p>
 
 <p>I've also provided a patch, <kbd>DefaultTiles.asm</kbd> which is intended to be an ASM patch version of the <a href="https://www.smwcentral.net/?p=section&a=details&id=4580">SMW status bar editor tool</a>.</p>
 <hr>
@@ -255,7 +259,7 @@ every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead
 <p>Because SMW's status bar is extremely limited, other users decided to make status bar patches:
 <ul>
 	<li><p><a href="https://www.smwcentral.net/?p=section&a=details&id=19247">Super Status Bar</a>. This gives you a 32x5 8x8 tile area,
-	therefore 160 8x8 tiles to edit.<sup>1</sup></p></li>
+	therefore 160 8x8 tiles to edit.<sup>1</sup> Most example ASM codes assumes you are using this patch as this, so far, has the biggest editing zones available.</p></li>
 	
 	<li><p><a href="https://www.smwcentral.net/?p=section&a=details&id=21665">Overworld Border +</a>. Not a &ldquo;status bar&rdquo;, but similar
 	in terms of editing the layer 3 8x8 tiles. This gives you <kbd>32*!TopLines</kbd> (for the top of the screen) and <kbd>32*!BottomLines</kbd> (for the bottom of the screen)
@@ -302,34 +306,39 @@ the score gets covered by boss's heath bar that only shows up during bosses) and
 <p>You also need to insert the graphic file from this provided <kbd>ExGFX</kbd> folder (<kbd>ExGFX80.bin</kbd>) because many of the stuff here uses a graphic not provided by SMW, such as the &ldquo;/&rdquo; symbol when displaying
 2 numbers, and the &ldquo;%&rdquo; symbol representing a percentage. It should be inserted as &ldquo;LG1&rdquo; on the layer 3 GFX.</p>
 
-<p>Before we start using the subroutines, we will demonstrate how to write tiles that change based on a given info <kbd>!RAMToMeasure</kbd>. It's very easy to write a tile that is different depending on
+<p>Before we start using the subroutines, we will demonstrate how to write tiles that change based on a given info <kbd>!StatusBar_TestDisplayElement_RAMToDisplay1_1Byte</kbd>. It's very easy to write a tile that is different depending on
 a condition using branches:
-<table><tr><td><pre>!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00
-!RAMToMeasure = $60	;&gt;[1 byte]
+<table><tr><td><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
 	main:
-	LDA !RAMToMeasure
-	BEQ +
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	BNE +
 	LDA #$00
 	BRA ++
 	+
 	LDA #$01
 	++
-	STA !StatusBarPosition
+	STA !Default_GraphicalBar_Pos_Tile
 	RTL</pre></td></tr></table><br>
 and if you are tired of using branches, then an even simpler approach is to use tables:
-<table><tr><td><pre>!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00
-!RAMToMeasure = $60	;&gt;[1 byte]
+<table><tr><td><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
 	main:
-	LDA !RAMToMeasure
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	TAX
 	LDA Table,x
-	STA !StatusBarPosition
+	STA !Default_GraphicalBar_Pos_Tile
 	RTL
 	
 	Table:
-	db $xx ;&gt;When !RAMToMeasure = $00
-	db $xx ;&gt;When !RAMToMeasure = $01
-	db $xx ;&gt;When !RAMToMeasure = $02</pre></td></tr></table></p>
+	db $0A ;&gt;When !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte = $00
+	db $0B ;&gt;When !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte = $01
+	db $0C ;&gt;When !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte = $02
+	
+	;If !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte contains values greater than $02,
+	;it will read past the last byte of the table into unrelated (garbage) data.</pre></td></tr></table></p>
 	
 <p>But what about other not-so-simple displays? Well, the following shows you how to do that.</p>
 

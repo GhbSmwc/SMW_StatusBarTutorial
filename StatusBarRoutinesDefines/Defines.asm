@@ -30,62 +30,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Defines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;Status bar types and base address
-		!StatusbarFormat = $02
-		;^Number of grouped bytes per 8x8 tile:
-		; $01 = Minimalist/SMB3 [TTTTTTTT, TTTTTTTT]...[YXPCCCTT, YXPCCCTT]
-		; $02 = Super status bar/Overworld border plus [TTTTTTTT YXPCCCTT, TTTTTTTT YXPCCCTT]...
+	!Setting_GraphicalBar_SNESMathOnly = 0
+		;^Info follows:
+		;-Set this to 0 if your code calls the graphical bar routine under the SA-1 processor.
+		; Otherwise set it to 1 if it calls it under the SNES CPU.
 		;
-		;For use on making status bar codes that have hybrid format support.
-		
-		!StatusBar_UsingCustomProperties           = 1
-		;^0 = Change only the tile numbers, 1 = allow changing the tile properties.
-		; Set this to 0 if you don't want to edit the tile properties for status bar, OWB+,
-		; and stripe image. When set to 1, some subroutines in HexDec require inputs relating
-		; to properties (you can just CTRL+F "!StatusBar_UsingCustomProperties"), otherwise
-		; they will not use them at all.
-		
-		;So far, as of writing this, all status bar patches SMWC allow editing the tile properties.
-		;Also note that this does not have hybrid-support (using vanilla status bar, which didn't
-		;allow property editing, and using stripe/OWB+ which allows property editing) unless you
-		;create 2 versions of subroutines with one utilizing the tile properties and the other not.
-	;Status bar starting addresses.
-		;RAM address of the first TTTTTTTT byte.
-			if !sa1 == 0
-				!FreeramFromAnotherPatch_StatusBarTileStart = $7FA000
-			else
-				!FreeramFromAnotherPatch_StatusBarTileStart = $404000
-			endif
-		;RAM address of the first YXPCCCTT byte.
-			if !sa1 == 0
-				!FreeramFromAnotherPatch_StatusBarPropStart = $7FA001
-			else
-				!FreeramFromAnotherPatch_StatusBarPropStart = $404001
-			endif
-	;Overworld border starting addresses
-		;RAM address of the first TTTTTTTT byte.
-			if !sa1 == 0
-				!FreeramFromAnotherPatch_OWBorderTileStart = $7FEC00
-			else
-				!FreeramFromAnotherPatch_OWBorderTileStart = $41EC00
-			endif
-		;RAM address of the first YXPCCCTT byte.
-			if !sa1 == 0
-				!FreeramFromAnotherPatch_OWBorderPropStart = $7FEC01
-			else
-				!FreeramFromAnotherPatch_OWBorderPropStart = $41EC01
-			endif
-	;Status bar and OWB tiles:
-		;Status bar tiles numbers for various symbols
-			!StatusBarSlashCharacterTileNumb = $29		;>Slash tile number (status bar, now OWB!)
-			!StatusBarBlankTile = $FC			;>Don't change! just in case if you installed a status bar patch that relocated the blank tile.
-			!StatusBarDotTile = $24
-			!StatusBarPercentTile = $2A
-		;Overworld border tiles for various symbols
-			!OverWorldBorderSlashCharacterTileNumb = $91
-			!OverWorldBorderBlankTile = $1F
-			!OverWorldBorderDotTile = $93
-			!OverWorldBorderPercentTile = $92
+		; As an important note: certain emulators follows a rule that only the correct CPU can access
+		; the registers of the matching type (e.g. SA-1 registers can only be used by SA-1 CPU, not SNES)
 	;32-bit Number display
 		;For [Convert32bitIntegerToDecDigits]
 			!Setting_32bitHexDec_MaxNumberOfDigits = 10
@@ -156,7 +107,6 @@
 		;
 		;Overflows, as in if you use the 16-bit hexdec. But very unlikely your hack allows
 		;percentages over 100.
-		!TileNumb_PercentSymbol = $2A
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;OAM settings for sprite HUD
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;

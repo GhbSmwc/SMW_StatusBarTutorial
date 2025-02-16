@@ -1,4 +1,3 @@
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ;Routines list:
 ;General math routines:
 ; - MathDiv
@@ -37,6 +36,10 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ; - CountingAnimation16Bit
 ;Stripe routines
 ; - SetupStripe
+
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;General math routines.
 ;Due to the fact that registers have limitations and such.
