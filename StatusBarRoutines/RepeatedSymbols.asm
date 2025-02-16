@@ -6,7 +6,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ; -- WriteRepeatedSymbolsLeftwards
 ; -- WriteRepeatedSymbolsFormat2
 ; -- WriteRepeatedSymbolsLeftwardsFormat2
-; - Vertical (don't use thesse for stripe image)
+; - Vertical (don't use these for stripe image)
 ; -- WriteRepeatedSymbolsWriteVertically
 ; -- WriteRepeatedSymbolsWriteVerticallyFormat2
 

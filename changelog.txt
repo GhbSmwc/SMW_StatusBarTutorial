@@ -1,0 +1,4 @@
+09-09-2024 v3.1.0
+ -Made all JS code not use innerHTML.
+02-15-2025 v3.2.0
+ -Percentage rounding variants added.

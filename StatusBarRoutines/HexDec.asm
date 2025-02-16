@@ -32,6 +32,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 ;Misc:
 ; - Frames2Timer
 ; - ConvertToPercentage
+; - ConvertToPercentageRoundDown
+; - ConvertToPercentageRoundUp
 ; - CountingAnimation16Bit
 ;Stripe routines
 ; - SetupStripe
@@ -1003,27 +1005,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	; $06-$07: Needed to compare the remainder with half the denominator.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		ConvertToPercentage:
-			LDA !Scratchram_PercentageFixedPointPrecision
-			ASL
-			TAX
-			;First, do [Quantity * 100]
-				REP #$20
-				LDA !Scratchram_PercentageQuantity
-				STA $00
-				LDA.l .PercentageFixedPointScaling,x
-				STA $02
-				SEP #$20
-				JSL MathMul16_16	;>$04 to $07 = product
-			;And we divide by maxquantity.
-				REP #$20
-				LDA $04
-				STA $00
-				LDA $06
-				STA $02
-				LDA !Scratchram_PercentageMaxQuantity
-				STA $04
-				SEP #$20
-				JSL MathDiv32_16	;>$00-$03 quotient, $04-$05 remainder
+			JSL ConvertToPercentageRoundDown
 			;After dividing, quotient, currently rounded down is our (raw) percentage value
 			;The remainder can be used to determine should the percentage value be rounded up.
 				LDY #$00		;>Default Y = $00
@@ -1057,7 +1039,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 						
 						...CheckIfRoundedUpTo100
 							LDA $00					;\If not representing 100 on 32 bits, leave Y=$00.
-							CMP.l .PercentageFixedPointScaling,x	;|
+							CMP.l PercentageFixedPointScaling,x	;|
 							BNE ..RoundDone				;|
 							LDA $02					;|
 							CMP #$0000				;|
@@ -1075,10 +1057,69 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 					..RoundDone
 						SEP #$20
 						RTL
-			.PercentageFixedPointScaling
+			PercentageFixedPointScaling
 				dw 100		;>Integer not scaled at all
 				dw 1000		;>Scaled by 1/10 to display the tenths place
 				dw 10000	;>Scaled by 1/100 to display the hundredths place.
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;A variant of ConvertToPercentage, rounds down.
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		ConvertToPercentageRoundDown:
+			LDA !Scratchram_PercentageFixedPointPrecision
+			ASL
+			TAX
+			;First, do [Quantity * 100]
+				REP #$20
+				LDA !Scratchram_PercentageQuantity
+				STA $00
+				LDA.l PercentageFixedPointScaling,x
+				STA $02
+				SEP #$20
+				JSL MathMul16_16	;>$04 to $07 = product
+			;And we divide by maxquantity.
+				REP #$20
+				LDA $04
+				STA $00
+				LDA $06
+				STA $02
+				LDA !Scratchram_PercentageMaxQuantity
+				STA $04
+				SEP #$20
+				JSL MathDiv32_16	;>$00-$03 quotient, $04-$05 remainder
+			;Check for if rounded to zero despite not being exactly zero
+			.RoundCheck
+				LDY #$00
+				REP #$20
+				LDA $00			;\Quotient
+				ORA $02			;/
+				BNE ..No		;>Quotient nonzero, then no changing Y
+				LDA $04			;>Remainder
+				BEQ ..No		;>If Q=0 and R=0, then it is exactly zero.
+				LDY #$01		;>Quotient being zero and remainder nonzero = between 0 and 1, therefore rounded to zero
+				..No
+				SEP #$20
+			RTL
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;A variant of ConvertToPercentage, rounds up.
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		ConvertToPercentageRoundUp:
+			JSL ConvertToPercentageRoundDown
+			REP #$20
+			LDA $04				;\If remainder 0 (result is exact integer), don't increment
+			BEQ .NoRoundUp			;/
+			.RoundUp
+			INC $00				;>Quotient+1
+			LDA !Scratchram_PercentageFixedPointPrecision
+			TAX
+			LDA.l PercentageFixedPointScaling,x	;>The "Maximum", which is 100, 1000 (100.x), or 10000 (100.xx)
+			LDY #$00				;>Default Y=$00 (not rounded)
+			CMP $00					;\If not rounded up to maximum, leave Y=$00
+			BNE .NoRoundToMax			;/
+			LDY #$02				;>Otherwise indicate a round up to 100 with Y=$02
+			.NoRoundToMax
+			.NoRoundUp
+			SEP #$20
+			RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Counting animation (uses "Mere display counting").
 ;
