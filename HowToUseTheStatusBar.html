@@ -125,11 +125,8 @@ certain sprite combinations on screen.</li>
 RAM address <kbd>$7E0EF9-$7E0F2E</kbd> controls what tile to display. How do you modify it? Well you edit the
 contents in the mentioned RAM address. There are 2 ways you can edit RAM addresses:
 <ul>
-<li>Most recommended: a debugger, specifically, <a href="https://www.smwcentral.net/?p=section&a=details&id=21616">Bsnes+</a>. This method applies temporary changes to your game for testing purposes,
-it does not actually make &ldquo;permanent&rdquo; changes to your game. To make modifications, be at a level, and on the debugger, go to the menubar on the window, Tools &rightarrow; Debugger.
-Now on the Debugger window: &rightarrow; Tools &rightarrow; Memory Editor, and enter on the search bar &ldquo;<kbd>7E0EF9</kbd>&rdquo; (or just &ldquo;<kbd>0EF9</kbd>&rdquo;, if using a SA-1 ROM, its
-&ldquo;<kbd>6EF9</kbd>&rdquo;). It should now scroll to that address. From here, type in the hexidecimal number. At the time of making this, the memory editor lacks filtering features like entering a range. However, when you select a byte (a pair of hexidecimal digits), the info bar at the bottom shows what address you are on
-to edit:<br>
+<li>Most recommended: a debugger, specifically, <a href="https://github.com/SourMesen/Mesen2">Mesen</a>. After running your game on the emulator, go to the menu bar, &ldquo;Debug&rdquo; &rightarrow; &ldquo;Memory Viewer&rdquo;. On the
+memory viewer window, go to &ldquo;Search&rdquo; &rightarrow; &ldquo;Go to Address&rdquo; It should now scroll to that address. From here, type in the hexadecimal number.<br>
 <img src="Readme_Files/MemoryEditorAddress.png"></li>
 <li>Create an ASM file to run under <a href="https://www.smwcentral.net/?p=section&a=details&id=19982">uberasm tool</a> as <kbd>level</kbd> under <kbd>main:</kbd> label, and just use <kbd>LDA #$xx : STA $xxxxxx</kbd>.</li>
 </ul>
@@ -165,8 +162,7 @@ lines of the item box:
 </table>
 If you modify these hardcoded values through a debugger, the changes will only apply on the next level reload, since the hardcoded upload only occurs on level load.</p>
 
-<p>You may be wondering, why did I include the tile coordinate in these tables? Well, is because of bsnes+'s ability to display the tile coordinates in the tilemap viewer (Debugger &rightarrow; S-PPU &rightarrow;
-Tilemap Viewer, and select &ldquo;3&rdquo; on the BG.):<br>
+<p>You may be wondering, why did I include the tile coordinate in these tables? Well, is because of Mesen's ability to display the tile coordinates in the tilemap viewer (Debug &rightarrow; Tilemap viewer, and select &ldquo;Layer 3&rdquo;):<br>
 <img src="Readme_Files/TileCoordinate.png"><br>
 and then you can use that coordinate and CTRL+F here on this HTML file to locate what RAM/ROM address to modify, which is way easier than to trial-and-error modifying each address to find the desired location.</p>
 
