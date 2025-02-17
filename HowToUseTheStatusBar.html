@@ -1923,6 +1923,11 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 !TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 main:
+	if !CPUMode != 0
+		%invoke_sa1(mainSA1)
+		RTL
+		mainSA1:
+	endif
 	;Submit fraction
 		REP #$20
 		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes
