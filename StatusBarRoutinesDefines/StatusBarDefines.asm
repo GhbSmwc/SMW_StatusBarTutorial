@@ -119,8 +119,9 @@ endif
 			!StatusBar_TestDisplayElement_CountAnimation2_1Byte = $62 ;>The "subtractor", which decrements itself by 1 per frame and subtracts !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte by 1 each frame
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Don't edit unless you know what you're doing
+;Feel free to use these.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;Patched status bar. Feel free to use this.
+	;Patched status bar.
 		function PatchedStatusBarXYToAddress(x, y, StatusBarTileDataBaseAddr, format) = StatusBarTileDataBaseAddr+(x*format)+(y*32*format)
 		;You don't have to do STA $7FA000+StatusBarXYToByteOffset(0, 0, $02) when you can do STA PatchedStatusBarXYToAddress(0, 0, $7FA000, $02)
 		
@@ -128,7 +129,7 @@ endif
 			assert and(greaterequal(<x>, 0), lessequal(<x>, 31)), "Invalid position on the patched status bar"
 		endmacro
 	
-	;Vanilla SMW status bar. Again, feel free to use this.
+	;Vanilla SMW status bar.
 		function VanillaStatusBarXYToAddress(x,y, SMWStatusBar0EF9) = (select(equal(y,2), SMWStatusBar0EF9+(x-2), SMWStatusBar0EF9+$1C+(x-3)))
 		
 		macro CheckValidVanillaStatusBarPos(x,y)
@@ -140,6 +141,8 @@ endif
 		else
 			!RAM_0EF9 = $400EF9
 		endif
+	;Frames2Timer (this converts multiple units of time into total number of frames).
+		function FramesToTimer(Hours, Minutes, Seconds, Frames) = (Hours*216000)+(Minutes*3600)+(Seconds*60)+Frames
 	!Default_TestElement_Pos_Tile = VanillaStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !RAM_0EF9)
 	if !UsingCustomStatusBar != 0
 		!Default_TestElement_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)

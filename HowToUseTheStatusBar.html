@@ -1574,10 +1574,10 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 <h2 id="Frames2Timer"><a href="#Frames2TimerBack">^</a>Display a timer in Hours:Minutes:Seconds:Centiseconds format</h2>
 Perhaps, if you wanted to display a timer on the HUD in HH:MM:SS.CC (or MM:SS.CC) format, I've provided a routine for that and this code to use it:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[4 bytes] the 32-bit frame counter
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 ;Settings
- !StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00	;&gt;Where to write on the status bar
  !Decrement = 0								;&gt;0 = increment, 1 = decrement
  !ShowHours = 0								;&gt;0 = MM:SS.CC, 1 = HH:MM:SS.CC
 ;Start timer (used only when set to decrement):
@@ -1586,54 +1586,61 @@ Perhaps, if you wanted to display a timer on the HUD in HH:MM:SS.CC (or MM:SS.CC
  !StartTimerSeconds = 30
 
 ;Don't touch
-	!StatusBarPositionOfset = 3 ;&gt;Position the timer so that the minutes and lower units move for the hours
+	!StatusBarPositionOffset = 3 ;&gt;Position the timer so that the minutes and lower units move for the hours
 	!MaxTimer = $00034BBF ;&gt;Max time when incrementing, stop at "59:59.98" or "99:59:59.98".
 	if !ShowHours != 0
 		!MaxTimer = $014996FF
-		!StatusBarPositionOfset = 0
+		!StatusBarPositionOffset = 0
 	endif
 	
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
+	!FramesCountdown = FramesToTimer(!StartTimerHour, !StartTimerMinute, !StartTimerSeconds, 0)
 
 	init:
 	if !Decrement != 0
 		REP #$20
-		LDA.w #(!StartTimerHour*216000)+(!StartTimerMinute*3600)+(!StartTimerSeconds*60)
-		STA !RAMToMeasure
-		LDA.w #(!StartTimerHour*216000)+(!StartTimerMinute*3600)+(!StartTimerSeconds*60)&gt;&gt;16
-		STA !RAMToMeasure+2
+		LDA.w #!FramesCountdown
+		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes
+		LDA.w #!FramesCountdown&gt;&gt;16
+		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
 		SEP #$20
 		
 	else
 		REP #$20
 		LDA #$0000
-		STA !RAMToMeasure
-		STA !RAMToMeasure+2
+		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes
+		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
 		SEP #$20
 	endif
 	RTL
 
 	main:
+	
+	if !CPUMode != 0
+		%invoke_sa1(mainSA1)
+		RTL
+		mainSA1:
+	endif
+	
 	.Timer
-	LDA $9D			;\Freeze timer if game is frozen in any way.
-	ORA $13D4|!addr		;|
-	BNE ..StopTimer		;/
+	LDA $9D									;\Freeze timer if game is frozen in any way.
+	ORA $13D4|!addr								;|
+	BNE ..StopTimer								;/
 	if !Decrement == 0
 		..Increment
-		REP #$20			;\Increment timer
-		LDA !RAMToMeasure		;|
-		CLC				;|
-		ADC #$0001			;|
-		STA !RAMToMeasure		;|
-		LDA !RAMToMeasure+2		;|
-		ADC #$0000			;|
-		STA !RAMToMeasure+2		;/
+		REP #$20							;\Increment timer
+		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
+		CLC								;|
+		ADC #$0001							;|
+		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
+		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
+		ADC #$0000							;|
+		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;/
 		..Cap
-			LDA !RAMToMeasure
+			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes
 			SEC
 			SBC.w #!MaxTimer
-			LDA !RAMToMeasure+2
+			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
 			SBC.w #!MaxTimer&gt;&gt;16
 			SEP #$20
 			BCC ...NotMaxed
@@ -1641,81 +1648,81 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			...Maxed
 				REP #$20
 				LDA.w #!MaxTimer
-				STA !RAMToMeasure
+				STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes
 				LDA.w #!MaxTimer&gt;&gt;16
-				STA !RAMToMeasure+2
+				STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
 				SEP #$20
 			...NotMaxed
 	else
-		REP #$20			;\Increment frame counter
-		LDA !RAMToMeasure		;|Skip if timer is already 0 and triggered a code.
-		ORA !RAMToMeasure+2		;|
-		BEQ ..StopTimer			;/
-		LDA !RAMToMeasure		;\Decrement frame counter to 0.
-		SEC				;|
-		SBC #$0001			;|
-		STA !RAMToMeasure		;|
-		LDA !RAMToMeasure+2		;|
-		SBC #$0000			;|
-		STA !RAMToMeasure+2		;|
-		BCS ..NoUnderflow		;|\Failsafe
-		LDA #$0000			;||
-		STA !RAMToMeasure		;||
-		STA !RAMToMeasure+2		;|/
+		REP #$20							;\Increment frame counter
+		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|Skip if timer is already 0 and triggered a code.
+		ORA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
+		BEQ ..StopTimer							;/
+		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;\Decrement frame counter to 0.
+		SEC								;|
+		SBC #$0001							;|
+		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
+		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
+		SBC #$0000							;|
+		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
+		BCS ..NoUnderflow						;|\Failsafe
+		LDA #$0000							;||
+		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;||
+		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|/
 		
-		..NoUnderflow			;/
+		..NoUnderflow							;/
 		
-		LDA !RAMToMeasure		;\Check again, AFTER subtracting by 1, so that the code executes only once.
-		ORA !RAMToMeasure+2		;|
-		BNE ..NotDecrementedToZero	;/
+		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes			;\Check again, AFTER subtracting by 1, so that the code executes only once.
+		ORA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2		;|
+		BNE ..NotDecrementedToZero						;/
 		SEP #$20
 		JSL TimerZero			;&gt;Code to execute once.
 		..NotDecrementedToZero
 	endif
 	..StopTimer
-	REP #$20			;\Get timer format
-	LDA !RAMToMeasure		;|
-	STA $00				;|
-	LDA !RAMToMeasure+2		;|
-	STA $02				;|
-	SEP #$20			;|
-	JSL HexDec_Frames2Timer		;/
+	REP #$20									;\Get timer format
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes				;|
+	STA $00										;|
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2			;|
+	STA $02										;|
+	SEP #$20									;|
+	JSL HexDec_Frames2Timer								;/
 	
 	if !ShowHours != 0
 		;Hours
 			LDA !Scratchram_Frames2TimeOutput
 			JSL HexDec_EightBitHexDec
-			STA !StatusBarPosition+(1*!StatusbarFormat)
+			STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)
 			TXA
-			STA !StatusBarPosition
+			STA !Default_TestElement_Pos_Tile
 		;Colon symbol
 			LDA #$78
-			STA !StatusBarPosition+(2*!StatusbarFormat)
+			STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)
 	endif
 	;Minutes
 		LDA !Scratchram_Frames2TimeOutput+1
 		JSL HexDec_EightBitHexDec
-		STA !StatusBarPosition+((4-!StatusBarPositionOfset)*!StatusbarFormat)
+		STA !Default_TestElement_Pos_Tile+((4-!StatusBarPositionOffset)*!StatusbarFormat)
 		TXA
-		STA !StatusBarPosition+((3-!StatusBarPositionOfset)*!StatusbarFormat)
+		STA !Default_TestElement_Pos_Tile+((3-!StatusBarPositionOffset)*!StatusbarFormat)
 	;Colon symbol
 		LDA #$78
-		STA !StatusBarPosition+((5-!StatusBarPositionOfset)*!StatusbarFormat)
+		STA !Default_TestElement_Pos_Tile+((5-!StatusBarPositionOffset)*!StatusbarFormat)
 	;Seconds
 		LDA !Scratchram_Frames2TimeOutput+2
 		JSL HexDec_EightBitHexDec
-		STA !StatusBarPosition+((7-!StatusBarPositionOfset)*!StatusbarFormat)
+		STA !Default_TestElement_Pos_Tile+((7-!StatusBarPositionOffset)*!StatusbarFormat)
 		TXA
-		STA !StatusBarPosition+((6-!StatusBarPositionOfset)*!StatusbarFormat)
+		STA !Default_TestElement_Pos_Tile+((6-!StatusBarPositionOffset)*!StatusbarFormat)
 	;Period symbol
 		LDA #$24
-		STA !StatusBarPosition+((8-!StatusBarPositionOfset)*!StatusbarFormat)
+		STA !Default_TestElement_Pos_Tile+((8-!StatusBarPositionOffset)*!StatusbarFormat)
 	;Centiseconds
 		LDA !Scratchram_Frames2TimeOutput+3
 		JSL HexDec_EightBitHexDec
-		STA !StatusBarPosition+((10-!StatusBarPositionOfset)*!StatusbarFormat)
+		STA !Default_TestElement_Pos_Tile+((10-!StatusBarPositionOffset)*!StatusbarFormat)
 		TXA
-		STA !StatusBarPosition+((9-!StatusBarPositionOfset)*!StatusbarFormat)
+		STA !Default_TestElement_Pos_Tile+((9-!StatusBarPositionOffset)*!StatusbarFormat)
 	RTL
 	
 	if !Decrement != 0
@@ -1895,31 +1902,32 @@ Example:
 <a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point arithmetic</a>. Meaning that a value <kbd>5003</kbd> stored in memory means 50.03 when using 10000 scaling. Here is a sample template
 code to display a percentage:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[2 bytes] RAM address you what to show (Quantity)
-!RAMToMeasure2 = $62							;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
 !Default_PercentagePrecision = 0
  ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
  ; with !Scratchram_PercentageFixedPointPrecision.
 !CapAt100 = 1								;&gt;0 = allow percentage to display values greater than 100, 1 = cap at 100.
 !RightAligned = 0							;&gt;0 = left-aligned, 1 = right-aligned.
 
-if !RightAligned == 0
-	!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar, tile numbers (left aligned)
-	!StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above, but tile properties (left aligned)
-else
-	!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$3E		;&gt;Where to write on the status bar, tile numbers (right aligned)
-	!StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$3E	;&gt;Same as above, but tile properties (right aligned)
-endif
-!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
+;Don't touch unless you know what you're doing
+	if !RightAligned == 0
+		!StatusBarAddressTile = !Default_TestElement_Pos_Tile				;&gt;Where to write on the status bar, tile numbers (left aligned)
+		!StatusBarAddressProps = !Default_TestElement_Pos_Prop				;&gt;Same as above, but tile properties (left aligned)
+	else
+		!StatusBarAddressTile = !Default_TestElement_RightAlignedText_Pos_Tile		;&gt;Where to write on the status bar, tile numbers (right aligned)
+		!StatusBarAddressProps = !Default_TestElement_RightAlignedText_Pos_Prop		;&gt;Same as above, but tile properties (right aligned)
+	endif
+!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 main:
 	;Submit fraction
 		REP #$20
-		LDA !RAMToMeasure
+		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes
 		STA !Scratchram_PercentageQuantity
-		LDA !RAMToMeasure2
+		LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes
 		STA !Scratchram_PercentageMaxQuantity
 		SEP #$20
 		LDA #!Default_PercentagePrecision
@@ -1978,17 +1986,17 @@ main:
 				.DisplayNumbers
 					LDA $00
 					JSL HexDec_EightBitHexDec3Digits
-					STA !StatusBarPosition-(1*!StatusbarFormat)		;&gt;Write 1s place
+					STA !StatusBarAddressTile-(1*!StatusbarFormat)		;&gt;Write 1s place
 					..HandleHundreds
 						CPY #$00					;\Is the 100s place nonzero? Yes, then leave that and the 10s showing up
 						BNE ...HundredsNonZero				;/No, then erase the 100s digit and see if 10s is also part of the leading 0s.
 					...NoHundreds
 						LDA #!StatusBarBlankTile			;\Erase the 100s digit
-						STA !StatusBarPosition-(3*!StatusbarFormat)	;/
+						STA !StatusBarAddressTile-(3*!StatusbarFormat)	;/
 						BRA ..HandleTens				;&gt;Check if the next digit is also part of the leading zero.
 					...HundredsNonZero
 						TYA
-						STA !StatusBarPosition-(3*!StatusbarFormat)	;&gt;Write 100s place
+						STA !StatusBarAddressTile-(3*!StatusbarFormat)	;&gt;Write 100s place
 						BRA ..HandleTens_WriteTens			;&gt;If at least 100, 10s shouldn't be omitted.
 					..HandleTens
 						CPX #$00					;\Is the 10s place nonzero? Yes, then leave the 10s place showing up
@@ -1997,16 +2005,16 @@ main:
 							LDX #!StatusBarBlankTile			;&gt;If 0, replace 10s digit with blank.
 						...WriteTens
 							TXA						;\Write 10s place
-							STA !StatusBarPosition-(2*!StatusbarFormat)	;/
+							STA !StatusBarAddressTile-(2*!StatusbarFormat)	;/
 					if !StatusBar_UsingCustomProperties != 0
 						LDA #!TileProps
-						STA !StatusBarPositionProps-(0*!StatusbarFormat)
-						STA !StatusBarPositionProps-(1*!StatusbarFormat)
-						STA !StatusBarPositionProps-(2*!StatusbarFormat)
-						STA !StatusBarPositionProps-(3*!StatusbarFormat)
+						STA !StatusBarAddressProps-(0*!StatusbarFormat)
+						STA !StatusBarAddressProps-(1*!StatusbarFormat)
+						STA !StatusBarAddressProps-(2*!StatusbarFormat)
+						STA !StatusBarAddressProps-(3*!StatusbarFormat)
 					endif
 					LDA #!StatusBarPercentTile
-					STA !StatusBarPosition-(0*!StatusbarFormat)
+					STA !StatusBarAddressTile-(0*!StatusbarFormat)
 			elseif !RightAligned == 0
 				STZ $01
 				JSL HexDec_SixteenBitHexDecDivision
@@ -2018,10 +2026,10 @@ main:
 					LDX.b #(4-1)*!StatusbarFormat
 					..Loop
 						LDA #!StatusBarBlankTile
-						STA !StatusBarPosition,x
+						STA !StatusBarAddressTile,x
 						if !StatusBar_UsingCustomProperties != 0
 							LDA.b #!TileProps
-							STA !StatusBarPositionProps,x
+							STA !StatusBarAddressProps,x
 						endif
 						DEX #!StatusbarFormat
 						BPL ..Loop
@@ -2037,13 +2045,13 @@ main:
 					STA !Scratchram_CharacterTileTable,x		;/
 					INX
 				;Write to status bar
-					LDA.b #!StatusBarPosition : STA $00
-					LDA.b #!StatusBarPosition&gt;&gt;8 : STA $01
-					LDA.b #!StatusBarPosition&gt;&gt;16 : STA $02
+					LDA.b #!StatusBarAddressTile : STA $00
+					LDA.b #!StatusBarAddressTile&gt;&gt;8 : STA $01
+					LDA.b #!StatusBarAddressTile&gt;&gt;16 : STA $02
 					if !StatusBar_UsingCustomProperties != 0
-						LDA.b #!StatusBarPositionProps : STA $03
-						LDA.b #!StatusBarPositionProps&gt;&gt;8 : STA $04
-						LDA.b #!StatusBarPositionProps&gt;&gt;16 : STA $05
+						LDA.b #!StatusBarAddressProps : STA $03
+						LDA.b #!StatusBarAddressProps&gt;&gt;8 : STA $04
+						LDA.b #!StatusBarAddressProps&gt;&gt;16 : STA $05
 						LDA #!TileProps : STA $06
 					endif
 					if !StatusbarFormat == $01
@@ -2064,20 +2072,20 @@ main:
 					;!Scratchram_16bitHexDecOutput+$02 (100s place) -&gt; 10s place
 					;!Scratchram_16bitHexDecOutput+$03 (10s place) -&gt; 1s place
 					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/10s place
-					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarPosition-(5*!StatusbarFormat)	;&gt;100s
-					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarPosition-(4*!StatusbarFormat)	;&gt;10s
-					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition-(3*!StatusbarFormat)	;&gt;1s
-					LDA #$24 : STA !StatusBarPosition-(2*!StatusbarFormat)					;&gt;.
-					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition-(1*!StatusbarFormat)	;&gt;1/10ths
-					LDA #!StatusBarPercentTile : STA !StatusBarPosition-(0*!StatusbarFormat)		;&gt;%
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarAddressTile-(5*!StatusbarFormat)	;&gt;100s
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarAddressTile-(4*!StatusbarFormat)	;&gt;10s
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarAddressTile-(3*!StatusbarFormat)	;&gt;1s
+					LDA #$24 : STA !StatusBarAddressTile-(2*!StatusbarFormat)					;&gt;.
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarAddressTile-(1*!StatusbarFormat)	;&gt;1/10ths
+					LDA #!StatusBarPercentTile : STA !StatusBarAddressTile-(0*!StatusbarFormat)		;&gt;%
 					if !StatusBar_UsingCustomProperties != 0
 						LDA #!TileProps
-						STA !StatusBarPositionProps-(5*!StatusbarFormat)	;&gt;100s
-						STA !StatusBarPositionProps-(4*!StatusbarFormat)	;&gt;10s
-						STA !StatusBarPositionProps-(3*!StatusbarFormat)	;&gt;1s
-						STA !StatusBarPositionProps-(2*!StatusbarFormat)	;&gt;.
-						STA !StatusBarPositionProps-(1*!StatusbarFormat)	;&gt;1/10s
-						STA !StatusBarPositionProps-(0*!StatusbarFormat)	;&gt;%
+						STA !StatusBarAddressProps-(5*!StatusbarFormat)	;&gt;100s
+						STA !StatusBarAddressProps-(4*!StatusbarFormat)	;&gt;10s
+						STA !StatusBarAddressProps-(3*!StatusbarFormat)	;&gt;1s
+						STA !StatusBarAddressProps-(2*!StatusbarFormat)	;&gt;.
+						STA !StatusBarAddressProps-(1*!StatusbarFormat)	;&gt;1/10s
+						STA !StatusBarAddressProps-(0*!StatusbarFormat)	;&gt;%
 					endif
 				elseif !Default_PercentagePrecision == 2
 					JSL HexDec_RemoveLeadingZeroes16BitLeaveLast3
@@ -2088,22 +2096,22 @@ main:
 					;!Scratchram_16bitHexDecOutput+$02 (100s place) -&gt; 1s place
 					;!Scratchram_16bitHexDecOutput+$03 (10s place) -&gt; 1/10s place
 					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/100s place
-					LDA !Scratchram_16bitHexDecOutput+$00 : STA !StatusBarPosition-(6*!StatusbarFormat)	;&gt;100s
-					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarPosition-(5*!StatusbarFormat)	;&gt;10s
-					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarPosition-(4*!StatusbarFormat)	;&gt;1s
-					LDA #$24 : STA !StatusBarPosition-(3*!StatusbarFormat)					;&gt;.
-					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarPosition-(2*!StatusbarFormat)	;&gt;1/10s
-					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarPosition-(1*!StatusbarFormat)	;&gt;1/100s
-					LDA #!StatusBarPercentTile : STA !StatusBarPosition-(0*!StatusbarFormat)		;&gt;%
+					LDA !Scratchram_16bitHexDecOutput+$00 : STA !StatusBarAddressTile-(6*!StatusbarFormat)	;&gt;100s
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarAddressTile-(5*!StatusbarFormat)	;&gt;10s
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarAddressTile-(4*!StatusbarFormat)	;&gt;1s
+					LDA #$24 : STA !StatusBarAddressTile-(3*!StatusbarFormat)					;&gt;.
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarAddressTile-(2*!StatusbarFormat)	;&gt;1/10s
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarAddressTile-(1*!StatusbarFormat)	;&gt;1/100s
+					LDA #!StatusBarPercentTile : STA !StatusBarAddressTile-(0*!StatusbarFormat)		;&gt;%
 					if !StatusBar_UsingCustomProperties != 0
 						LDA #!TileProps
-						STA !StatusBarPositionProps-(6*!StatusbarFormat)	;&gt;100s
-						STA !StatusBarPositionProps-(5*!StatusbarFormat)	;&gt;10s
-						STA !StatusBarPositionProps-(4*!StatusbarFormat)	;&gt;1s
-						STA !StatusBarPositionProps-(3*!StatusbarFormat)	;&gt;.
-						STA !StatusBarPositionProps-(2*!StatusbarFormat)	;&gt;1/10s
-						STA !StatusBarPositionProps-(1*!StatusbarFormat)	;&gt;1/100s
-						STA !StatusBarPositionProps-(0*!StatusbarFormat)	;&gt;%
+						STA !StatusBarAddressProps-(6*!StatusbarFormat)	;&gt;100s
+						STA !StatusBarAddressProps-(5*!StatusbarFormat)	;&gt;10s
+						STA !StatusBarAddressProps-(4*!StatusbarFormat)	;&gt;1s
+						STA !StatusBarAddressProps-(3*!StatusbarFormat)	;&gt;.
+						STA !StatusBarAddressProps-(2*!StatusbarFormat)	;&gt;1/10s
+						STA !StatusBarAddressProps-(1*!StatusbarFormat)	;&gt;1/100s
+						STA !StatusBarAddressProps-(0*!StatusbarFormat)	;&gt;%
 					endif
 				endif
 			elseif !RightAligned == 0
@@ -2115,7 +2123,7 @@ main:
 						LDX.b #($07-1)*!StatusbarFormat		;&gt;[100.00%] is 7 characters. So we must clear out 7 tiles.
 					endif
 					..Loop
-						STA !StatusBarPosition,x
+						STA !StatusBarAddressTile,x
 						DEX #!StatusbarFormat
 						BPL ..Loop
 				
@@ -2134,13 +2142,13 @@ main:
 				STA !Scratchram_CharacterTileTable,x		;/
 				INX
 				;Write to status bar
-					LDA.b #!StatusBarPosition : STA $00
-					LDA.b #!StatusBarPosition&gt;&gt;8 : STA $01
-					LDA.b #!StatusBarPosition&gt;&gt;16 : STA $02
+					LDA.b #!StatusBarAddressTile : STA $00
+					LDA.b #!StatusBarAddressTile&gt;&gt;8 : STA $01
+					LDA.b #!StatusBarAddressTile&gt;&gt;16 : STA $02
 					if !StatusBar_UsingCustomProperties != 0
-						LDA.b #!StatusBarPositionProps : STA $03
-						LDA.b #!StatusBarPositionProps&gt;&gt;8 : STA $04
-						LDA.b #!StatusBarPositionProps&gt;&gt;16 : STA $05
+						LDA.b #!StatusBarAddressProps : STA $03
+						LDA.b #!StatusBarAddressProps&gt;&gt;8 : STA $04
+						LDA.b #!StatusBarAddressProps&gt;&gt;16 : STA $05
 						LDA #!TileProps : STA $06
 					endif
 					if !StatusbarFormat == $01
@@ -2152,8 +2160,7 @@ main:
 		endif
 			.Done
 	;Done
-		RTL
-</pre></td></tr></table><br>
+		RTL</pre></td></tr></table><br>
 The calculation to find the percentage is handled in <kbd>ConvertToPercentage</kbd>. Depending on what is written to <kbd>!Scratchram_PercentageFixedPointPrecision</kbd> determines should the numerator be out of 100, 1000, or 10000,
 which after the HexDec routine, you can write the first n digits, then the decimal point (tile <kbd>#$24</kbd>), and then the last n digits, example:
 <table>
