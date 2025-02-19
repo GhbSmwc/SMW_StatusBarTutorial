@@ -1,22 +1,25 @@
-;>bytes 6
+;>bytes 7
 ;To be used as "Level" for uberasm tool 2.0+.
-
-
 
 ;Extra bytes information:
 ;EXB 1: $00 = Increment, $01 decrement (do something when timer hits 0).
 ;EXB 2: Display mode:
-;       $00 = MM:SS.CC
-;       $01 = HH:MM:SS.CC
-;       $02 = Display only 2 most significant units
-;             If timer is less than a minute, display "SS.CC"
-;             If timer is between a minute and hour long, display "MM:SS"
-;             Otherwise display "HH:MM"
-;EXB 3-6 Are the starting frame value when countdown is being used (little endian).
+;       - $00 = MM:SS.CC
+;       - $01 = HH:MM:SS.CC
+;       - $02 = Display only 2 most significant units
+;               - If timer is less than a minute, display "SS.CC"
+;               - If timer is between a minute and hour long, display "MM:SS"
+;               - Otherwise display "HH:MM"
+;EXB 3-6: Starting frame value when countdown is being used (4 bytes, little endian).
+;         See "Readme_Files/JS_FrameToTimer.html" to convert to frames.
+;EXB 7: Event to trigger when timer hits 0:
+;       - $00 = do nothing
+;       - $01 = Lose life
+;       - $02 = Fling player upwards
 ;
-;For sake of readability, here's an example of a countdown timer in MM:SS.CC,
-;of 1 minute and 30 seconds:
-; Level_Timer.asm:01 00 (1518) 00
+;here's an example of a countdown timer in MM:SS.CC,
+;of 1 minute and 30 seconds before killing the player:
+; Level_Timer.asm:01 00 (1518) (0000) 01
 
 ;Don't touch
 	incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -265,9 +268,28 @@
 	RTL
 	
 	TimerZero:
-	LDA #$80	;\Example code: Fling player upwards.
-	STA $7D		;/
+	LDY #$06
+	LDA ($00),y
+	BEQ .DoNothing
+	ASL
+	TAX
+	JMP (.EventJumpTable-2,x)
+	
+	.DoNothing
 	RTL
+	
+	.EventJumpTable
+		dw .KillPlayer		;>Index 1 ($02)
+		dw .FlingPlayer		;>Index 2 ($04)
+		
+	.KillPlayer
+		JSL $00F606
+		RTL
+	.FlingPlayer
+		LDA #$80
+		STA $7D
+		RTL
+	
 	TimerMax:
 	dw $4BBF, $0003 ;$00034BBF (00:59:59.98) MM:SS.CC
 	dw $96FF, $0149 ;$014996FF (99:59:59.98) HH:MM:SS.CC
