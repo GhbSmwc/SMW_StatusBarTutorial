@@ -64,7 +64,6 @@
 		BNE ..Decrement
 		
 		..Increment
-			wdm
 			PHB
 			PHK
 			PLB
