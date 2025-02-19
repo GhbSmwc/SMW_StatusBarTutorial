@@ -61,12 +61,13 @@
 		BNE ..Decrement
 		
 		..Increment
+			wdm
 			PHB
 			PHK
 			PLB
 			LDY #$01							;\EXB 2
 			LDA ($00),y							;/
-			ASL #4
+			ASL #2
 			TAX
 			REP #$20							;\Increment timer
 			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
