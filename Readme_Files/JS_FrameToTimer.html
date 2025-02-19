@@ -43,7 +43,13 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 </td>
 </tr>
 </table>
-<button onclick="Reset()">Reset</button>
+<button onclick="Reset()">Reset</button><br><br>
+
+<h3>Extra bytes value:</h3>
+<table><tr><td><pre>
+105	Level_Timer.asm: 01 02 <span id="ExtraByteStartingFrame">(0000) (0000)</span> 01
+</pre></td></tr></table>
+
 
 <script>
 	 window.onload = function(){ //Upon loading, apply the function to execute when the up/down arrow keys are pressed.
@@ -117,6 +123,8 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 		document.getElementById("TimerHours").value = pad(TimeHours.toString(10), 2n)
 		
 		InGameDisplay(TimeHours, TimeMinutes, TimeSeconds, TimeFrameWithinSeconds)
+		
+		DisplayFramesExtraBytes(ThirtyTwoBitFrame)
 	
 	}
 	function TimerTo32BitFrame() {
@@ -143,6 +151,10 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 			} else {
 				InGameDisplay(TimeHours, TimeMinutes, TimeSeconds, TimeFrameWithinSeconds)
 			}
+		DisplayFramesExtraBytes(ThirtyTwoBitFrame)
+	}
+	function DisplayFramesExtraBytes(FrameCount) {
+		document.getElementById("ExtraByteStartingFrame").textContent = "(" + (FrameCount & BigInt("0xFFFF")).toString(16).toUpperCase().padStart(4, "0") + ") (" + (FrameCount>>16n).toString(16).toUpperCase().padStart(4, "0") + ")"
 	}
 	function InGameDisplay(Hrs, Min, Sec, Jiffy) {
 		let Centiseconds = (Jiffy*100n)/60n
@@ -225,4 +237,35 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 		}
 		return Output
 	}
+	
+//These makes all <pre>...</pre> have an effect that double-clicking will select all the text
+//in it, to make it easy to copy code and paste it in your ASM stuff.
+//
+//Credit:
+// https://keestalkstech.com/2014/04/click-to-select-all-on-the-pre-element/
+// https://www.sanwebe.com/2014/04/select-all-text-in-element-on-click
+document.addEventListener('dblclick', e => {
+  let pre = getClosest(e.target, "PRE");
+  if (pre && e.ctrlKey) {
+    let range = new Range();
+    range.selectNodeContents(pre);
+    document.getSelection().removeAllRanges();
+    document.getSelection().addRange(range);
+  }
+});
+
+function getClosest(el, tagName) {
+  tagName = tagName && tagName.toUpperCase();
+
+  if (!tagName || !el)
+    return null;
+
+  do
+    if (el.nodeName === tagName)
+      return el;
+  while (el = el.parentNode);
+
+  return null;
+}
+
 </script>
