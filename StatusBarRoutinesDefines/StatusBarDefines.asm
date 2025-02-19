@@ -87,7 +87,7 @@ endif
 			!OverWorldBorderPercentTile = $92
 		;Misc
 			!TileNumb_PercentSymbol = $2A
-	;Below here, defines revolving around XY positions are positions (in units of tiles) to place the display element
+	;Below here, defines involving XY positions are positions (in units of tiles) to place the display element
 	;(XY position must be an integer).
 	; - X=0 is the leftmost position, increases when going rightwards. X=31 ($1F) would normally be at the right edge of the screen
 	; - Y=0 is the topmost position, increases when going downwards. Y=27 would normally be at the bottom of the screen in theory if
@@ -95,6 +95,27 @@ endif
 	;
 	;As always, a number without a prefix are decimal, unless you prefix them with a dollar sign ("$")
 	;to tell the compiler asar that they're hex.
+	;
+	; The range of positions that are valid depends on what type of status bar you're using:
+	; - Vanilla SMW: Y can only be 2-3. And...
+	; -- When Y=2, X ranges 2-29.
+	; -- When Y=3, X ranges 3-29.
+	; - Super status bar patch: X:0-31, Y:0-4.
+	; - SMB3 status bar: X:0-31, Y:0-3
+	; - Minimalist status bar top OR bottom: X:0-31. Y is *ALWAYS* 0.
+	; - Minimalist status bar double: X:0-31, Y:0-1. Y=0 for top row, Y=1 for bottom row.
+	;
+	; Entering a position outside of the valid range may result in using a RAM address that
+	; is outside the status bar tile data (which may cause glitches or crash your game).
+	; This may also occur even if you use a valid position, for display elements made up of
+	; multiple tiles and those tiles extend beyond the first or last byte of the tile data
+	; (such as a 2-digit counter placed so the 10s digit of the counter is on the bottom-
+	; rightmost of the editable tile area, causing the 1s place to be written outside the
+	; tile data range).
+	;
+	; This define ASM file does have an assert failsafe against invalid XY positions, but
+	; it is not entirely foolproof due to each status bar types having different tile range
+	; and display elements spans many number of tiles to be written down.
 	
 	;Position to display most things onto the HUD for various elements (numbers, repeated icons, etc.)
 		!StatusBar_TestDisplayElement_PosX = 0
@@ -111,12 +132,13 @@ endif
 		;16-bit counters
 			!StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes = $60
 			!StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes = $62
-		;32-bit counters
+		;32-bit counters (Including frame counter)
 			!StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes = $60
 			!StatusBar_TestDisplayElement_RAMToDisplay2_4Bytes = $0F3A|!addr
 		;Counting animations
 			!StatusBar_TestDisplayElement_CountAnimation1_1Byte = $61 ;>The "adder", which decrements itself by 1 per frame and adds !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte by 1 each frame
 			!StatusBar_TestDisplayElement_CountAnimation2_1Byte = $62 ;>The "subtractor", which decrements itself by 1 per frame and subtracts !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte by 1 each frame
+	;Per-ASM defines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Don't edit unless you know what you're doing
 ;Feel free to use these.

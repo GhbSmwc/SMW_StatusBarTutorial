@@ -20,6 +20,8 @@
 ;-Make sure you do not move this patch file and anything in "StatusBarTutorial/StatusBarRoutines" and "StatusBarTutorial/StatusBarRoutinesDefines", since
 ; this uses a relative path from this file to the defines and routines file.
 
+;NOTE: This patch was made before UAT2.0 was released, which includes "end:" that lets you set OAM tiles prior the game displaying it.
+
 ;Don't touch:
 	incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
@@ -46,7 +48,7 @@
   ; 2 = 32-bit numerical digits display
   ; 3 = 32-bit displaying 2 numbers.
   ; 4 = Percentage. Displays a percentage of ValueToRepresent out of SecondValueToRepresent.
-  ; 5 = Timer display (MM:SS.CC), NOTE: This only DISPLAYS the timer, you need to have a code that increments the value every frame.
+  ; 5 = Timer display (MM:SS.CC), NOTE: This only DISPLAYS the timer, you need to have a code that increment/decrements the value every frame. See readme.
   ; 6 = Timer display (HH:MM:SS.CC), same rule as above.
   ; 7 = repeated icons display
  ;Percentage display settings.
