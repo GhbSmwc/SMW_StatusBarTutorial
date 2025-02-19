@@ -41,6 +41,7 @@
 		LDY #$04						;\EXN 5-6
 		LDA ($00),y						;/
 		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
+		SEP #$20
 		RTL
 
 	main:
@@ -121,8 +122,10 @@
 			...NotDecrementedToZero
 	
 		..DisplayTimer
-			REP #$20									;\Get timer format
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes				;|
+			REP #$20									;
+			LDA $00										;\Preserve extra bytes address
+			PHA										;/
+			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes				;|Get timer format
 			STA $00										;|
 			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2			;|
 			STA $02										;|
@@ -133,6 +136,10 @@
 				;!Scratchram_Frames2TimeOutput+1: Minutes
 				;!Scratchram_Frames2TimeOutput+2: Seconds
 				;!Scratchram_Frames2TimeOutput+3: Centiseconds
+			REP #$20
+			PLA										;\Restore extra bytes address
+			STA $00										;/
+			SEP #$20
 			LDY #$01
 			LDA ($00),y
 			BNE +
@@ -181,13 +188,13 @@
 					STA !Default_TestElement_Pos_Tile+(3*!StatusbarFormat)
 					RTL
 				....MinutesSeconds
-					LDA !Scratchram_Frames2TimeOutput+2
+					LDA !Scratchram_Frames2TimeOutput+1
 					JSL HexDec_EightBitHexDec
 					STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)
 					TXA
 					STA !Default_TestElement_Pos_Tile+(0*!StatusbarFormat)
 					
-					LDA !Scratchram_Frames2TimeOutput+3
+					LDA !Scratchram_Frames2TimeOutput+2
 					JSL HexDec_EightBitHexDec
 					STA !Default_TestElement_Pos_Tile+(4*!StatusbarFormat)
 					TXA
