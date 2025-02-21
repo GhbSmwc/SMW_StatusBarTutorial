@@ -12,10 +12,12 @@
 ;               - Otherwise display "HH:MM"
 ;EXB 3-6: Starting frame value when countdown is being used (4 bytes, little endian).
 ;         See "Readme_Files/JS_FrameToTimer.html" to convert to frames.
-;EXB 7: Event to trigger when timer hits 0. Must be a range of 0-127 ($00-$7F):
+;EXB 7: Effect number/Event to trigger when timer hits 0. Must be a range of 0-127 ($00-$7F):
 ;       - $00 = do nothing
 ;       - $01 = Lose life
 ;       - $02 = Fling player upwards
+;       - Any higher values, you must edit and add code below "EventJumpTable". A value
+;         pointing anything beyond the last item in the table causes glitch/crash.
 ;
 ;here's an example of a countdown timer in MM:SS.CC,
 ;of 1 minute and 30 seconds before killing the player:
