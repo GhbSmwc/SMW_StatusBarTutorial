@@ -12,7 +12,7 @@
 ;               - Otherwise display "HH:MM"
 ;EXB 3-6: Starting frame value when countdown is being used (4 bytes, little endian).
 ;         See "Readme_Files/JS_FrameToTimer.html" to convert to frames.
-;EXB 7: Event to trigger when timer hits 0:
+;EXB 7: Event to trigger when timer hits 0. Must be a range of 0-127 ($00-$7F):
 ;       - $00 = do nothing
 ;       - $01 = Lose life
 ;       - $02 = Fling player upwards
@@ -268,18 +268,22 @@
 	
 	TimerZero:
 	LDY #$06
-	LDA ($00),y
-	BEQ .DoNothing
-	ASL
-	TAX
-	JMP (.EventJumpTable-2,x)
+	LDA ($00),y			;A = a number representing each event
+	BEQ .DoNothing			;>If nothing, don't trigger any event
+	ASL				;>Times 2 because each event address to jump to is 2-bytes long.
+	TAX				;>Put it in the X index register
+	JMP (.EventJumpTable-2,x)	;>Direct indirect to get an address stored at an address (anything inside the parenthesis or brackets means get address in address), depending on X. Label-2 because we want Event 1 to map to the first listed address.
 	
 	.DoNothing
 	RTL
 	
 	.EventJumpTable
-		dw .KillPlayer		;>Index 1 ($02)
-		dw .FlingPlayer		;>Index 2 ($04)
+		;Events to trigger when countdown timer hits zero.
+		;You can have up to 127 events (because each item here takes up 2 bytes, and the indexing (which is the number of bytes offset from the first item)
+		;is 8-bit (which ranges from 0-255), gets multiplied by 2 (now byte indexes above 127 is an overflow) to correctly point to the correct position
+		;corresponding to the items below here). You probably wouldn't need that many events anyway.
+		dw .KillPlayer		;>Event 1 (Byte Index = $02)
+		dw .FlingPlayer		;>Event 2 (Byte Index = $04)
 		
 	.KillPlayer
 		JSL $00F606

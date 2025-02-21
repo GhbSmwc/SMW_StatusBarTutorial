@@ -44,10 +44,26 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 </tr>
 </table>
 <button onclick="Reset()">Reset</button><br><br>
-
+<hr>
 <h3>Extra bytes value:</h3>
+<div>Count direction:
+	<div>
+		<div><label><input type="radio" onchange="CalculateListFileExtraBytes()" name="UATList_LevelTimer_CountDirection" id="UATList_LevelTimer_CountDirection_Up" checked>Count up</label></div>
+		<div><label><input type="radio" onchange="CalculateListFileExtraBytes()" name="UATList_LevelTimer_CountDirection" id="UATList_LevelTimer_CountDirection_Down">Count down</label></div>
+	</div>
+</div>
+<div>
+	Display mode: <select style="font-family: monospace;" id="TimerDisplaySettings" onchange="CalculateListFileExtraBytes()">
+		<option id="UATList_LevelTimer_Display_MinutesSecondsCentiseconds" selected>MM:SS.CC</option>
+		<option id="UATList_LevelTimer_Display_HoursMinutesSecondsCentiseconds">HH:MM:SS.CC</option>
+		<option id="UATList_LevelTimer_Display_TopSignificantUnits">Only top two significant units</option>
+	</select>
+</div>
+<div>
+	Effect number to trigger when countdown timer hits zero: <input onchange="CalculateListFileExtraBytes()" type="number" value="00" id="TimeOutEvent_Dec" min="0", max="127">($<input id="TimeOutEvent_Hex" onchange="CalculateListFileExtraBytes()" type="text" data-input_number_radix="16" class="AnyRadixNumberInput" value="00">)
+</div>
 <table><tr><td><pre>
-105	Level_Timer.asm: 01 02 <span id="ExtraByteStartingFrame">(0000) (0000)</span> 01
+105	Level_Timer.asm: <span id="ExtraByteSettingDirection">00</span> <span id="ExtraBytesSettingDisplay">00</span> <span id="ExtraByteStartingFrame">(0000) (0000)</span> <span id="ExtraByteSettingTimeOutEventNumber">00</span>
 </pre></td></tr></table>
 
 
@@ -124,7 +140,7 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 		
 		InGameDisplay(TimeHours, TimeMinutes, TimeSeconds, TimeFrameWithinSeconds)
 		
-		DisplayFramesExtraBytes(ThirtyTwoBitFrame)
+		CalculateListFileExtraBytes()
 	
 	}
 	function TimerTo32BitFrame() {
@@ -151,10 +167,31 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 			} else {
 				InGameDisplay(TimeHours, TimeMinutes, TimeSeconds, TimeFrameWithinSeconds)
 			}
-		DisplayFramesExtraBytes(ThirtyTwoBitFrame)
+		CalculateListFileExtraBytes()
 	}
-	function DisplayFramesExtraBytes(FrameCount) {
+	function CalculateListFileExtraBytes() {
+		let FrameCount = BigInt("0x" + document.getElementById("Timer32BitFrame").value)
 		document.getElementById("ExtraByteStartingFrame").textContent = "(" + (FrameCount & BigInt("0xFFFF")).toString(16).toUpperCase().padStart(4, "0") + ") (" + (FrameCount>>16n).toString(16).toUpperCase().padStart(4, "0") + ")"
+		let Byte_TimerDirection = 0
+		if (document.getElementById("UATList_LevelTimer_CountDirection_Down").checked) {
+			Byte_TimerDirection++
+		}
+		document.getElementById("ExtraByteSettingDirection").textContent = Byte_TimerDirection.toString(10).padStart(2, "0")
+		let SelectedIndex = document.getElementById("TimerDisplaySettings").selectedIndex
+		document.getElementById("ExtraBytesSettingDisplay").textContent = SelectedIndex.toString(10).padStart(2, "0")
+		
+		let TimeOutEventNumber = 0n
+		if (document.activeElement.id == "TimeOutEvent_Dec") {
+			TimeOutEventNumber = BigInt(document.getElementById("TimeOutEvent_Dec").value)
+		} else {
+			TimeOutEventNumber = BigInt("0x" + document.getElementById("TimeOutEvent_Hex").value)
+		}
+		TimeOutEventNumber = BigintClamp(TimeOutEventNumber, 0n, 127n)
+		document.getElementById("TimeOutEvent_Dec").value = TimeOutEventNumber.toString(10)
+		let HexTimeoutEventNumber = TimeOutEventNumber.toString(16).toUpperCase().padStart(2, "0")
+		document.getElementById("TimeOutEvent_Hex").value = HexTimeoutEventNumber
+		document.getElementById("ExtraByteSettingTimeOutEventNumber").textContent = HexTimeoutEventNumber
+		
 	}
 	function InGameDisplay(Hrs, Min, Sec, Jiffy) {
 		let Centiseconds = (Jiffy*100n)/60n
