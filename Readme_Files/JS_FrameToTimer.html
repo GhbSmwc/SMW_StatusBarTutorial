@@ -48,8 +48,8 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 <h3>Extra bytes value:</h3>
 <div>Count direction:
 	<div>
-		<div><label><input type="radio" onchange="CalculateListFileExtraBytes()" name="UATList_LevelTimer_CountDirection" id="UATList_LevelTimer_CountDirection_Up" checked>Count up</label></div>
-		<div><label><input type="radio" onchange="CalculateListFileExtraBytes()" name="UATList_LevelTimer_CountDirection" id="UATList_LevelTimer_CountDirection_Down">Count down</label></div>
+		<div><label><input type="radio" onchange="CalculateListFileExtraBytes()" name="UATList_LevelTimer_CountDirection" id="UATList_LevelTimer_CountDirection_Up">Count up</label></div>
+		<div><label><input type="radio" onchange="CalculateListFileExtraBytes()" name="UATList_LevelTimer_CountDirection" id="UATList_LevelTimer_CountDirection_Down" checked>Count down</label></div>
 	</div>
 </div>
 <div>
@@ -63,13 +63,14 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 	Effect number to trigger when countdown timer hits zero: <input onchange="CalculateListFileExtraBytes()" type="number" value="0" id="TimeOutEvent_Dec" min="0", max="127">($<input id="TimeOutEvent_Hex" onchange="CalculateListFileExtraBytes()" type="text" data-input_number_radix="16" class="AnyRadixNumberInput" value="00">)
 </div>
 <table><tr><td><pre>
-105	Level_Timer.asm: <span id="ExtraByteSettingDirection">00</span> <span id="ExtraBytesSettingDisplay">00</span> <span id="ExtraByteStartingFrame">(0000) (0000)</span> <span id="ExtraByteSettingTimeOutEventNumber">00</span>
+105	Level_Timer.asm: <span id="ExtraByteSettingDirection"></span> <span id="ExtraBytesSettingDisplay"></span> <span id="ExtraByteStartingFrame"></span> <span id="ExtraByteSettingTimeOutEventNumber"></span>
 </pre></td></tr></table>
 
 
 <script>
 	 window.onload = function(){ //Upon loading, apply the function to execute when the up/down arrow keys are pressed.
 	  UpDownArrowKeysIncrement()
+	  CalculateListFileExtraBytes()
 	 }
 	
 	//These makes input text act like a number input, pressing UP/DOWN on the arrow keys to increment/decrement it, but with any radixes.
@@ -171,6 +172,12 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 	}
 	function CalculateListFileExtraBytes() {
 		let FrameCount = BigInt("0x" + document.getElementById("Timer32BitFrame").value)
+		if (!document.getElementById("UATList_LevelTimer_CountDirection_Down").checked) {
+			FrameCount = 0n
+		}
+		document.getElementById("TimeOutEvent_Dec").disabled = !document.getElementById("UATList_LevelTimer_CountDirection_Down").checked
+		document.getElementById("TimeOutEvent_Hex").disabled = !document.getElementById("UATList_LevelTimer_CountDirection_Down").checked
+		
 		document.getElementById("ExtraByteStartingFrame").textContent = "(" + (FrameCount & BigInt("0xFFFF")).toString(16).toUpperCase().padStart(4, "0") + ") (" + (FrameCount>>16n).toString(16).toUpperCase().padStart(4, "0") + ")"
 		let Byte_TimerDirection = 0
 		if (document.getElementById("UATList_LevelTimer_CountDirection_Down").checked) {
@@ -186,15 +193,19 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 		if ((typeof EnteredEventInput == "undefined")||(EnteredEventInput.tagName == "BODY")) {
 			EnteredEventInput = event.target
 		}
-		if (EnteredEventInput.id == "TimeOutEvent_Dec") {
-			TimeOutEventNumber = BigInt(document.getElementById("TimeOutEvent_Dec").value)
-		} else {
-			TimeOutEventNumber = ParseBigIntValue(document.getElementById("TimeOutEvent_Hex").value, 16)
+		if (document.getElementById("UATList_LevelTimer_CountDirection_Down").checked) {
+			if (EnteredEventInput.id == "TimeOutEvent_Dec") {
+				TimeOutEventNumber = BigInt(document.getElementById("TimeOutEvent_Dec").value)
+			} else {
+				TimeOutEventNumber = ParseBigIntValue(document.getElementById("TimeOutEvent_Hex").value, 16)
+			}
 		}
 		TimeOutEventNumber = BigintClamp(TimeOutEventNumber, 0n, 127n)
-		document.getElementById("TimeOutEvent_Dec").value = TimeOutEventNumber.toString(10)
 		let HexTimeoutEventNumber = TimeOutEventNumber.toString(16).toUpperCase().padStart(2, "0")
-		document.getElementById("TimeOutEvent_Hex").value = HexTimeoutEventNumber
+		if (document.getElementById("UATList_LevelTimer_CountDirection_Down").checked) {
+			document.getElementById("TimeOutEvent_Dec").value = TimeOutEventNumber.toString(10)
+			document.getElementById("TimeOutEvent_Hex").value = HexTimeoutEventNumber
+		}
 		document.getElementById("ExtraByteSettingTimeOutEventNumber").textContent = HexTimeoutEventNumber
 		
 	}
