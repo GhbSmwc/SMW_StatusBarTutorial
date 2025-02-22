@@ -75,11 +75,16 @@ endif
 				!FreeramFromAnotherPatch_OWBorderPropStart = $41EC01
 			endif
 	;Status bar and OWB tiles:
-		;Status bar tiles numbers for various symbols
+		;Status bar tiles for various symbols
 			!StatusBarSlashCharacterTileNumb = $29		;>Slash tile number (status bar, now OWB!)
 			!StatusBarBlankTile = $FC			;>Don't change! just in case if you installed a status bar patch that relocated the blank tile.
 			!StatusBarDotTile = $24
 			!StatusBarPercentTile = $2A
+			
+			!StatusBar_RepeatedSymbols_FullTile = $2E
+			!StatusBar_RepeatedSymbols_FullProp = %00111000
+			!StatusBar_RepeatedSymbols_EmptyTile = $26
+			!StatusBar_RepeatedSymbols_EmptyProp = %00111000
 		;Overworld border tiles for various symbols
 			!OverWorldBorderSlashCharacterTileNumb = $91
 			!OverWorldBorderBlankTile = $1F
@@ -117,16 +122,22 @@ endif
 	; it is not entirely foolproof due to each status bar types having different tile range
 	; and display elements spans many number of tiles to be written down.
 	
-	;Position to display most things onto the HUD for various elements (numbers, repeated icons, etc.)
+	;Position to display most things onto the HUD for various elements (numbers, horizontal repeated symbol, etc.)
 		!StatusBar_TestDisplayElement_PosX = 0
 		!StatusBar_TestDisplayElement_PosY = 0
+	;Position to display repeated symbol vertically (this is the position of the first symbol to fill up)
+		!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosX = 0 ;\Position of the top tile, fills downwards
+		!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosY = 0 ;/
+		
+		!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX = 0 ;\Position of the bottom tile, fills upwards
+		!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY = 4 ;/
 	;Position to display right-aligned numbers (This is the position of the rightmost tile, a position entered here will take this
 	;position and anything to the left)
 		!StatusBar_TestDisplayRightAlignedNumber_PosX = 31
 		!StatusBar_TestDisplayRightAlignedNumber_PosY = 0
-	;RAM to display its amount. The number of bytes used on each of these are obvious. Also obvious to avoid running multiple ASM
+	;FreeRAM to display its amount. The number of bytes used on each of these are obvious. Also obvious to avoid running multiple ASM
 	;files for a level using the same RAM at the same time.
-		;For 8-bit counters
+		;For 8-bit counters (including repeated symbols)
 			!StatusBar_TestDisplayElement_RAMToDisplay1_1Byte = $60
 			!StatusBar_TestDisplayElement_RAMToDisplay2_1Byte = $61
 		;16-bit counters
@@ -172,4 +183,10 @@ endif
 		
 		!Default_TestElement_RightAlignedText_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayRightAlignedNumber_PosX, !StatusBar_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
 		!Default_TestElement_RightAlignedText_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayRightAlignedNumber_PosX, !StatusBar_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
+		
+		!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
+		!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
+		
+		!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
+		!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
 	endif

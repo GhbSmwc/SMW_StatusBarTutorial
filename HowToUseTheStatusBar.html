@@ -261,7 +261,7 @@ every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead
 <p>Because SMW's status bar is extremely limited, other users decided to make status bar patches:
 <ul>
 	<li><p><a href="https://www.smwcentral.net/?p=section&a=details&id=19247">Super Status Bar</a>. This gives you a 32x5 8x8 tile area,
-	therefore 160 8x8 tiles to edit.<sup>1</sup> Most example ASM codes assumes you are using this patch as this, so far, has the biggest editing zones available.</p></li>
+	therefore 160 8x8 tiles to edit.<sup>1</sup> Most example ASM codes provided here assumes you are using this patch, so far, has the biggest editing zones available.</p></li>
 	
 	<li><p><a href="https://www.smwcentral.net/?p=section&a=details&id=21665">Overworld Border +</a>. Not a &ldquo;status bar&rdquo;, but similar
 	in terms of editing the layer 3 8x8 tiles. This gives you <kbd>32*!TopLines</kbd> (for the top of the screen) and <kbd>32*!BottomLines</kbd> (for the bottom of the screen)
@@ -1574,166 +1574,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	RTL</pre></td></tr></table>
 <hr>
 <h2 id="Frames2Timer"><a href="#Frames2TimerBack">^</a>Display a timer in Hours:Minutes:Seconds:Centiseconds format</h2>
-Perhaps, if you wanted to display a timer on the HUD in HH:MM:SS.CC (or MM:SS.CC) format, I've provided a routine for that and a code to use it, see <kbd>UberasmTool_HudTest/Level_Timer.asm</kbd>:
-<table><tr><td><pre>
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
-incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
-
-;Settings
- !Decrement = 0								;&gt;0 = increment, 1 = decrement
- !ShowHours = 0								;&gt;0 = MM:SS.CC, 1 = HH:MM:SS.CC
-;Start timer (used only when set to decrement):
- !StartTimerHour = 0
- !StartTimerMinute = 3
- !StartTimerSeconds = 30
-
-;Don't touch
-	!StatusBarPositionOffset = 3 ;&gt;Position the timer so that the minutes and lower units move for the hours
-	!MaxTimer = $00034BBF ;&gt;Max time when incrementing, stop at "59:59.98" or "99:59:59.98".
-	if !ShowHours != 0
-		!MaxTimer = $014996FF
-		!StatusBarPositionOffset = 0
-	endif
-	
-
-	!FramesCountdown = FramesToTimer(!StartTimerHour, !StartTimerMinute, !StartTimerSeconds, 0)
-
-	init:
-	if !Decrement != 0
-		REP #$20
-		LDA.w #!FramesCountdown
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes
-		LDA.w #!FramesCountdown&gt;&gt;16
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
-		SEP #$20
-		
-	else
-		REP #$20
-		LDA #$0000
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
-		SEP #$20
-	endif
-	RTL
-
-	main:
-	
-	if !CPUMode != 0
-		%invoke_sa1(mainSA1)
-		RTL
-		mainSA1:
-	endif
-	
-	.Timer
-	LDA $9D									;\Freeze timer if game is frozen in any way.
-	ORA $13D4|!addr								;|
-	BNE ..StopTimer								;/
-	if !Decrement == 0
-		..Increment
-		REP #$20							;\Increment timer
-		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
-		CLC								;|
-		ADC #$0001							;|
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
-		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
-		ADC #$0000							;|
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;/
-		..Cap
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes
-			SEC
-			SBC.w #!MaxTimer
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
-			SBC.w #!MaxTimer&gt;&gt;16
-			SEP #$20
-			BCC ...NotMaxed
-		
-			...Maxed
-				REP #$20
-				LDA.w #!MaxTimer
-				STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes
-				LDA.w #!MaxTimer&gt;&gt;16
-				STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
-				SEP #$20
-			...NotMaxed
-	else
-		REP #$20							;\Decrement frame counter
-		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|Skip if timer is already 0 and triggered a code.
-		ORA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
-		BEQ ..StopTimer							;/
-		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;\Decrement frame counter to 0.
-		SEC								;|
-		SBC #$0001							;|
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
-		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
-		SBC #$0000							;|
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
-		BCS ..NoUnderflow						;|\Failsafe
-		LDA #$0000							;||
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;||
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|/
-		
-		..NoUnderflow							;/
-		
-		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes			;\Check again, AFTER subtracting by 1, so that the code executes only once.
-		ORA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2		;|
-		BNE ..NotDecrementedToZero						;/
-		SEP #$20
-		JSL TimerZero			;&gt;Code to execute once.
-		..NotDecrementedToZero
-	endif
-	..StopTimer
-	REP #$20									;\Get timer format
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes				;|
-	STA $00										;|
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2			;|
-	STA $02										;|
-	SEP #$20									;|
-	JSL HexDec_Frames2Timer								;/
-	
-	if !ShowHours != 0
-		;Hours
-			LDA !Scratchram_Frames2TimeOutput
-			JSL HexDec_EightBitHexDec
-			STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)
-			TXA
-			STA !Default_TestElement_Pos_Tile
-		;Colon symbol
-			LDA #$78
-			STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)
-	endif
-	;Minutes
-		LDA !Scratchram_Frames2TimeOutput+1
-		JSL HexDec_EightBitHexDec
-		STA !Default_TestElement_Pos_Tile+((4-!StatusBarPositionOffset)*!StatusbarFormat)
-		TXA
-		STA !Default_TestElement_Pos_Tile+((3-!StatusBarPositionOffset)*!StatusbarFormat)
-	;Colon symbol
-		LDA #$78
-		STA !Default_TestElement_Pos_Tile+((5-!StatusBarPositionOffset)*!StatusbarFormat)
-	;Seconds
-		LDA !Scratchram_Frames2TimeOutput+2
-		JSL HexDec_EightBitHexDec
-		STA !Default_TestElement_Pos_Tile+((7-!StatusBarPositionOffset)*!StatusbarFormat)
-		TXA
-		STA !Default_TestElement_Pos_Tile+((6-!StatusBarPositionOffset)*!StatusbarFormat)
-	;Period symbol
-		LDA #$24
-		STA !Default_TestElement_Pos_Tile+((8-!StatusBarPositionOffset)*!StatusbarFormat)
-	;Centiseconds
-		LDA !Scratchram_Frames2TimeOutput+3
-		JSL HexDec_EightBitHexDec
-		STA !Default_TestElement_Pos_Tile+((10-!StatusBarPositionOffset)*!StatusbarFormat)
-		TXA
-		STA !Default_TestElement_Pos_Tile+((9-!StatusBarPositionOffset)*!StatusbarFormat)
-	RTL
-	
-	if !Decrement != 0
-		TimerZero:
-		LDA #$80	;\Example code: Fling player upwards.
-		STA $7D		;/
-		RTL
-	endif
-</pre></td></tr></table>
+Perhaps, if you wanted to display a timer on the HUD in HH:MM:SS.CC (or MM:SS.CC) format, I've provided a routine for that and a code to use it, see <a href="UberasmTool_HudTest/Level_Timer.asm"><kbd>UberasmTool_HudTest/Level_Timer.asm</kbd></a>
 	
 <p>The routine that converts the total number of frames into units of time, <kbd>Frames2Timer</kbd>:
 <table>
@@ -2256,46 +2097,38 @@ You may be wondering, why am I using 16-bit on some areas (including within the 
 SMW actually does this with its yoshi coin counter (some or all of them shows a coin symbol with the rest showing tile $FC). This is often used whenever a number of something is a small amount. Code follows (make sure you insert
 &ldquo;<kbd>RepeatedSymbols.asm</kbd>&rdquo; into uberasm tool's library as well):
 <table><tr><td><pre>
-!MaxNumberOfSymbols = 5								;&gt;Total number of symbols (maximum)
-!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar (leftmost tile position, reguardless of left or right)
-!StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above but for tile properties
-!RAMToMeasure = $60								;&gt;[1 byte] RAM address you what to show
-!Leftwards = 0									;&gt;0 = left-to-right when filling, 1 = right-to-left when filling.
-
-;Tile
-	!EmptyTile = $26
-	!EmptyTileProp = %00111000	;&gt;Only used when using SB patches that allows modifications to tile properties
-	!FullTile = $2E
-	!FullTileProp = %00111000	;&gt;Only used when using SB patches that allows modifications to tile properties
-
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
+!MaxNumberOfSymbols = 5								;&lt;Total number of symbols (maximum)
+!Leftwards = 0									;&lt;0 = left-to-right when filling, 1 = right-to-left when filling.
 
 	main:
-	LDA !RAMToMeasure		;\$00: How many filled icons
-	STA $00				;/
-	LDA #!MaxNumberOfSymbols	;\$01: How many total icons
-	STA $01				;/
-	LDA #!EmptyTile			;\$02: Empty tile number
-	STA $02				;/
-	LDA #!FullTile			;\$03: Full tile number
-	STA $03				;/
-	LDA.b #!StatusBarPosition	;\$04-$06: Address of tile numbers to write to the HUD
-	STA $04				;|
-	LDA.b #!StatusBarPosition>>8	;|
-	STA $05				;|
-	LDA.b #!StatusBarPosition>>16	;|
-	STA $06				;/
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte	;\$00: How many filled icons
+	STA $00							;/
+	LDA #!MaxNumberOfSymbols				;\$01: How many total icons
+	STA $01							;/
+	LDA #!StatusBar_RepeatedSymbols_EmptyTile		;\$02: Empty tile number
+	STA $02							;/
+	LDA #!StatusBar_RepeatedSymbols_FullTile		;\$03: Full tile number
+	STA $03							;/
+	LDA.b #!Default_TestElement_Pos_Tile			;\$04-$06: Address of tile numbers to write to the HUD
+	STA $04							;|
+	LDA.b #!Default_TestElement_Pos_Tile&lt;&lt;8			;|
+	STA $05							;|
+	LDA.b #!Default_TestElement_Pos_Tile&lt;&lt;16		;|
+	STA $06							;/
 	if !StatusBar_UsingCustomProperties
-		LDA #!EmptyTileProp		;\$07: Empty tile properties
-		STA $07				;/
-		LDA.b #!FullTileProp		;\$08: Full tile properties
-		STA $08				;/
-		LDA.b #!StatusBarPositionProps		;\$09-$0B: Address of tile properties to write to the HUD
-		STA $09					;|
-		LDA.b #!StatusBarPositionProps>>8	;|
-		STA $0A					;|
-		LDA.b #!StatusBarPositionProps>>16	;|
-		STA $0B					;/
+		LDA #!StatusBar_RepeatedSymbols_EmptyProp	;\$07: Empty tile properties
+		STA $07						;/
+		LDA.b #!StatusBar_RepeatedSymbols_FullProp	;\$08: Full tile properties
+		STA $08						;/
+		LDA.b #!Default_TestElement_Pos_Prop		;\$09-$0B: Address of tile properties to write to the HUD
+		STA $09						;|
+		LDA.b #!Default_TestElement_Pos_Prop&lt;&lt;8		;|
+		STA $0A						;|
+		LDA.b #!Default_TestElement_Pos_Prop&lt;&lt;16	;|
+		STA $0B						;/
 	endif
 	if !StatusbarFormat == $01
 		if !Leftwards == 0
@@ -2317,53 +2150,49 @@ tile $26, which is the &ldquo;X&rdquo; symbol.), when using <kbd>WriteRepeatedSy
 
 <p>I also included vertical version, <kbd>WriteRepeatedSymbolsWriteVertically</kbd>. Example code:
 <table><tr><td><pre>
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
 !MaxNumberOfSymbols = 5								;&gt;Total number of symbols (maximum).
 !VerticalDirection = 0								;&gt;0 = up, 2 = down, don't use any other values
-if !VerticalDirection == 0
-	;Upwards
-	!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$100		;&gt;Where to write on the status bar (the first tile to fill when increased)
-	!StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$100	;&gt;Same as above but for tile properties
-else
-	;Downwards
-	!StatusBarPosition = !FreeramFromAnotherPatch_StatusBarTileStart+$00		;&gt;Where to write on the status bar (the first tile to fill when increased)
-	!StatusBarPositionProps = !FreeramFromAnotherPatch_StatusBarPropStart+$00	;&gt;Same as above but for tile properties
-endif
-!RAMToMeasure = $60								;&gt;[1 byte] RAM address you what to show
 
-;Tile
-	!EmptyTile = $26
-	!EmptyTileProp = %00111000	;&gt;Only used when using SB patches that allows modifications to tile properties
-	!FullTile = $2E
-	!FullTileProp = %00111000	;&gt;Only used when using SB patches that allows modifications to tile properties
-
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
-
+;Don't touch anything below here
+	if !VerticalDirection == 0
+		;Upwards
+		!StatusBarPosition = !StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_Pos_Tile	;&gt;Where to write on the status bar (the first tile to fill when increased)
+		!StatusBarPositionProps = !StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_Pos_Prop	;&gt;Same as above but for tile properties
+	else
+		;Downwards
+		!StatusBarPosition = !StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_Pos_Tile	;&gt;Where to write on the status bar (the first tile to fill when increased)
+		!StatusBarPositionProps = !StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_Pos_Prop	;&gt;Same as above but for tile properties
+	endif
+;Code below
 	main:
-	LDA !RAMToMeasure		;\$00: How many filled icons
-	STA $00				;/
-	LDA #!MaxNumberOfSymbols	;\$01: How many total icons
-	STA $01				;/
-	LDA #!EmptyTile			;\$02: Empty tile number
-	STA $02				;/
-	LDA #!FullTile			;\$03: Full tile number
-	STA $03				;/
-	LDA.b #!StatusBarPosition	;\$04-$06: Address of tile numbers to write to the HUD
-	STA $04				;|
-	LDA.b #!StatusBarPosition&gt;&gt;8	;|
-	STA $05				;|
-	LDA.b #!StatusBarPosition&gt;&gt;16	;|
-	STA $06				;/
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte		;\$00: How many filled icons
+	STA $00								;/
+	LDA #!MaxNumberOfSymbols					;\$01: How many total icons
+	STA $01								;/
+	LDA #!StatusBar_RepeatedSymbols_EmptyTile			;\$02: Empty tile number
+	STA $02								;/
+	LDA #!StatusBar_RepeatedSymbols_FullTile			;\$03: Full tile number
+	STA $03								;/
+	LDA.b #!StatusBarPosition					;\$04-$06: Address of tile numbers to write to the HUD
+	STA $04								;|
+	LDA.b #!StatusBarPosition&gt;&gt;8					;|
+	STA $05								;|
+	LDA.b #!StatusBarPosition&gt;&gt;16					;|
+	STA $06								;/
 	if !StatusBar_UsingCustomProperties
-		LDA #!EmptyTileProp		;\$07: Empty tile properties
-		STA $07				;/
-		LDA.b #!FullTileProp		;\$08: Full tile properties
-		STA $08				;/
-		LDA.b #!StatusBarPositionProps		;\$09-$0B: Address of tile properties to write to the HUD
-		STA $09					;|
-		LDA.b #!StatusBarPositionProps&gt;&gt;8	;|
-		STA $0A					;|
-		LDA.b #!StatusBarPositionProps&gt;&gt;16	;|
-		STA $0B					;/
+		LDA #!StatusBar_RepeatedSymbols_EmptyProp		;\$07: Empty tile properties
+		STA $07							;/
+		LDA.b #!StatusBar_RepeatedSymbols_FullProp		;\$08: Full tile properties
+		STA $08							;/
+		LDA.b #!StatusBarPositionProps				;\$09-$0B: Address of tile properties to write to the HUD
+		STA $09							;|
+		LDA.b #!StatusBarPositionProps&gt;&gt;8			;|
+		STA $0A							;|
+		LDA.b #!StatusBarPositionProps&gt;&gt;16			;|
+		STA $0B							;/
 	endif
 	LDA.b #!VerticalDirection
 	STA $0C
@@ -2372,8 +2201,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	else
 		JSL RepeatedSymbols_WriteRepeatedSymbolsWriteVerticallyFormat2
 	endif
-	RTL
-</pre></td></tr></table>
+	RTL</pre></td></tr></table>
 Please note that this only supports status bars whose rows are all 32 tiles each, with each rows are lined up vertically, and each row are contiguous to each other, else your tiles will not line up vertically.
 Only Super status bar patch, SMB3 status bar, and OWB+ patch have these at the time of writing this. Also note that this is not to be used for stripe images, as stripe images have their own dedicated vertical version
 of tile writes.<br><br>
