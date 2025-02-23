@@ -2100,8 +2100,8 @@ SMW actually does this with its yoshi coin counter (some or all of them shows a 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
-!MaxNumberOfSymbols = 5								;&lt;Total number of symbols (maximum)
-!Leftwards = 0									;&lt;0 = left-to-right when filling, 1 = right-to-left when filling.
+!MaxNumberOfSymbols = 5								;&gt;Total number of symbols (maximum)
+!Leftwards = 0									;&gt;0 = left-to-right when filling, 1 = right-to-left when filling.
 
 	main:
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte	;\$00: How many filled icons
@@ -2114,9 +2114,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	STA $03							;/
 	LDA.b #!Default_TestElement_Pos_Tile			;\$04-$06: Address of tile numbers to write to the HUD
 	STA $04							;|
-	LDA.b #!Default_TestElement_Pos_Tile&lt;&lt;8			;|
+	LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;8			;|
 	STA $05							;|
-	LDA.b #!Default_TestElement_Pos_Tile&lt;&lt;16		;|
+	LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;16		;|
 	STA $06							;/
 	if !StatusBar_UsingCustomProperties
 		LDA #!StatusBar_RepeatedSymbols_EmptyProp	;\$07: Empty tile properties
@@ -2125,9 +2125,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		STA $08						;/
 		LDA.b #!Default_TestElement_Pos_Prop		;\$09-$0B: Address of tile properties to write to the HUD
 		STA $09						;|
-		LDA.b #!Default_TestElement_Pos_Prop&lt;&lt;8		;|
+		LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;8		;|
 		STA $0A						;|
-		LDA.b #!Default_TestElement_Pos_Prop&lt;&lt;16	;|
+		LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;16	;|
 		STA $0B						;/
 	endif
 	if !StatusbarFormat == $01
