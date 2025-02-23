@@ -2329,21 +2329,19 @@ that the provided examples assumes you've installed the overworld border plus pa
 
 <p>8-bit 2-digit:
 <table><tr><td><pre>
-!RAMToMeasure = $60								;&gt;[1 byte] RAM address you what to show
-!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border (tile)
-!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$00	;&gt;Where to write on the overworld border (properties)
-!TileProps = %00111001								;&gt;Properties of the digits.
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
 !RemoveLeadingZeroes = 0							;&gt;0 = Always show 10s digit, 1 = If value less than 10, replace 10s with blank.
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	init:
 	main:
-	LDA !RAMToMeasure
+	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	JSL HexDec_EightBitHexDec
 	CLC
 	ADC #$22
-	STA !OverworldBorderPositionTile+(1*2)		;&gt;Write 1s place
+	STA !Default_TestElementOWB_Pos_Tile+(1*2)		;&gt;Write 1s place
 	if !RemoveLeadingZeroes == 0
 		TXA						;&gt;if you are using status bar patches, STX $xxxxxx will not work.
 		CLC						;\Convert digits to OWB digits
@@ -2359,12 +2357,12 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #$1F				;&gt;OWB Blank tile.
 		++
 	endif
-	STA !OverworldBorderPositionTile		;&gt;Write 10s place
+	STA !Default_TestElementOWB_Pos_Tile		;&gt;Write 10s place
 	
 	;Set properties:
-		LDA.b #!TileProps
-		STA !OverworldBorderPositionProp
-		STA !OverworldBorderPositionProp+(1*2)
+		LDA.b #!OverWorldBorder_TileProp
+		STA !Default_TestElementOWB_Pos_Prop
+		STA !Default_TestElementOWB_Pos_Prop+(1*2)
 	RTL</pre></td></tr></table></p>
 
 <p>8-bit 3-digit:

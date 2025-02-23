@@ -48,32 +48,6 @@ endif
 			;^0 = Using vanilla SMW status bar
 			; 1 = Using any layer 3 custom status bar.
 			; These are needed for determining what coordinate system.
-	;Status bar tile data starting addresses
-		;RAM address of the first TTTTTTTT byte.
-			if !sa1 == 0
-				!FreeramFromAnotherPatch_StatusBarTileStart = $7FA000
-			else
-				!FreeramFromAnotherPatch_StatusBarTileStart = $404000
-			endif
-		;RAM address of the first YXPCCCTT byte.
-			if !sa1 == 0
-				!FreeramFromAnotherPatch_StatusBarPropStart = $7FA001
-			else
-				!FreeramFromAnotherPatch_StatusBarPropStart = $404001
-			endif
-	;Overworld border starting addresses
-		;RAM address of the first TTTTTTTT byte.
-			if !sa1 == 0
-				!FreeramFromAnotherPatch_OWBorderTileStart = $7FEC00
-			else
-				!FreeramFromAnotherPatch_OWBorderTileStart = $41EC00
-			endif
-		;RAM address of the first YXPCCCTT byte.
-			if !sa1 == 0
-				!FreeramFromAnotherPatch_OWBorderPropStart = $7FEC01
-			else
-				!FreeramFromAnotherPatch_OWBorderPropStart = $41EC01
-			endif
 	;Status bar and OWB tiles:
 		;Status bar tiles for various symbols
 			!StatusBarSlashCharacterTileNumb = $29		;>Slash tile number (status bar, now OWB!)
@@ -90,6 +64,8 @@ endif
 			!OverWorldBorderBlankTile = $1F
 			!OverWorldBorderDotTile = $93
 			!OverWorldBorderPercentTile = $92
+			
+			!OverWorldBorder_TileProp = %00111001
 		;Misc
 			!TileNumb_PercentSymbol = $2A
 	;Below here, defines involving XY positions are positions (in units of tiles) to place the display element
@@ -122,6 +98,32 @@ endif
 	; it is not entirely foolproof due to each status bar types having different tile range
 	; and display elements spans many number of tiles to be written down.
 	
+	;Status bar tile data starting addresses
+		;RAM address of the first TTTTTTTT byte.
+			if !sa1 == 0
+				!FreeramFromAnotherPatch_StatusBarTileStart = $7FA000
+			else
+				!FreeramFromAnotherPatch_StatusBarTileStart = $404000
+			endif
+		;RAM address of the first YXPCCCTT byte.
+			if !sa1 == 0
+				!FreeramFromAnotherPatch_StatusBarPropStart = $7FA001
+			else
+				!FreeramFromAnotherPatch_StatusBarPropStart = $404001
+			endif
+	;Overworld border starting addresses
+		;RAM address of the first TTTTTTTT byte.
+			if !sa1 == 0
+				!FreeramFromAnotherPatch_OWBorderTileStart = $7FEC00
+			else
+				!FreeramFromAnotherPatch_OWBorderTileStart = $41EC00
+			endif
+		;RAM address of the first YXPCCCTT byte.
+			if !sa1 == 0
+				!FreeramFromAnotherPatch_OWBorderPropStart = $7FEC01
+			else
+				!FreeramFromAnotherPatch_OWBorderPropStart = $41EC01
+			endif
 	;Position to display most things onto the HUD for various elements (numbers, horizontal repeated symbol, etc.)
 		!StatusBar_TestDisplayElement_PosX = 0
 		!StatusBar_TestDisplayElement_PosY = 0
@@ -135,6 +137,29 @@ endif
 	;position and anything to the left)
 		!StatusBar_TestDisplayRightAlignedNumber_PosX = 31
 		!StatusBar_TestDisplayRightAlignedNumber_PosY = 0
+	;Overworld border positioning stuff. Same rule as the status bar if you enter invalid
+	;coordinates.
+	;
+	; When using overworld border plus, The X positioning functions exactly the same way
+	; as using the super status bar patch, ranging 0-31. However the Y-positioning works
+	; a little different. The Y position to address skips the intermediate rows between
+	; the top and bottom areas that are controlled by RAM. For example: When OWB+'s
+	; !Top_Lines is set to 5, then the top rows Y position would range from 0-4, and a
+	; Y position of 5 would point to the first row of the bottom area. This means to
+	; figure out the Y value of the bottom area, you calculate as follows:
+	;
+	;  EditableYPosition = TrueYPosition - 26 + !Top_Lines
+	;
+	; For example (having !Top_Lines set to 5), I want a counter on the top row of
+	; bottom lines. I can literally just do this:
+	;
+	;  !Default_GraphicalBar_PosY_OverworldMap = 26-26+5, which is row 5 (rows 0-4 are top lines, 5-6 are bottom lines)
+	
+	;Position to display most things onto the OWB
+		!OverworldBorder_TestDisplayElement_PosX = 0
+		!OverworldBorder_TestDisplayElement_PosY = 0
+	
+	
 	;FreeRAM to display its amount. The number of bytes used on each of these are obvious. Also obvious to avoid running multiple ASM
 	;files for a level using the same RAM at the same time.
 		;For 8-bit counters (including repeated symbols)
@@ -189,4 +214,7 @@ endif
 		
 		!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
 		!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
+		
+		!Default_TestElementOWB_Pos_Tile = PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayElement_PosX, !OverworldBorder_TestDisplayElement_PosY, !FreeramFromAnotherPatch_OWBorderTileStart, $02)
+		!Default_TestElementOWB_Pos_Prop = PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayElement_PosX, !OverworldBorder_TestDisplayElement_PosY, !FreeramFromAnotherPatch_OWBorderPropStart, $02)
 	endif
