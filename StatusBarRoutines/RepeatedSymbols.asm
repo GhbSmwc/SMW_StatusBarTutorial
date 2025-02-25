@@ -178,7 +178,8 @@ WriteRepeatedSymbolsLeftwardsFormat2:
 ;  --$07 (1 byte): Tile properties for empty
 ;  --$08 (1 byte): Tile properties for full
 ;  --$09-$0B (3 bytes): Same as $04-$06 but for tile properties.
-; -$0C (1 byte): Direction, only use these values: $00 = upwards, $01 = downwards
+; -$0C (1 byte): Direction, only use these values: $00 = upwards, $02 = downwards. Don't use any
+;  other values.
 ;Output:
 ; -$00: How many extra fills if exceeding max, otherwise 0; FillsLeft = max(AmountFilled - TotalAmount, 0)
 ; -$01: will be 0 as they're being used to count how many tiles left to write.
@@ -239,8 +240,8 @@ WriteRepeatedSymbolsWriteVertically:
 	.Done
 		RTL
 	.WriteRepeatedIconsVerticallyUpDownDisplacement
-		dw -32		;>RAM $0A = $00
-		dw 32		;>RAM $0A = $02
+		dw -32		;>RAM $0C = $00
+		dw 32		;>RAM $0C = $02
 WriteRepeatedSymbolsWriteVerticallyFormat2:
 	.Loop
 		LDA $01			;\If no tiles left, done.
@@ -283,5 +284,5 @@ WriteRepeatedSymbolsWriteVerticallyFormat2:
 	.Done
 		RTL
 	.WriteRepeatedIconsVerticallyUpDownDisplacementFormat2
-		dw -64		;>RAM $0A = $00
-		dw 64		;>RAM $0A = $02
+		dw -64		;>RAM $0C = $00
+		dw 64		;>RAM $0C = $02

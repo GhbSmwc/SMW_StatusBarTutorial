@@ -10,3 +10,5 @@
    "screen real estate", suitable for countdown timers:
  -- If timer is less than a minute, it will show only seconds and centiseconds ("SS.CC").
  -- If timer is between a minute and an hour, will only show minutes and seconds ("MM:SS")
+ - Fixed an incorrect statement about WriteRepeatedSymbolsWriteVertically that $0C should
+   be either $00 or $01, when actuality should be $00 or $02.
