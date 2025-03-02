@@ -155,116 +155,116 @@
 			JMP ...HoursMinutesSecondsCentiseconds
 			+
 			...TwoSignificantUnitsOnly
-				LDA #$78						;\Colon (overwritten to be a period if less than a minute)
-				STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)	;/
+				LDA #$78								;\Colon (overwritten to be a period if less than a minute)
+				STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)		;/
 			
-				LDA !Scratchram_Frames2TimeOutput+0	;\If hours nonzero, show HH:MM
-				BNE ....HoursMinutes			;/
-				LDA !Scratchram_Frames2TimeOutput+1	;\If less than hour and at least minute long, show MM:SS
-				BNE ....MinutesSeconds			;/
+				LDA !Scratchram_Frames2TimeOutput+0					;\If hours nonzero, show HH:MM
+				BNE ....HoursMinutes							;/
+				LDA !Scratchram_Frames2TimeOutput+1					;\If less than hour and at least minute long, show MM:SS
+				BNE ....MinutesSeconds							;/
 				
-				....SecondsCentiseconds			;>If less than minute long, show SS.CC
+				....SecondsCentiseconds							;>If less than minute long, show SS.CC
 					LDA !Scratchram_Frames2TimeOutput+2
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(0*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
 					
 					LDA #$24
-					STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)
 					
 					LDA !Scratchram_Frames2TimeOutput+3
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(4*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(4*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(3*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(3*!StatusbarFormat)
 					RTL
 				....HoursMinutes
 					LDA !Scratchram_Frames2TimeOutput+0
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(0*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
 					
 					LDA !Scratchram_Frames2TimeOutput+1
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(4*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(4*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(3*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(3*!StatusbarFormat)
 					RTL
 				....MinutesSeconds
 					LDA !Scratchram_Frames2TimeOutput+1
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(0*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
 					
 					LDA !Scratchram_Frames2TimeOutput+2
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(4*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(4*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(3*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(3*!StatusbarFormat)
 					RTL
 			...MinutesSecondsCentiseconds
 				;Minutes
 					LDA !Scratchram_Frames2TimeOutput+1
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(0*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
 				;Colon symbol
 					LDA #$78
-					STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)
 				;Seconds
 					LDA !Scratchram_Frames2TimeOutput+2
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(4*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(4*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(3*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(3*!StatusbarFormat)
 				;Period symbol
 					LDA #$24
-					STA !Default_TestElement_Pos_Tile+(5*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(5*!StatusbarFormat)
 				;Centiseconds
 					LDA !Scratchram_Frames2TimeOutput+3
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(7*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(7*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(6*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(6*!StatusbarFormat)
 				RTL
 			...HoursMinutesSecondsCentiseconds
 				;Hours
 					LDA !Scratchram_Frames2TimeOutput+0
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(0*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
 				;Colon symbol
 					LDA #$78
-					STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)
 				;Minutes
 					LDA !Scratchram_Frames2TimeOutput+1
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(4*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(4*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(3*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(3*!StatusbarFormat)
 				;Colon symbol
 					LDA #$78
-					STA !Default_TestElement_Pos_Tile+(5*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(5*!StatusbarFormat)
 				;Seconds
 					LDA !Scratchram_Frames2TimeOutput+2
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(7*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(7*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(6*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(6*!StatusbarFormat)
 				;Period symbol
 					LDA #$24
-					STA !Default_TestElement_Pos_Tile+(8*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(8*!StatusbarFormat)
 				;Centiseconds
 					LDA !Scratchram_Frames2TimeOutput+3
 					JSL HexDec_EightBitHexDec
-					STA !Default_TestElement_Pos_Tile+(10*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(10*!StatusbarFormat)
 					TXA
-					STA !Default_TestElement_Pos_Tile+(9*!StatusbarFormat)
+					STA !StatusBar_TestDisplayElement_Pos_Tile+(9*!StatusbarFormat)
 				RTL
 	RTL
 	

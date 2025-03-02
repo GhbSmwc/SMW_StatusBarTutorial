@@ -321,7 +321,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	+
 	LDA #$01
 	++
-	STA !Default_TestElement_Pos_Tile
+	STA !StatusBar_TestDisplayElement_Pos_Tile
 	RTL</pre></td></tr></table><br>
 and if you are tired of using branches, then an even simpler approach is to use tables:
 <table><tr><td><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -331,7 +331,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	TAX
 	LDA Table,x
-	STA !Default_TestElement_Pos_Tile
+	STA !StatusBar_TestDisplayElement_Pos_Tile
 	RTL
 	
 	Table:
@@ -524,10 +524,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
-	JSL HexDec_EightBitHexDec				;&gt;Get digits, A = 1s, X = 10s
-	STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 1s place
-	TXA							;&gt;if you are using status bar patches, STX $xxxxxx will not work.
-	STA !Default_TestElement_Pos_Tile			;&gt;Write 10s place
+	JSL HexDec_EightBitHexDec					;&gt;Get digits, A = 1s, X = 10s
+	STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 1s place
+	TXA								;&gt;if you are using status bar patches, STX $xxxxxx will not work.
+	STA !StatusBar_TestDisplayElement_Pos_Tile			;&gt;Write 10s place
 	RTL
 </pre></td></tr></table></p>
 
@@ -565,12 +565,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	main:
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	JSL HexDec_EightBitHexDec
-	STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
-	TXA							;&gt;Call again to get the 10s and 100s.
+	STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
+	TXA								;&gt;Call again to get the 10s and 100s.
 	JSL HexDec_EightBitHexDec
-	STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 10s place
-	TXA							;&gt;STX $xxxxxx don't exists.
-	STA !Default_TestElement_Pos_Tile			;&gt; Write 100s place
+	STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 10s place
+	TXA								;&gt;STX $xxxxxx don't exists.
+	STA !StatusBar_TestDisplayElement_Pos_Tile			;&gt; Write 100s place
 	RTL
 </pre></td></tr></table><br>
 How this works is that it uses <a href="https://en.wikipedia.org/wiki/Euclidean_division">euclidean division</a>. The subroutine <kbd>HexDec_EightBitHexDec</kbd>
@@ -591,12 +591,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
-	JSL HexDec_EightBitHexDec3Digits			;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
-	STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
-	TXA							;\Write 10s place
-	STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;/
-	TYA							;\Write 100s place.
-	STA !Default_TestElement_Pos_Tile			;/
+	JSL HexDec_EightBitHexDec3Digits				;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
+	STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
+	TXA								;\Write 10s place
+	STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;/
+	TYA								;\Write 100s place.
+	STA !StatusBar_TestDisplayElement_Pos_Tile			;/
 	RTL
 </pre></td></tr></table></p>
 
@@ -634,7 +634,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDX.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA.b !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1),x
-			STA !Default_TestElement_Pos_Tile,x
+			STA !StatusBar_TestDisplayElement_Pos_Tile,x
 			DEX
 			BPL -
 		else
@@ -642,7 +642,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDY.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
-			STA !Default_TestElement_Pos_Tile,x
+			STA !StatusBar_TestDisplayElement_Pos_Tile,x
 			DEY
 			DEX #2
 			BPL -
@@ -696,7 +696,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDX.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA !Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
-			STA !Default_TestElement_Pos_Tile,x
+			STA !StatusBar_TestDisplayElement_Pos_Tile,x
 			DEX
 			BPL -
 		else
@@ -704,10 +704,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDY #(!NumberOfDigitsDisplayed-1)
 			-
 			PHX
-			TYX												;&gt;Sigh, LDA $xxxxxx,y does not exist.
+			TYX						;&gt;Sigh, LDA $xxxxxx,y does not exist.
 			LDA (!Scratchram_32bitHexDecOutput)+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
 			PLX
-			STA !Default_TestElement_Pos_Tile,x
+			STA !StatusBar_TestDisplayElement_Pos_Tile,x
 			DEY
 			DEX #2
 			BPL -
@@ -738,15 +738,15 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	main:
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	JSL HexDec_EightBitHexDec
-	STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 1s place
-	TXA							;&gt;if you are using status bar patches, STX $xxxxxx will not work.
+	STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 1s place
+	TXA								;&gt;if you are using status bar patches, STX $xxxxxx will not work.
 	BNE .NotLeadingZero
 	
 	.LeadingZero
 	LDA #!StatusBarBlankTile				;&gt;Blank tile
 	
 	.NotLeadingZero
-	STA !Default_TestElement_Pos_Tile			;&gt;Write 10s place
+	STA !StatusBar_TestDisplayElement_Pos_Tile			;&gt;Write 10s place
 	RTL</pre></td></tr></table>
 		</li>
 		<li>For 3-digit numbers, use this code template:
@@ -758,7 +758,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	.DisplayNumbers
 		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 		JSL HexDec_EightBitHexDec3Digits					;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
-		STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)			;&gt;Write 1s place (will always show)
+		STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)		;&gt;Write 1s place (will always show)
 	
 		..HandleHundreds
 			CPY #$00							;\Is the 100s place nonzero? Yes, then leave that and the 10s showing up
@@ -766,12 +766,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		
 			...NoHundreds
 				LDA #!StatusBarBlankTile				;\Erase the 100s digit
-				STA !Default_TestElement_Pos_Tile			;/
+				STA !StatusBar_TestDisplayElement_Pos_Tile		;/
 				BRA ..HandleTens					;&gt;Check if the next digit is also part of the leading zero.
 		
 			...HundredsNonZero
 				TYA
-				STA !Default_TestElement_Pos_Tile			;&gt;Write 100s place
+				STA !StatusBar_TestDisplayElement_Pos_Tile		;&gt;Write 100s place
 				BRA ..HandleTens_WriteTens				;&gt;If at least 100, 10s shouldn't be omitted.
 		
 		..HandleTens
@@ -780,8 +780,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			...NoTens
 				LDX #!StatusBarBlankTile				;&gt;If 0, replace 10s digit with blank.
 			...WriteTens
-				TXA							;\Write 10s place
-				STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;/
+				TXA								;\Write 10s place
+				STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;/
 	.Done
 	RTL</pre></td></tr></table></li>
 	</ul>
@@ -814,10 +814,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #(!NumberOfDigitsDisplayed-1)*!StatusbarFormat
 		-
 		LDA #!StatusBarBlankTile
-		STA !Default_TestElement_Pos_Tile,x
+		STA !StatusBar_TestDisplayElement_Pos_Tile,x
 		if !StatusBar_UsingCustomProperties != 0
 			LDA.b #!TileProps
-			STA !Default_TestElement_Pos_Prop,x
+			STA !StatusBar_TestDisplayElement_Pos_Prop,x
 		endif
 		DEX #!StatusbarFormat
 		BPL -
@@ -835,13 +835,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
 	;Write to status bar
-		LDA.b #!Default_TestElement_Pos_Tile : STA $00
-		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;8 : STA $01
-		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;16 : STA $02
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Tile : STA $00
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Tile&gt;&gt;8 : STA $01
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Tile&gt;&gt;16 : STA $02
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!Default_TestElement_Pos_Prop : STA $03
-			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;8 : STA $04
-			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;16 : STA $05
+			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop : STA $03
+			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;8 : STA $04
+			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;16 : STA $05
 			LDA.b #!TileProps
 			STA $06
 		endif
@@ -868,10 +868,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #(!NumberOfDigitsDisplayed-1)*!StatusbarFormat
 		-
 		LDA #!StatusBarBlankTile
-		STA !Default_TestElement_Pos_Tile,x
+		STA !StatusBar_TestDisplayElement_Pos_Tile,x
 		if !StatusBar_UsingCustomProperties != 0
 			LDA.b #!TileProps
-			STA !Default_TestElement_Pos_Prop,x
+			STA !StatusBar_TestDisplayElement_Pos_Prop,x
 		endif
 		DEX #!StatusbarFormat
 		BPL -
@@ -891,13 +891,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
 	;Write to status bar
-		LDA.b #!Default_TestElement_Pos_Tile : STA $00
-		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;8 : STA $01
-		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;16 : STA $02
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Tile : STA $00
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Tile&gt;&gt;8 : STA $01
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Tile&gt;&gt;16 : STA $02
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!Default_TestElement_Pos_Prop : STA $03
-			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;8 : STA $04
-			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;16 : STA $05
+			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop : STA $03
+			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;8 : STA $04
+			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;16 : STA $05
 			LDA.b #!TileProps
 			STA $06
 		endif
@@ -945,10 +945,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat	;&gt;2 NumberOfDigitsDisplayed due to 2 numbers displayed, plus 1 because of the "/" symbol.
 		-
 		LDA #!StatusBarBlankTile
-		STA !Default_TestElement_Pos_Tile,x
+		STA !StatusBar_TestDisplayElement_Pos_Tile,x
 		if !StatusBar_UsingCustomProperties != 0
 			LDA.b #!TileProps
-			STA !Default_TestElement_Pos_Prop,x
+			STA !StatusBar_TestDisplayElement_Pos_Prop,x
 		endif
 		DEX #!StatusbarFormat
 		BPL -
@@ -981,13 +981,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)		;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits					;/not being cleared from the previous code.
 	;Write to status bar
-		LDA.b #!Default_TestElement_Pos_Tile : STA $00			;\Set address to write at a given status bar position.
-		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;8 : STA $01		;|
-		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;16 : STA $02		;/
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Tile : STA $00			;\Set address to write at a given status bar position.
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Tile&gt;&gt;8 : STA $01		;|
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Tile&gt;&gt;16 : STA $02		;/
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!Default_TestElement_Pos_Prop : STA $03		;\Set address to write at a given status bar position.
-			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;8 : STA $04	;|
-			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;16 : STA $05	;/
+			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop : STA $03		;\Set address to write at a given status bar position.
+			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;8 : STA $04	;|
+			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;16 : STA $05	;/
 			LDA.b #!TileProps
 			STA $06
 		endif
@@ -1015,10 +1015,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat	;&gt;2 NumberOfDigitsDisplayed due to 2 numbers displayed, plus 1 because of the "/" symbol.
 		-
 		LDA #!StatusBarBlankTile
-		STA !Default_TestElement_Pos_Tile,x
+		STA !StatusBar_TestDisplayElement_Pos_Tile,x
 		if !StatusBar_UsingCustomProperties != 0
 			LDA.b #!TileProps
-			STA !Default_TestElement_Pos_Prop,x
+			STA !StatusBar_TestDisplayElement_Pos_Prop,x
 		endif
 		DEX #!StatusbarFormat
 		BPL -
@@ -1055,13 +1055,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)			;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits						;/not being cleared from the previous code.
 	;Write to status bar
-		LDA.b #!Default_TestElement_Pos_Tile : STA $00				;\Set address to write at a given status bar position.
-		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;8 : STA $01		;|
-		LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;16 : STA $02		;/
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Tile : STA $00			;\Set address to write at a given status bar position.
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Tile&gt;&gt;8 : STA $01		;|
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Tile&gt;&gt;16 : STA $02		;/
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!Default_TestElement_Pos_Prop : STA $03			;\Set address to write at a given status bar position.
-			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;8 : STA $04	;|
-			LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;16 : STA $05	;/
+			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop : STA $03		;\Set address to write at a given status bar position.
+			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;8 : STA $04	;|
+			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;16 : STA $05	;/
 			LDA.b #!TileProps
 			STA $06
 		endif
@@ -1080,7 +1080,9 @@ Again, use the debugger if you wanted to test the values using the memory editor
 is automatically right-aligned, therefore only use these routines (below) if you are displaying X/Y. Here is how you do it: After checking if there are too many characters, you then store the RAM address of the <i>rightmost tile position</i>
 into $00-$02 (little endian), call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedFormat2</kbd> if using the [TTTTTTTT, YXPCCCTT] format), which will modify the position of where to write the digits based
 on how long the string are (loop-writes are based on the starting byte of an array, not the last) by taking the position, subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the
-routine to write to the HUD:
+routine to write to the HUD.<br><br>
+
+16-bit:
 <table><tr><td><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
@@ -1096,7 +1098,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat	;&gt;2 NumberOfDigitsDisplayed due to 2 numbers displayed, plus 1 because of the "/" symbol.
 		-
 		LDA #!StatusBarBlankTile
-		STA !Default_TestElement_RightAlignedText_Pos_Tile-((((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat),x
+		STA !StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile-((((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat),x
 		DEX #!StatusbarFormat
 		BPL -
 	;First number
@@ -1128,13 +1130,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)					;\Failsafe to avoid writing more characters than intended would write onto tiles
 		BCS ..TooMuchDigits								;/not being cleared from the previous code.
 	;Calculate where to write for right-aligned 2-number display
-		LDA.b #!Default_TestElement_RightAlignedText_Pos_Tile : STA $00		;\Set address to write at a given status bar position.
-		LDA.b #!Default_TestElement_RightAlignedText_Pos_Tile&gt;&gt;8 : STA $01		;|
-		LDA.b #!Default_TestElement_RightAlignedText_Pos_Tile&gt;&gt;16 : STA $02		;/
+		LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile : STA $00		;\Set address to write at a given status bar position.
+		LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile&gt;&gt;8 : STA $01		;|
+		LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile&gt;&gt;16 : STA $02		;/
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!Default_TestElement_RightAlignedText_Pos_Prop : STA $03	;\Set address to write at a given status bar position.
-			LDA.b #!Default_TestElement_RightAlignedText_Pos_Prop&gt;&gt;8 : STA $04	;|
-			LDA.b #!Default_TestElement_RightAlignedText_Pos_Prop&gt;&gt;16 : STA $05	;/
+			LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop : STA $03	;\Set address to write at a given status bar position.
+			LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop&gt;&gt;8 : STA $04	;|
+			LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop&gt;&gt;16 : STA $05	;/
 			LDA.b #!TileProps
 			STA $06
 		endif
@@ -1169,7 +1171,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #(((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat	;&gt;2 NumberOfDigitsDisplayed due to 2 numbers displayed, plus 1 because of the "/" symbol.
 		-
 		LDA #!StatusBarBlankTile
-		STA !Default_TestElement_RightAlignedText_Pos_Tile-((((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat),x
+		STA !StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile-((((!NumberOfDigitsDisplayed*2)+1)-1)*!StatusbarFormat),x
 		DEX #!StatusbarFormat
 		BPL -
 	;First number
@@ -1205,13 +1207,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)				;\Failsafe to avoid writing more characters than intended would write onto tiles
 		BCS ..TooMuchDigits							;/not being cleared from the previous code.
 	;Calculate where to write for right-aligned 2-number display
-		LDA.b #!Default_TestElement_RightAlignedText_Pos_Tile : STA $00		;\Set address to write at a given status bar position.
-		LDA.b #!Default_TestElement_RightAlignedText_Pos_Tile&gt;&gt;8 : STA $01		;|
-		LDA.b #!Default_TestElement_RightAlignedText_Pos_Tile&gt;&gt;16 : STA $02		;/
+		LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile : STA $00		;\Set address to write at a given status bar position.
+		LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile&gt;&gt;8 : STA $01		;|
+		LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile&gt;&gt;16 : STA $02		;/
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!Default_TestElement_RightAlignedText_Pos_Prop : STA $03	;\Set address to write at a given status bar position.
-			LDA.b #!Default_TestElement_RightAlignedText_Pos_Prop&gt;&gt;8 : STA $04	;|
-			LDA.b #!Default_TestElement_RightAlignedText_Pos_Prop&gt;&gt;16 : STA $05	;/
+			LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop : STA $03	;\Set address to write at a given status bar position.
+			LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop&gt;&gt;8 : STA $04	;|
+			LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop&gt;&gt;16 : STA $05	;/
 			LDA.b #!TileProps
 			STA $06
 		endif
@@ -1311,11 +1313,11 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	.DisplayStatusBar
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
 	JSL HexDec_EightBitHexDec3Digits
-	STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
+	STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
 	TXA							;\Write 10s place
-	STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;/
+	STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;/
 	TYA							;\Write 100s place.
-	STA !Default_TestElement_Pos_Tile			;/
+	STA !StatusBar_TestDisplayElement_Pos_Tile			;/
 	RTL
 	;Also note that if you have both adder and subtractor nonzero, they will cancel
 	;each other out as both will increase and decrease together (results !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
@@ -1355,11 +1357,11 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	.DisplayStatusBar
 	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_1Byte
 	JSL HexDec_EightBitHexDec3Digits
-	STA !Default_TestElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
+	STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
 	TXA							;\Write 10s place
-	STA !Default_TestElement_Pos_Tile+(1*!StatusbarFormat)	;/
+	STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;/
 	TYA							;\Write 100s place.
-	STA !Default_TestElement_Pos_Tile			;/
+	STA !StatusBar_TestDisplayElement_Pos_Tile			;/
 	RTL</pre></td></tr></table><br>
 If you want the counter to count even slower instead of once per frame, under the sublabel
 <kbd>.CountingAnimation</kbd>, and before the first <kbd>LDA</kbd> add this code:
@@ -1499,7 +1501,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDX.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA.b !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1),x
-			STA !Default_TestElement_Pos_Tile,x
+			STA !StatusBar_TestDisplayElement_Pos_Tile,x
 			DEX
 			BPL -
 		else
@@ -1507,7 +1509,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDY.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
-			STA !Default_TestElement_Pos_Tile,x
+			STA !StatusBar_TestDisplayElement_Pos_Tile,x
 			DEY
 			DEX #2
 			BPL -
@@ -1558,7 +1560,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			LDX.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA.b !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1),x
-			STA !Default_TestElement_Pos_Tile,x
+			STA !StatusBar_TestDisplayElement_Pos_Tile,x
 			DEX
 			BPL -
 		else
@@ -1566,7 +1568,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			LDY.b #(!NumberOfDigitsDisplayed-1)
 			-
 			LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
-			STA !Default_TestElement_Pos_Tile,x
+			STA !StatusBar_TestDisplayElement_Pos_Tile,x
 			DEY
 			DEX #2
 			BPL -
@@ -1757,11 +1759,11 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 ;Don't touch unless you know what you're doing
 	if !RightAligned == 0
-		!StatusBarAddressTile = !Default_TestElement_Pos_Tile				;&gt;Where to write on the status bar, tile numbers (left aligned)
-		!StatusBarAddressProps = !Default_TestElement_Pos_Prop				;&gt;Same as above, but tile properties (left aligned)
+		!StatusBarAddressTile = !StatusBar_TestDisplayElement_Pos_Tile				;&gt;Where to write on the status bar, tile numbers (left aligned)
+		!StatusBarAddressProps = !StatusBar_TestDisplayElement_Pos_Prop				;&gt;Same as above, but tile properties (left aligned)
 	else
-		!StatusBarAddressTile = !Default_TestElement_RightAlignedText_Pos_Tile		;&gt;Where to write on the status bar, tile numbers (right aligned)
-		!StatusBarAddressProps = !Default_TestElement_RightAlignedText_Pos_Prop		;&gt;Same as above, but tile properties (right aligned)
+		!StatusBarAddressTile = !StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile		;&gt;Where to write on the status bar, tile numbers (right aligned)
+		!StatusBarAddressProps = !StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop		;&gt;Same as above, but tile properties (right aligned)
 	endif
 !TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
@@ -1923,7 +1925,7 @@ main:
 					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarAddressTile-(5*!StatusbarFormat)	;&gt;100s
 					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarAddressTile-(4*!StatusbarFormat)	;&gt;10s
 					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarAddressTile-(3*!StatusbarFormat)	;&gt;1s
-					LDA #$24 : STA !StatusBarAddressTile-(2*!StatusbarFormat)					;&gt;.
+					LDA #$24 : STA !StatusBarAddressTile-(2*!StatusbarFormat)				;&gt;.
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarAddressTile-(1*!StatusbarFormat)	;&gt;1/10ths
 					LDA #!StatusBarPercentTile : STA !StatusBarAddressTile-(0*!StatusbarFormat)		;&gt;%
 					if !StatusBar_UsingCustomProperties != 0
@@ -1947,7 +1949,7 @@ main:
 					LDA !Scratchram_16bitHexDecOutput+$00 : STA !StatusBarAddressTile-(6*!StatusbarFormat)	;&gt;100s
 					LDA !Scratchram_16bitHexDecOutput+$01 : STA !StatusBarAddressTile-(5*!StatusbarFormat)	;&gt;10s
 					LDA !Scratchram_16bitHexDecOutput+$02 : STA !StatusBarAddressTile-(4*!StatusbarFormat)	;&gt;1s
-					LDA #$24 : STA !StatusBarAddressTile-(3*!StatusbarFormat)					;&gt;.
+					LDA #$24 : STA !StatusBarAddressTile-(3*!StatusbarFormat)				;&gt;.
 					LDA !Scratchram_16bitHexDecOutput+$03 : STA !StatusBarAddressTile-(2*!StatusbarFormat)	;&gt;1/10s
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarAddressTile-(1*!StatusbarFormat)	;&gt;1/100s
 					LDA #!StatusBarPercentTile : STA !StatusBarAddressTile-(0*!StatusbarFormat)		;&gt;%
@@ -2112,23 +2114,23 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	STA $02							;/
 	LDA #!StatusBar_RepeatedSymbols_FullTile		;\$03: Full tile number
 	STA $03							;/
-	LDA.b #!Default_TestElement_Pos_Tile			;\$04-$06: Address of tile numbers to write to the HUD
+	LDA.b #!StatusBar_TestDisplayElement_Pos_Tile		;\$04-$06: Address of tile numbers to write to the HUD
 	STA $04							;|
-	LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;8			;|
+	LDA.b #!StatusBar_TestDisplayElement_Pos_Tile&gt;&gt;8	;|
 	STA $05							;|
-	LDA.b #!Default_TestElement_Pos_Tile&gt;&gt;16		;|
+	LDA.b #!StatusBar_TestDisplayElement_Pos_Tile&gt;&gt;16	;|
 	STA $06							;/
 	if !StatusBar_UsingCustomProperties
-		LDA #!StatusBar_RepeatedSymbols_EmptyProp	;\$07: Empty tile properties
-		STA $07						;/
-		LDA.b #!StatusBar_RepeatedSymbols_FullProp	;\$08: Full tile properties
-		STA $08						;/
-		LDA.b #!Default_TestElement_Pos_Prop		;\$09-$0B: Address of tile properties to write to the HUD
-		STA $09						;|
-		LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;8		;|
-		STA $0A						;|
-		LDA.b #!Default_TestElement_Pos_Prop&gt;&gt;16	;|
-		STA $0B						;/
+		LDA #!StatusBar_RepeatedSymbols_EmptyProp		;\$07: Empty tile properties
+		STA $07							;/
+		LDA.b #!StatusBar_RepeatedSymbols_FullProp		;\$08: Full tile properties
+		STA $08							;/
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Prop		;\$09-$0B: Address of tile properties to write to the HUD
+		STA $09							;|
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;8	;|
+		STA $0A							;|
+		LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;16	;|
+		STA $0B							;/
 	endif
 	if !StatusbarFormat == $01
 		if !Leftwards == 0

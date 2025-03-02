@@ -98,45 +98,45 @@ endif
 	; it is not entirely foolproof due to each status bar types having different tile range
 	; and display elements spans many number of tiles to be written down.
 	
-	;Status bar tile data starting addresses
-		;RAM address of the first TTTTTTTT byte.
-			if !sa1 == 0
-				!FreeramFromAnotherPatch_StatusBarTileStart = $7FA000
-			else
-				!FreeramFromAnotherPatch_StatusBarTileStart = $404000
-			endif
-		;RAM address of the first YXPCCCTT byte.
-			if !sa1 == 0
-				!FreeramFromAnotherPatch_StatusBarPropStart = $7FA001
-			else
-				!FreeramFromAnotherPatch_StatusBarPropStart = $404001
-			endif
-	;Overworld border starting addresses
-		;RAM address of the first TTTTTTTT byte.
-			if !sa1 == 0
-				!FreeramFromAnotherPatch_OWBorderTileStart = $7FEC00
-			else
-				!FreeramFromAnotherPatch_OWBorderTileStart = $41EC00
-			endif
-		;RAM address of the first YXPCCCTT byte.
-			if !sa1 == 0
-				!FreeramFromAnotherPatch_OWBorderPropStart = $7FEC01
-			else
-				!FreeramFromAnotherPatch_OWBorderPropStart = $41EC01
-			endif
-	;Position to display most things onto the HUD for various elements (numbers, horizontal repeated symbol, etc.)
-		!StatusBar_TestDisplayElement_PosX = 0
-		!StatusBar_TestDisplayElement_PosY = 0
-	;Position to display repeated symbol vertically (this is the position of the first symbol to fill up)
-		!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosX = 0 ;\Position of the top tile, fills downwards
-		!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosY = 0 ;/
-		
-		!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX = 0 ;\Position of the bottom tile, fills upwards
-		!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY = 4 ;/
-	;Position to display right-aligned numbers (This is the position of the rightmost tile, a position entered here will take this
-	;position and anything to the left)
-		!StatusBar_TestDisplayRightAlignedNumber_PosX = 31
-		!StatusBar_TestDisplayRightAlignedNumber_PosY = 0
+		;Status bar tile data starting addresses
+			;RAM address of the first TTTTTTTT byte.
+				if !sa1 == 0
+					!FreeramFromAnotherPatch_StatusBarTileStart = $7FA000
+				else
+					!FreeramFromAnotherPatch_StatusBarTileStart = $404000
+				endif
+			;RAM address of the first YXPCCCTT byte.
+				if !sa1 == 0
+					!FreeramFromAnotherPatch_StatusBarPropStart = $7FA001
+				else
+					!FreeramFromAnotherPatch_StatusBarPropStart = $404001
+				endif
+		;Overworld border starting addresses
+			;RAM address of the first TTTTTTTT byte.
+				if !sa1 == 0
+					!FreeramFromAnotherPatch_OWBorderTileStart = $7FEC00
+				else
+					!FreeramFromAnotherPatch_OWBorderTileStart = $41EC00
+				endif
+			;RAM address of the first YXPCCCTT byte.
+				if !sa1 == 0
+					!FreeramFromAnotherPatch_OWBorderPropStart = $7FEC01
+				else
+					!FreeramFromAnotherPatch_OWBorderPropStart = $41EC01
+				endif
+		;Position to display most things onto the HUD for various elements (numbers, horizontal repeated symbol, etc.)
+			!StatusBar_TestDisplayElement_PosX = 0
+			!StatusBar_TestDisplayElement_PosY = 0
+		;Position to display repeated symbol vertically (this is the position of the first symbol to fill up)
+			!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosX = 0 ;\Position of the top tile, fills downwards
+			!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosY = 0 ;/
+			
+			!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX = 0 ;\Position of the bottom tile, fills upwards
+			!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY = 4 ;/
+		;Position to display right-aligned numbers (This is the position of the rightmost tile, a position entered here will take this
+		;position and anything to the left)
+			!StatusBar_TestDisplayRightAlignedNumber_PosX = 31
+			!StatusBar_TestDisplayRightAlignedNumber_PosY = 0
 	;Overworld border positioning stuff. Same rule as the status bar if you enter invalid
 	;coordinates.
 	;
@@ -203,13 +203,13 @@ endif
 		endif
 	;Frames2Timer (this converts multiple units of time into total number of frames).
 		function FramesToTimer(Hours, Minutes, Seconds, Frames) = (Hours*216000)+(Minutes*3600)+(Seconds*60)+Frames
-	!Default_TestElement_Pos_Tile = VanillaStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !RAM_0EF9)
+	!StatusBar_TestDisplayElement_Pos_Tile = VanillaStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !RAM_0EF9)
 	if !UsingCustomStatusBar != 0
-		!Default_TestElement_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
-		!Default_TestElement_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
+		!StatusBar_TestDisplayElement_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
+		!StatusBar_TestDisplayElement_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
 		
-		!Default_TestElement_RightAlignedText_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayRightAlignedNumber_PosX, !StatusBar_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
-		!Default_TestElement_RightAlignedText_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayRightAlignedNumber_PosX, !StatusBar_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
+		!StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayRightAlignedNumber_PosX, !StatusBar_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
+		!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayRightAlignedNumber_PosX, !StatusBar_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
 		
 		!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
 		!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
