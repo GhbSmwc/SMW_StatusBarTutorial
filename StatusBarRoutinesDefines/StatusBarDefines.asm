@@ -155,13 +155,15 @@ endif
 	;
 	;  !Default_GraphicalBar_PosY_OverworldMap = 26-26+5, which is row 5 (rows 0-4 are top lines, 5-6 are bottom lines)
 	
-	;Position to display most things onto the OWB
-		!OverworldBorder_TestDisplayElement_PosX = 0
-		!OverworldBorder_TestDisplayElement_PosY = 0
-	
-	
-	;FreeRAM to display its amount. The number of bytes used on each of these are obvious. Also obvious to avoid running multiple ASM
-	;files for a level using the same RAM at the same time.
+		;Position to display most things onto the OWB
+			!OverworldBorder_TestDisplayElement_PosX = 0
+			!OverworldBorder_TestDisplayElement_PosY = 0
+		;Position to display right-aligned numbers
+			!OverworldBorder_TestDisplayRightAlignedNumber_PosX = 31
+			!OverworldBorder_TestDisplayRightAlignedNumber_PosY = 0
+	;FreeRAM to display its amount, for both all meters on status bar, overworld borders, stripes, and sprites. The
+	;number of bytes used on each of these are obvious. Also obvious to avoid running multiple ASM files for a level
+	;using the same RAM at the same time.
 		;For 8-bit counters (including repeated symbols)
 			!StatusBar_TestDisplayElement_RAMToDisplay1_1Byte = $60
 			!StatusBar_TestDisplayElement_RAMToDisplay2_1Byte = $61
@@ -215,6 +217,9 @@ endif
 		!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
 		!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
 		
-		!Default_TestElementOWB_Pos_Tile = PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayElement_PosX, !OverworldBorder_TestDisplayElement_PosY, !FreeramFromAnotherPatch_OWBorderTileStart, $02)
-		!Default_TestElementOWB_Pos_Prop = PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayElement_PosX, !OverworldBorder_TestDisplayElement_PosY, !FreeramFromAnotherPatch_OWBorderPropStart, $02)
+		!OverworldBorder_TestDisplayElement_Pos_Tile = PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayElement_PosX, !OverworldBorder_TestDisplayElement_PosY, !FreeramFromAnotherPatch_OWBorderTileStart, $02)
+		!OverworldBorder_TestDisplayElement_Pos_Prop = PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayElement_PosX, !OverworldBorder_TestDisplayElement_PosY, !FreeramFromAnotherPatch_OWBorderPropStart, $02)
+		
+		!OverworldBorder_TestDisplayElement_RightAlignedText_Pos_Tile = PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayRightAlignedNumber_PosX, !OverworldBorder_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_OWBorderTileStart, $02)
+		!OverworldBorder_TestDisplayElement_RightAlignedText_Pos_Prop = PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayRightAlignedNumber_PosX, !OverworldBorder_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_OWBorderPropStart, $02)
 	endif
