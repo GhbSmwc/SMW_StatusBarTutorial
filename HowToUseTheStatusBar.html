@@ -2666,7 +2666,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				REP #$20							;\Convert a given number to decimal digits.
 				LDA !Freeram_ValueDisplay1_4Bytes				;|
 				STA $00								;|
-				LDA !Freeram_ValueDisplay1_4Bytes+2	;|
+				LDA !Freeram_ValueDisplay1_4Bytes+2				;|
 				STA $02								;|
 				SEP #$20							;|
 				JSL HexDec_ThirtyTwoBitHexDecDivision				;/
@@ -2684,7 +2684,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				REP #$20							;\Convert a given number to decimal digits.
 				LDA !Freeram_ValueDisplay1_4Bytes				;|
 				STA $00								;|
-				LDA !Freeram_ValueDisplay1_4Bytes+2	;|
+				LDA !Freeram_ValueDisplay1_4Bytes+2				;|
 				STA $02								;|
 				SEP #$20							;|
 				JSL HexDec_ThirtyTwoBitHexDecDivision				;/
