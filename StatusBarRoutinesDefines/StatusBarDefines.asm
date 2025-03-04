@@ -1,3 +1,7 @@
+includeonce
+ ;^Prevent redefinition errors (this define file you're reading right now contains a function and asar cannot allow that to be redefined)
+ ; This happens because the patch in "Patch_SpriteStatusBarTest/SpriteHUDTest.asm" includes this define file as well as sububroutines file
+ ; which they themselves also include this define file, causing redefinition issues if "includeonce" is not being used.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;SA-1 handling (don't touch here)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
