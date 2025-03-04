@@ -308,13 +308,13 @@ the score gets covered by boss's heath bar that only shows up during bosses) and
 <p>You also need to insert the graphic file from this provided <kbd>ExGFX</kbd> folder (<kbd>ExGFX80.bin</kbd>) because many of the stuff here uses a graphic not provided by SMW, such as the &ldquo;/&rdquo; symbol when displaying
 2 numbers, and the &ldquo;%&rdquo; symbol representing a percentage. It should be inserted as &ldquo;LG1&rdquo; on the layer 3 GFX.</p>
 
-<p>Before we start using the subroutines, we will demonstrate how to write tiles that change based on a given info <kbd>!StatusBar_TestDisplayElement_RAMToDisplay1_1Byte</kbd>. It's very easy to write a tile that is different depending on
+<p>Before we start using the subroutines, we will demonstrate how to write tiles that change based on a given info <kbd>!Freeram_ValueDisplay1_1Byte</kbd>. It's very easy to write a tile that is different depending on
 a condition using branches:
 <table><tr><td><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	LDA !Freeram_ValueDisplay1_1Byte
 	BNE +
 	LDA #$00
 	BRA ++
@@ -328,18 +328,18 @@ and if you are tired of using branches, then an even simpler approach is to use 
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	LDA !Freeram_ValueDisplay1_1Byte
 	TAX
 	LDA Table,x
 	STA !StatusBar_TestDisplayElement_Pos_Tile
 	RTL
 	
 	Table:
-	db $0A ;&gt;When !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte = $00
-	db $0B ;&gt;When !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte = $01
-	db $0C ;&gt;When !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte = $02
+	db $0A ;&gt;When !Freeram_ValueDisplay1_1Byte = $00
+	db $0B ;&gt;When !Freeram_ValueDisplay1_1Byte = $01
+	db $0C ;&gt;When !Freeram_ValueDisplay1_1Byte = $02
 	
-	;If !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte contains values greater than $02,
+	;If !Freeram_ValueDisplay1_1Byte contains values greater than $02,
 	;it will read past the last byte of the table into unrelated (garbage) data.</pre></td></tr></table></p>
 	
 <p>But what about other not-so-simple displays? Well, the following shows you how to do that.</p>
@@ -523,7 +523,7 @@ for the tens and <kbd><span style="color: blue">$02</span>+$22 = $24</kbd> for t
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	LDA !Freeram_ValueDisplay1_1Byte
 	JSL HexDec_EightBitHexDec					;&gt;Get digits, A = 1s, X = 10s
 	STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 1s place
 	TXA								;&gt;if you are using status bar patches, STX $xxxxxx will not work.
@@ -535,8 +535,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 <p>Test the game (using a debugger) by going to the level that you inserted this created ASM file (or any level if using gamemode 14), you should see the
 digits displayed on the HUD. Again, palettes, X/Y flips and other weird shenanigans can happen if you use SMW's vanilla status bar without
-editing the default values. Now depending on what RAM to use set by <kbd>!StatusBar_TestDisplayElement_RAMToDisplay1_1Byte</kbd>, it could display <kbd>00</kbd> or <kbd>[&lt;digits 0-9 or glitched tile here&gt;&lt;digits 0-9&gt;]</kbd>,
-then on the debugger window, go to memory editor and search for the RAM you set for <kbd>!StatusBar_TestDisplayElement_RAMToDisplay1_1Byte</kbd> (example: <kbd>$60</kbd>, <kbd>$3060</kbd> for SA-1), edit the value in that byte to be any values $00-$63. It should
+editing the default values. Now depending on what RAM to use set by <kbd>!Freeram_ValueDisplay1_1Byte</kbd>, it could display <kbd>00</kbd> or <kbd>[&lt;digits 0-9 or glitched tile here&gt;&lt;digits 0-9&gt;]</kbd>,
+then on the debugger window, go to memory editor and search for the RAM you set for <kbd>!Freeram_ValueDisplay1_1Byte</kbd> (example: <kbd>$60</kbd>, <kbd>$3060</kbd> for SA-1), edit the value in that byte to be any values $00-$63. It should
 display their decimal version of the hex number:
 <table>
 <tr><th>Hex bytes</th><th>Displayed</th></tr>
@@ -563,7 +563,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	LDA !Freeram_ValueDisplay1_1Byte
 	JSL HexDec_EightBitHexDec
 	STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
 	TXA								;&gt;Call again to get the 10s and 100s.
@@ -577,7 +577,7 @@ How this works is that it uses <a href="https://en.wikipedia.org/wiki/Euclidean_
 subtract the input A by 10 repeatedly until A is less than 10, it also counts how many times it subtracted, and have that value in the X register. Because euclidean division
 is essentially repeated subtraction, the output X is the quotient (rounded down) and A is the remainder. With the X register increasing every 10th value, this can represent the
 10s place (since in decimal, 10s place increases at every 10th unit), and with the A register being in the 0-9 range, can represent the ones place (since real-world decimal will wrap when exceeding 9).
-When handling the 100s digit, you basically divided the value by 10 again, which is <kbd>!StatusBar_TestDisplayElement_RAMToDisplay1_1Byte/10/10</kbd>, which is the same as <kbd>!StatusBar_TestDisplayElement_RAMToDisplay1_1Byte/(10^2)</kbd> which leads to <kbd>!StatusBar_TestDisplayElement_RAMToDisplay1_1Byte/100</kbd>,
+When handling the 100s digit, you basically divided the value by 10 again, which is <kbd>!Freeram_ValueDisplay1_1Byte/10/10</kbd>, which is the same as <kbd>!Freeram_ValueDisplay1_1Byte/(10^2)</kbd> which leads to <kbd>!Freeram_ValueDisplay1_1Byte/100</kbd>,
 resulting A now being the 10s place wrapping every 100 and X increasing every 100. Because the maximum value stored in an 8-bit byte is 255, there is no way the hundreds place digit
 will be able to glitch out at 1000. For more information how base conversion works, I found a wikipedia article on positional notation <a href="https://en.wikipedia.org/wiki/Positional_notation#Base_conversion">on converting radixes</a>.</p>
 
@@ -590,7 +590,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	LDA !Freeram_ValueDisplay1_1Byte
 	JSL HexDec_EightBitHexDec3Digits				;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
 	STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
 	TXA								;\Write 10s place
@@ -624,7 +624,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
 	REP #$20
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes	;\Submit the value into $00-$01, the input to convert the raw binary value into BCD, unpacked.
+	LDA !Freeram_ValueDisplay1_2Bytes			;\Submit the value into $00-$01, the input to convert the raw binary value into BCD, unpacked.
 	STA $00							;/
 	SEP #$20
 	JSL HexDec_SixteenBitHexDecDivision
@@ -684,9 +684,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
 	REP #$20
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;\Low word (example: $3344 -&gt; [$44, $33] in $00, $01)
+	LDA !Freeram_ValueDisplay1_4Bytes				;\Low word (example: $3344 -&gt; [$44, $33] in $00, $01)
 	STA $00								;/
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;\High word (example: $1122 -&gt; [$22, $11] in $02, $03)
+	LDA !Freeram_ValueDisplay1_4Bytes+2				;\High word (example: $1122 -&gt; [$22, $11] in $02, $03)
 	STA $02								;/
 	SEP #$20
 	JSL HexDec_ThirtyTwoBitHexDecDivision	;&gt;Should Output example as: [$02, $08, $07, $04, $05, $04, $00, $02, $00] on !Scratchram_32bitHexDecOutput.
@@ -736,7 +736,7 @@ unused digits always showing 0 on the millions (1000000s) and beyond (so don't d
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	LDA !Freeram_ValueDisplay1_1Byte
 	JSL HexDec_EightBitHexDec
 	STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;&gt;Write 1s place
 	TXA								;&gt;if you are using status bar patches, STX $xxxxxx will not work.
@@ -756,7 +756,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
 	.DisplayNumbers
-		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+		LDA !Freeram_ValueDisplay1_1Byte
 		JSL HexDec_EightBitHexDec3Digits					;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
 		STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)		;&gt;Write 1s place (will always show)
 	
@@ -804,7 +804,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 !NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
-!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 	main:
 	.NumberDisplayTest
@@ -816,7 +815,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDA #!StatusBarBlankTile
 		STA !StatusBar_TestDisplayElement_Pos_Tile,x
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!TileProps
+			LDA.b #!StatusBar_TileProp
 			STA !StatusBar_TestDisplayElement_Pos_Prop,x
 		endif
 		DEX #!StatusbarFormat
@@ -824,7 +823,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;Number to string.
 		;Process HexDec
 			REP #$20						;\Convert a given number to decimal digits.
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes	;|
+			LDA !Freeram_ValueDisplay1_2Bytes			;|
 			STA $00							;|
 			SEP #$20						;|
 			JSL HexDec_SixteenBitHexDecDivision			;/
@@ -842,7 +841,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop : STA $03
 			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;8 : STA $04
 			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;16 : STA $05
-			LDA.b #!TileProps
+			LDA.b #!StatusBar_TileProp
 			STA $06
 		endif
 		if !StatusbarFormat == $01
@@ -858,7 +857,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 !NumberOfDigitsDisplayed = 10							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
-!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 	main:
 	.NumberDisplayTest
@@ -870,7 +868,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDA #!StatusBarBlankTile
 		STA !StatusBar_TestDisplayElement_Pos_Tile,x
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!TileProps
+			LDA.b #!StatusBar_TileProp
 			STA !StatusBar_TestDisplayElement_Pos_Prop,x
 		endif
 		DEX #!StatusbarFormat
@@ -878,9 +876,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;Number to string.
 		;Process HexDec
 			REP #$20							;\Convert a given number to decimal digits.
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
+			LDA !Freeram_ValueDisplay1_4Bytes				;|
 			STA $00								;|
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
+			LDA !Freeram_ValueDisplay1_4Bytes+2				;|
 			STA $02								;|
 			SEP #$20							;|
 			JSL HexDec_ThirtyTwoBitHexDecDivision				;/
@@ -898,7 +896,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop : STA $03
 			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;8 : STA $04
 			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;16 : STA $05
-			LDA.b #!TileProps
+			LDA.b #!StatusBar_TileProp
 			STA $06
 		endif
 		if !StatusbarFormat == $01
@@ -935,7 +933,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 !NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
-!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 	main:
 	.NumberDisplayTest
@@ -947,7 +944,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDA #!StatusBarBlankTile
 		STA !StatusBar_TestDisplayElement_Pos_Tile,x
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!TileProps
+			LDA.b #!StatusBar_TileProp
 			STA !StatusBar_TestDisplayElement_Pos_Prop,x
 		endif
 		DEX #!StatusbarFormat
@@ -955,7 +952,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;First number
 		;Process HexDec
 			REP #$20						;\Convert a given number to decimal digits.
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes	;|
+			LDA !Freeram_ValueDisplay1_2Bytes			;|
 			STA $00							;|
 			SEP #$20						;|
 			JSL HexDec_SixteenBitHexDecDivision			;/
@@ -970,7 +967,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		;Process HexDec
 			PHX							;&gt;Push X because it gets modified by the HexDec routine.
 			REP #$20						;\Convert a given number to decimal digits.
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes	;|
+			LDA !Freeram_ValueDisplay2_2Bytes			;|
 			STA $00							;|
 			SEP #$20						;|
 			JSL HexDec_SixteenBitHexDecDivision			;/
@@ -988,7 +985,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop : STA $03		;\Set address to write at a given status bar position.
 			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;8 : STA $04	;|
 			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;16 : STA $05	;/
-			LDA.b #!TileProps
+			LDA.b #!StatusBar_TileProp
 			STA $06
 		endif
 		if !StatusbarFormat == $01
@@ -1004,7 +1001,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 !NumberOfDigitsDisplayed = 10							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
-!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 
 	main:
@@ -1017,7 +1013,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDA #!StatusBarBlankTile
 		STA !StatusBar_TestDisplayElement_Pos_Tile,x
 		if !StatusBar_UsingCustomProperties != 0
-			LDA.b #!TileProps
+			LDA.b #!StatusBar_TileProp
 			STA !StatusBar_TestDisplayElement_Pos_Prop,x
 		endif
 		DEX #!StatusbarFormat
@@ -1025,9 +1021,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;First number
 		;Process HexDec
 			REP #$20							;\Convert a given number to decimal digits.
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
+			LDA !Freeram_ValueDisplay1_4Bytes				;|
 			STA $00								;|
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
+			LDA !Freeram_ValueDisplay1_4Bytes+2				;|
 			STA $02								;|
 			SEP #$20							;|
 			JSL HexDec_ThirtyTwoBitHexDecDivision				;/
@@ -1042,9 +1038,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		;Process HexDec
 			PHX								;&gt;Push X because it gets modified by the HexDec routine.
 			REP #$20							;\Convert a given number to decimal digits.
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay2_4Bytes		;|
+			LDA !Freeram_ValueDisplay2_4Bytes				;|
 			STA $00								;|
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay2_4Bytes+2	;|
+			LDA !Freeram_ValueDisplay2_4Bytes+2				;|
 			STA $02								;|
 			SEP #$20							;|
 			JSL HexDec_ThirtyTwoBitHexDecDivision				;/
@@ -1062,7 +1058,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop : STA $03		;\Set address to write at a given status bar position.
 			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;8 : STA $04	;|
 			LDA.b #!StatusBar_TestDisplayElement_Pos_Prop&gt;&gt;16 : STA $05	;/
-			LDA.b #!TileProps
+			LDA.b #!StatusBar_TileProp
 			STA $06
 		endif
 		if !StatusbarFormat == $01
@@ -1088,7 +1084,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 !NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
-!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 	main:
 	.NumberDisplayTest
@@ -1104,7 +1099,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;First number
 		;Process HexDec
 			REP #$20								;\Convert a given number to decimal digits.
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes			;|
+			LDA !Freeram_ValueDisplay1_2Bytes					;|
 			STA $00									;|
 			SEP #$20								;|
 			JSL HexDec_SixteenBitHexDecDivision					;/
@@ -1119,7 +1114,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		;Process HexDec
 			PHX									;&gt;Push X because it gets modified by the HexDec routine.
 			REP #$20								;\Convert a given number to decimal digits.
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes			;|
+			LDA !Freeram_ValueDisplay2_2Bytes					;|
 			STA $00									;|
 			SEP #$20								;|
 			JSL HexDec_SixteenBitHexDecDivision					;/
@@ -1137,7 +1132,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop : STA $03	;\Set address to write at a given status bar position.
 			LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop&gt;&gt;8 : STA $04	;|
 			LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop&gt;&gt;16 : STA $05	;/
-			LDA.b #!TileProps
+			LDA.b #!StatusBar_TileProp
 			STA $06
 		endif
 		if !StatusbarFormat == $01							;\These offset the write position based on how many
@@ -1161,7 +1156,6 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 !NumberOfDigitsDisplayed = 10							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
-!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
 	main:
 	.NumberDisplayTest
@@ -1177,9 +1171,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;First number
 		;Process HexDec
 			REP #$20							;\Convert a given number to decimal digits.
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
+			LDA !Freeram_ValueDisplay1_4Bytes				;|
 			STA $00								;|
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
+			LDA !Freeram_ValueDisplay1_4Bytes+2				;|
 			STA $02								;|
 			SEP #$20							;|
 			JSL HexDec_ThirtyTwoBitHexDecDivision				;/
@@ -1194,9 +1188,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		;Process HexDec
 			PHX								;&gt;Push X because it gets modified by the HexDec routine.
 			REP #$20							;\Convert a given number to decimal digits.
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay2_4Bytes		;|
+			LDA !Freeram_ValueDisplay2_4Bytes				;|
 			STA $00								;|
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay2_4Bytes+2	;|
+			LDA !Freeram_ValueDisplay2_4Bytes+2				;|
 			STA $02								;|
 			SEP #$20							;|
 			JSL HexDec_ThirtyTwoBitHexDecDivision				;/
@@ -1214,7 +1208,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop : STA $03	;\Set address to write at a given status bar position.
 			LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop&gt;&gt;8 : STA $04	;|
 			LDA.b #!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop&gt;&gt;16 : STA $05	;/
-			LDA.b #!TileProps
+			LDA.b #!StatusBar_TileProp
 			STA $06
 		endif
 		if !StatusbarFormat == $01							;\These offset the write position based on how many
@@ -1274,19 +1268,19 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	..Increment
 	DEC							;\Decrement on every step (frame)
 	STA !StatusBar_TestDisplayElement_CountAnimation1_1Byte	;|for every adder value.
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte	;|
+	LDA !Freeram_ValueDisplay1_1Byte			;|
 	CMP #$FF						;|\If maxed, stop incrementing
 	BEQ ..Cancel						;|/
 	INC							;|
-	STA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte	;/
+	STA !Freeram_ValueDisplay1_1Byte			;/
 	BRA ..Done
 	
 	..Cancel
-	;Prevent overflow. Note: Merely capping the number by writing to !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte will not cancel
+	;Prevent overflow. Note: Merely capping the number by writing to !Freeram_ValueDisplay1_1Byte will not cancel
 	;how much remaining to add, so if you happen to hit this maximum, while the adder is nonzero,
-	;then set !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte to a lower value, it will still increase from that lower value. Same
+	;then set !Freeram_ValueDisplay1_1Byte to a lower value, it will still increase from that lower value. Same
 	;thing applies to subtraction when it bottoms out at 0 with !StatusBar_TestDisplayElement_CountAnimation2_1Byte being nonzero
-	;when !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte is &gt; 0.
+	;when !Freeram_ValueDisplay1_1Byte is &gt; 0.
 		LDA #$00		;&gt;STZ $xxxxxx does not exist.
 		STA !StatusBar_TestDisplayElement_CountAnimation1_1Byte
 	..Done
@@ -1298,10 +1292,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	..Decrement
 	DEC
 	STA !StatusBar_TestDisplayElement_CountAnimation2_1Byte
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	LDA !Freeram_ValueDisplay1_1Byte
 	BEQ ..Cancel
 	DEC
-	STA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	STA !Freeram_ValueDisplay1_1Byte
 	BRA ..Done
 	
 	..Cancel
@@ -1311,16 +1305,16 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	..Done
 
 	.DisplayStatusBar
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	LDA !Freeram_ValueDisplay1_1Byte
 	JSL HexDec_EightBitHexDec3Digits
 	STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
-	TXA							;\Write 10s place
+	TXA								;\Write 10s place
 	STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;/
-	TYA							;\Write 100s place.
+	TYA								;\Write 100s place.
 	STA !StatusBar_TestDisplayElement_Pos_Tile			;/
 	RTL
 	;Also note that if you have both adder and subtractor nonzero, they will cancel
-	;each other out as both will increase and decrease together (results !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	;each other out as both will increase and decrease together (results !Freeram_ValueDisplay1_1Byte
 	;will stay the same), until one or the other is zero and starts adding or subtracting,
 	;whatever is greater. For example, Adder is 30 and Subtracter is 5, results 5 frames
 	;of no change, then increments by 1 25 times.</pre></td></tr></table>
@@ -1335,32 +1329,32 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
 	.CountingAnimation
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_1Byte
-	CMP !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	LDA !Freeram_ValueDisplay2_1Byte
+	CMP !Freeram_ValueDisplay1_1Byte
 	BEQ ..NoChange
 	BCC ..LessThan
 	
 	..GreaterThan
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_1Byte
+	LDA !Freeram_ValueDisplay2_1Byte
 	DEC
 	BRA ..Write
 	
 	..LessThan
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_1Byte
+	LDA !Freeram_ValueDisplay2_1Byte
 	INC
 	
 	..Write
-	STA !StatusBar_TestDisplayElement_RAMToDisplay2_1Byte
+	STA !Freeram_ValueDisplay2_1Byte
 	
 	..NoChange
 	
 	.DisplayStatusBar
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_1Byte
+	LDA !Freeram_ValueDisplay2_1Byte
 	JSL HexDec_EightBitHexDec3Digits
 	STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)	;&gt;Write 1s place
-	TXA							;\Write 10s place
+	TXA								;\Write 10s place
 	STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;/
-	TYA							;\Write 100s place.
+	TYA								;\Write 100s place.
 	STA !StatusBar_TestDisplayElement_Pos_Tile			;/
 	RTL</pre></td></tr></table><br>
 If you want the counter to count even slower instead of once per frame, under the sublabel
@@ -1440,8 +1434,8 @@ subtract/add by a larger amount, therefore instead of subtracting by a set amoun
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
-;!StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes is the actual amount that you can write to.
-;!StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes is the display animation, something you most likely won't touch.
+;!Freeram_ValueDisplay1_2Bytes is the actual amount that you can write to.
+;!Freeram_ValueDisplay2_2Bytes is the display animation, something you most likely won't touch.
 
 !NumberOfDigitsDisplayed = 5						;&gt;Number of digits shown.
 !ChangeDivisorRate = 60							;&gt;Scaling of increment/decrement rate. Higher number = slower.
@@ -1450,14 +1444,14 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	main:
 	.CountingAnimation
 	REP #$20
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes
+	LDA !Freeram_ValueDisplay2_2Bytes
 	SEC
-	SBC !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes
+	SBC !Freeram_ValueDisplay1_2Bytes
 	BEQ ..Done							;&gt;Safty check just in case it increments/decrements when it doesn't need to
 	BCS ..Positive							;&gt;Unsigned check of difference (alternative to BPL), making use of the 16-bit's carry flag as an extra bit, allowing 0-65535 instead of 0-32768
 	
 	..Negative
-	;Add upwards towards !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes.
+	;Add upwards towards !Freeram_ValueDisplay1_2Bytes.
 	EOR #$FFFF							;\Invert sign of number
 	INC								;/
 	STA $00								;\ChangePerFrame = floor(Difference/60) + 1
@@ -1467,13 +1461,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	JSL HexDec_MathDiv						;/
 	REP #$20
 	INC $00								;&gt;Shouldn't add by 0
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes		;\The bigger the difference, the faster it increments.
+	LDA !Freeram_ValueDisplay2_2Bytes				;\The bigger the difference, the faster it increments.
 	CLC								;|
 	ADC $00								;/
 	BRA ..Write
 	
 	..Positive
-	;Subtract downwards towards !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes.
+	;Subtract downwards towards !Freeram_ValueDisplay1_2Bytes.
 	STA $00								;\ChangePerFrame = floor(Difference/60) + 1
 	LDA.w #!ChangeDivisorRate					;|
 	STA $02								;|
@@ -1481,17 +1475,17 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	JSL HexDec_MathDiv						;/
 	REP #$20
 	INC $00								;&gt;Shouldn't subtract by 0
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes		;\The bigger the difference, the faster it decrements.
+	LDA !Freeram_ValueDisplay2_2Bytes				;\The bigger the difference, the faster it decrements.
 	SEC								;|
 	SBC $00								;/
 	
 	..Write
-	STA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes
+	STA !Freeram_ValueDisplay2_2Bytes
 	
 	..Done
 	
 	.DisplayStatusBar
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes
+	LDA !Freeram_ValueDisplay2_2Bytes
 	STA $00
 	JSL HexDec_SixteenBitHexDecDivision
 	JSL HexDec_RemoveLeadingZeroes16Bit
@@ -1529,27 +1523,27 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	main:
 	.ChangeAnimation
-		LDA.b #!StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes	;\$04-$06: A RAM address containing the Actual number
-		STA $04								;|
-		LDA.b #!StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes&gt;&gt;8	;|
-		STA $05								;|
-		LDA.b #!StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes&gt;&gt;16	;|
-		STA $06								;/
+		LDA.b #!Freeram_ValueDisplay1_2Bytes		;\$04-$06: A RAM address containing the Actual number
+		STA $04						;|
+		LDA.b #!Freeram_ValueDisplay1_2Bytes&gt;&gt;8		;|
+		STA $05						;|
+		LDA.b #!Freeram_ValueDisplay1_2Bytes&gt;&gt;16	;|
+		STA $06						;/
 		
-		LDA.b #!StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes	;\$07-$09: A RAM address containing the gradually changing number
-		STA $07								;|
-		LDA.b #!StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes&gt;&gt;8	;|
-		STA $08								;|
-		LDA.b #!StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes&gt;&gt;16	;|
-		STA $09								;/
+		LDA.b #!Freeram_ValueDisplay2_2Bytes		;\$07-$09: A RAM address containing the gradually changing number
+		STA $07						;|
+		LDA.b #!Freeram_ValueDisplay2_2Bytes&gt;&gt;8		;|
+		STA $08						;|
+		LDA.b #!Freeram_ValueDisplay2_2Bytes&gt;&gt;16	;|
+		STA $09						;/
 		
-		LDA #!ChangeDivisorRate						;\$0A: Rate
-		STA $0A								;/
+		LDA #!ChangeDivisorRate				;\$0A: Rate
+		STA $0A						;/
 		
-		JSL HexDec_CountingAnimation16Bit				;&gt;Perform gradual counting animation (This uses $00-$03 for division routine, therefore destroyed)
+		JSL HexDec_CountingAnimation16Bit		;&gt;Perform gradual counting animation (This uses $00-$03 for division routine, therefore destroyed)
 	.DisplayStatusBar
 		REP #$20
-		LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes
+		LDA !Freeram_ValueDisplay2_2Bytes
 		STA $00
 		SEP #$20
 		JSL HexDec_SixteenBitHexDecDivision
@@ -1765,8 +1759,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		!StatusBarAddressTile = !StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile		;&gt;Where to write on the status bar, tile numbers (right aligned)
 		!StatusBarAddressProps = !StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop		;&gt;Same as above, but tile properties (right aligned)
 	endif
-!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
+;Code below
 main:
 	if !CPUMode != 0
 		%invoke_sa1(mainSA1)
@@ -1775,9 +1769,9 @@ main:
 	endif
 	;Submit fraction
 		REP #$20
-		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes
+		LDA !Freeram_ValueDisplay1_2Bytes
 		STA !Scratchram_PercentageQuantity
-		LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes
+		LDA !Freeram_ValueDisplay2_2Bytes
 		STA !Scratchram_PercentageMaxQuantity
 		SEP #$20
 		LDA #!Default_PercentagePrecision
@@ -1857,7 +1851,7 @@ main:
 							TXA						;\Write 10s place
 							STA !StatusBarAddressTile-(2*!StatusbarFormat)	;/
 					if !StatusBar_UsingCustomProperties != 0
-						LDA #!TileProps
+						LDA #!StatusBar_TileProp
 						STA !StatusBarAddressProps-(0*!StatusbarFormat)
 						STA !StatusBarAddressProps-(1*!StatusbarFormat)
 						STA !StatusBarAddressProps-(2*!StatusbarFormat)
@@ -1878,7 +1872,7 @@ main:
 						LDA #!StatusBarBlankTile
 						STA !StatusBarAddressTile,x
 						if !StatusBar_UsingCustomProperties != 0
-							LDA.b #!TileProps
+							LDA.b #!StatusBar_TileProp
 							STA !StatusBarAddressProps,x
 						endif
 						DEX #!StatusbarFormat
@@ -1902,7 +1896,7 @@ main:
 						LDA.b #!StatusBarAddressProps : STA $03
 						LDA.b #!StatusBarAddressProps&gt;&gt;8 : STA $04
 						LDA.b #!StatusBarAddressProps&gt;&gt;16 : STA $05
-						LDA #!TileProps : STA $06
+						LDA #!StatusBar_TileProp : STA $06
 					endif
 					if !StatusbarFormat == $01
 						JSL HexDec_WriteStringDigitsToHUD
@@ -1929,7 +1923,7 @@ main:
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarAddressTile-(1*!StatusbarFormat)	;&gt;1/10ths
 					LDA #!StatusBarPercentTile : STA !StatusBarAddressTile-(0*!StatusbarFormat)		;&gt;%
 					if !StatusBar_UsingCustomProperties != 0
-						LDA #!TileProps
+						LDA #!StatusBar_TileProp
 						STA !StatusBarAddressProps-(5*!StatusbarFormat)	;&gt;100s
 						STA !StatusBarAddressProps-(4*!StatusbarFormat)	;&gt;10s
 						STA !StatusBarAddressProps-(3*!StatusbarFormat)	;&gt;1s
@@ -1954,7 +1948,7 @@ main:
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarAddressTile-(1*!StatusbarFormat)	;&gt;1/100s
 					LDA #!StatusBarPercentTile : STA !StatusBarAddressTile-(0*!StatusbarFormat)		;&gt;%
 					if !StatusBar_UsingCustomProperties != 0
-						LDA #!TileProps
+						LDA #!StatusBar_TileProp
 						STA !StatusBarAddressProps-(6*!StatusbarFormat)	;&gt;100s
 						STA !StatusBarAddressProps-(5*!StatusbarFormat)	;&gt;10s
 						STA !StatusBarAddressProps-(4*!StatusbarFormat)	;&gt;1s
@@ -1999,7 +1993,7 @@ main:
 						LDA.b #!StatusBarAddressProps : STA $03
 						LDA.b #!StatusBarAddressProps&gt;&gt;8 : STA $04
 						LDA.b #!StatusBarAddressProps&gt;&gt;16 : STA $05
-						LDA #!TileProps : STA $06
+						LDA #!StatusBar_TileProp : STA $06
 					endif
 					if !StatusbarFormat == $01
 						JSL HexDec_WriteStringDigitsToHUD
@@ -2106,7 +2100,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 !Leftwards = 0									;&gt;0 = left-to-right when filling, 1 = right-to-left when filling.
 
 	main:
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte	;\$00: How many filled icons
+	LDA !Freeram_ValueDisplay1_1Byte			;\$00: How many filled icons
 	STA $00							;/
 	LDA #!MaxNumberOfSymbols				;\$01: How many total icons
 	STA $01							;/
@@ -2170,7 +2164,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	endif
 ;Code below
 	main:
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte		;\$00: How many filled icons
+	LDA !Freeram_ValueDisplay1_1Byte				;\$00: How many filled icons
 	STA $00								;/
 	LDA #!MaxNumberOfSymbols					;\$01: How many total icons
 	STA $01								;/
@@ -2342,7 +2336,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	init:
 	main:
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+	LDA !Freeram_ValueDisplay1_1Byte
 	JSL HexDec_EightBitHexDec
 	CLC
 	ADC #$22
@@ -2381,7 +2375,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
 	.Display8Bit3Digits
-		LDA !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte
+		LDA !Freeram_ValueDisplay1_1Byte
 		JSL HexDec_EightBitHexDec3Digits					;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
 		CLC									;\Write 1s place (always written)
 		ADC #$22								;|
@@ -2443,7 +2437,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	init:
 	main:
 	REP #$20
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes
+	LDA !Freeram_ValueDisplay1_2Bytes
 	STA $00
 	SEP #$20
 	JSL HexDec_SixteenBitHexDecDivision
@@ -2482,9 +2476,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	;Don't change this.
 	main:
 	REP #$20
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;\Low word (example: $3344 -&gt; [$44, $33] in $00, $01)
+	LDA !Freeram_ValueDisplay1_4Bytes				;\Low word (example: $3344 -&gt; [$44, $33] in $00, $01)
 	STA $00								;/
-	LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;\High word (example: $1122 -&gt; [$22, $11] in $02, $03)
+	LDA !Freeram_ValueDisplay1_4Bytes+2				;\High word (example: $1122 -&gt; [$22, $11] in $02, $03)
 	STA $02								;/
 	SEP #$20
 	JSL HexDec_ThirtyTwoBitHexDecDivision	;&gt;Should Output example as: [$02, $08, $07, $04, $05, $04, $00, $02, $00] on !Scratchram_32bitHexDecOutput.
@@ -2525,7 +2519,6 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;zeroes with blank tiles, then writing to the status bar/OWB would do the exact same thing with less processing.
 
 
-
 ;Don't touch
 	if !RightAligned == 0
 		!OverworldBorderPositionTile = !OverworldBorder_TestDisplayElement_Pos_Tile	;&gt;Where to write on the OWB (left aligned)
@@ -2563,7 +2556,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		;Number to string.
 			;Process HexDec
 				REP #$20						;\Convert a given number to decimal digits.
-				LDA !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes	;|
+				LDA !Freeram_ValueDisplay1_2Bytes			;|
 				STA $00							;|
 				SEP #$20						;|
 				JSL HexDec_SixteenBitHexDecDivision			;/
@@ -2579,7 +2572,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		;First number
 			;Process HexDec
 				REP #$20						;\Convert a given number to decimal digits.
-				LDA !StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes	;|
+				LDA !Freeram_ValueDisplay1_2Bytes			;|
 				STA $00							;|
 				SEP #$20						;|
 				JSL HexDec_SixteenBitHexDecDivision			;/
@@ -2594,7 +2587,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			;Process HexDec
 				PHX							;&gt;Push X because it gets modified by the HexDec routine.
 				REP #$20						;\Convert a given number to decimal digits.
-				LDA !StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes	;|
+				LDA !Freeram_ValueDisplay2_2Bytes			;|
 				STA $00							;|
 				SEP #$20						;|
 				JSL HexDec_SixteenBitHexDecDivision			;/
@@ -2625,23 +2618,24 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	RTL</pre></td></tr></table></p>
 <p>Left and right aligned with 32-bit numbers:
 <table><tr><td><pre>
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
+
 !DisplayTwoNumbers = 1								;&gt;0 = only the first number, 1 = display 2.
 !RightAligned = 0								;&gt;0 = left, 1 = right.
-!RAMToMeasure = $60								;&gt;[4 bytes] RAM address you what to show
-!RAMToMeasure2 = $0F3A|!addr							;&gt;[4 bytes] Same as above (not used if !DisplayTwoNumbers == 0)
-
-if !RightAligned == 0
-	!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border for left aligned
-	!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$00	;&gt;Same as above but tile props.
-else
-	!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$3E	;&gt;Where to write on the overworld border for right aligned
-	!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$3E	;&gt;Same as above but tile props.
-endif
-!DigitProps = %00111001								;&gt;Properties of the digits (when enabled).
 !NumberOfDigitsDisplayed = 9							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
+;Don't touch these unless you know what you're doing
+	if !RightAligned == 0
+		!OverworldBorderPositionTile = !OverworldBorder_TestDisplayElement_Pos_Tile	;&gt;Where to write on the overworld border for left aligned
+		!OverworldBorderPositionProp = !OverworldBorder_TestDisplayElement_Pos_Prop	;&gt;Same as above but tile props.
+	else
+		!OverworldBorderPositionTile = !OverworldBorder_TestDisplayElement_RightAlignedText_Pos_Tile	;&gt;Where to write on the overworld border for right aligned
+		!OverworldBorderPositionProp = !OverworldBorder_TestDisplayElement_RightAlignedText_Pos_Prop	;&gt;Same as above but tile props.
+	endif
+;Code below
 	main:
 	.NumberDisplayTest
 	;Clear the tiles. To prevent leftover "ghost" tiles that should've
@@ -2656,12 +2650,12 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		if !RightAligned == 0
 			LDA #!OverWorldBorderBlankTile
 			STA !OverworldBorderPositionTile,x
-			LDA.b #!DigitProps
+			LDA.b #!OverWorldBorder_TileProp
 			STA !OverworldBorderPositionProp,x
 		else
 			LDA #!OverWorldBorderBlankTile
 			STA !OverworldBorderPositionTile-((((!NumberOfDigitsDisplayed*2)+1)-1)*2),x
-			LDA.b #!DigitProps
+			LDA.b #!OverWorldBorder_TileProp
 			STA.l !OverworldBorderPositionProp-((((!NumberOfDigitsDisplayed*2)+1)-1)*2),x
 		endif
 		DEX #2
@@ -2669,54 +2663,54 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	if !DisplayTwoNumbers == 0
 		;First number
 			;Process HexDec
-				REP #$20					;\Convert a given number to decimal digits.
-				LDA !RAMToMeasure				;|
-				STA $00						;|
-				LDA !RAMToMeasure+2				;|
-				STA $02						;|
-				SEP #$20					;|
-				JSL HexDec_ThirtyTwoBitHexDecDivision		;/
+				REP #$20							;\Convert a given number to decimal digits.
+				LDA !Freeram_ValueDisplay1_4Bytes				;|
+				STA $00								;|
+				LDA !Freeram_ValueDisplay1_4Bytes+2	;|
+				STA $02								;|
+				SEP #$20							;|
+				JSL HexDec_ThirtyTwoBitHexDecDivision				;/
 			;Remove leading zeroes and have it as a character table
-				LDX #$00					;&gt;Start at character position 0.
-				JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+				LDX #$00							;&gt;Start at character position 0.
+				JSL HexDec_SupressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at position 0.
 			;Prevent writing too many characters
-				CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
-				BCS ..TooMuchDigits				;/not being cleared from the previous code.
+				CPX.b #!NumberOfDigitsDisplayed+1				;\Failsafe to avoid writing more characters than intended would write onto tiles
+				BCS ..TooMuchDigits						;/not being cleared from the previous code.
 			;Convert to OWB digits
-				JSL HexDec_ConvertAlignedDigitToOWB		;&gt;Convert to OWB digits (aligned digits)
+				JSL HexDec_ConvertAlignedDigitToOWB				;&gt;Convert to OWB digits (aligned digits)
 	else
 		;First number
 			;Process HexDec
-				REP #$20					;\Convert a given number to decimal digits.
-				LDA !RAMToMeasure				;|
-				STA $00						;|
-				LDA !RAMToMeasure+2				;|
-				STA $02						;|
-				SEP #$20					;|
-				JSL HexDec_ThirtyTwoBitHexDecDivision		;/
+				REP #$20							;\Convert a given number to decimal digits.
+				LDA !Freeram_ValueDisplay1_4Bytes				;|
+				STA $00								;|
+				LDA !Freeram_ValueDisplay1_4Bytes+2	;|
+				STA $02								;|
+				SEP #$20							;|
+				JSL HexDec_ThirtyTwoBitHexDecDivision				;/
 			;Remove leading zeroes and have it as a character table
-				LDX #$00					;&gt;Start at character position 0.
-				JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
+				LDX #$00							;&gt;Start at character position 0.
+				JSL HexDec_SupressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 		;"/" symbol
-				LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
-				STA !Scratchram_CharacterTileTable,x		;/
-				INX						;&gt;Next character position.
+				LDA #!StatusBarSlashCharacterTileNumb				;\Slash symbol.
+				STA !Scratchram_CharacterTileTable,x				;/
+				INX								;&gt;Next character position.
 		;Second number
 			;Process HexDec
-				PHX						;&gt;Push X because it gets modified by the HexDec routine.
-				REP #$20					;\Convert a given number to decimal digits.
-				LDA !RAMToMeasure2				;|
-				STA $00						;|
-				LDA !RAMToMeasure2+2				;|
-				STA $02						;|
-				SEP #$20					;|
-				JSL HexDec_ThirtyTwoBitHexDecDivision		;/
-				PLX						;&gt;Restore.
+				PHX								;&gt;Push X because it gets modified by the HexDec routine.
+				REP #$20							;\Convert a given number to decimal digits.
+				LDA !Freeram_ValueDisplay2_4Bytes				;|
+				STA $00								;|
+				LDA !Freeram_ValueDisplay2_4Bytes+2				;|
+				STA $02								;|
+				SEP #$20							;|
+				JSL HexDec_ThirtyTwoBitHexDecDivision				;/
+				PLX								;&gt;Restore.
 			;Remove leading zeroes and have it as a character table
-				JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+				JSL HexDec_SupressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at position 0.
 			;Prevent writing too much characters.
-				CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
-				BCS ..TooMuchDigits				;/not being cleared from the previous code.
+				CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)			;\Failsafe to avoid writing more characters than intended would write onto tiles
+				BCS ..TooMuchDigits						;/not being cleared from the previous code.
 			;Convert it to OWB digits and numbers
 				JSL HexDec_ConvertAlignedDigitToOWB
 	endif
@@ -2724,7 +2718,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA.b #!OverworldBorderPositionTile : STA $00			;\Set address to write at a given status bar position (tile number).
 		LDA.b #!OverworldBorderPositionTile&gt;&gt;8 : STA $01		;|
 		LDA.b #!OverworldBorderPositionTile&gt;&gt;16 : STA $02		;/
-		LDA.b #!DigitProps : STA $06
+		LDA.b #!OverWorldBorder_TileProp : STA $06
 		LDA.b #!OverworldBorderPositionProp : STA $03			;\Set address to write at a given status bar position (tile properties).
 		LDA.b #!OverworldBorderPositionProp&gt;&gt;8 : STA $04		;|
 		LDA.b #!OverworldBorderPositionProp&gt;&gt;16 : STA $05		;/

@@ -58,6 +58,8 @@ endif
 			!StatusBarDotTile = $24
 			!StatusBarPercentTile = $2A
 			
+			!StatusBar_TileProp = %00111000
+			
 			!StatusBar_RepeatedSymbols_FullTile = $2E
 			!StatusBar_RepeatedSymbols_FullProp = %00111000
 			!StatusBar_RepeatedSymbols_EmptyTile = $26
@@ -168,17 +170,17 @@ endif
 	;number of bytes used on each of these are obvious. Also obvious to avoid running multiple ASM files for a level
 	;using the same RAM at the same time.
 		;For 8-bit counters (including repeated symbols)
-			!StatusBar_TestDisplayElement_RAMToDisplay1_1Byte = $60
-			!StatusBar_TestDisplayElement_RAMToDisplay2_1Byte = $61
+			!Freeram_ValueDisplay1_1Byte = $60
+			!Freeram_ValueDisplay2_1Byte = $61
 		;16-bit counters
-			!StatusBar_TestDisplayElement_RAMToDisplay1_2Bytes = $60
-			!StatusBar_TestDisplayElement_RAMToDisplay2_2Bytes = $62
+			!Freeram_ValueDisplay1_2Bytes = $60
+			!Freeram_ValueDisplay2_2Bytes = $62
 		;32-bit counters (Including frame counter)
-			!StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes = $60
-			!StatusBar_TestDisplayElement_RAMToDisplay2_4Bytes = $0F3A|!addr
+			!Freeram_ValueDisplay1_4Bytes = $60
+			!Freeram_ValueDisplay2_4Bytes = $0F3A|!addr
 		;Counting animations
-			!StatusBar_TestDisplayElement_CountAnimation1_1Byte = $61 ;>The "adder", which decrements itself by 1 per frame and adds !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte by 1 each frame
-			!StatusBar_TestDisplayElement_CountAnimation2_1Byte = $62 ;>The "subtractor", which decrements itself by 1 per frame and subtracts !StatusBar_TestDisplayElement_RAMToDisplay1_1Byte by 1 each frame
+			!StatusBar_TestDisplayElement_CountAnimation1_1Byte = $61 ;>The "adder", which decrements itself by 1 per frame and adds !Freeram_ValueDisplay1_1Byte by 1 each frame
+			!StatusBar_TestDisplayElement_CountAnimation2_1Byte = $62 ;>The "subtractor", which decrements itself by 1 per frame and subtracts !Freeram_ValueDisplay1_1Byte by 1 each frame
 	;Per-ASM defines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Don't edit unless you know what you're doing

@@ -19,7 +19,7 @@
 ;       - Any higher values, you must edit and add code below "EventJumpTable". A value
 ;         pointing anything beyond the last item in the table causes glitch/crash.
 ;
-;here's an example of a countdown timer in MM:SS.CC,
+;Example of a countdown timer in MM:SS.CC,
 ;of 1 minute and 30 seconds before killing the player:
 ; Level_Timer.asm:01 00 (1518) (0000) 01
 
@@ -35,17 +35,17 @@
 	BNE .FrameCountStartAtSomeNumber
 	.FrameCounterStartAtZero
 		LDA #$0000
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
+		STA !Freeram_ValueDisplay1_4Bytes
+		STA !Freeram_ValueDisplay1_4Bytes+2
 		SEP #$20
 		RTL
 	.FrameCountStartAtSomeNumber
 		LDY #$02						;\EXB 3-4
 		LDA ($00),y						;/
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes
+		STA !Freeram_ValueDisplay1_4Bytes
 		LDY #$04						;\EXN 5-6
 		LDA ($00),y						;/
-		STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
+		STA !Freeram_ValueDisplay1_4Bytes+2
 		SEP #$20
 		RTL
 
@@ -58,34 +58,34 @@
 	endif
 	
 	.Timer
-		LDA $9D									;\Freeze timer if game is frozen in any way.
-		ORA $13D4|!addr								;|
-		BNE ..DisplayTimer							;/
-		LDY #$00								;\EXB 1
-		LDA ($00),y								;/
+		LDA $9D						;\Freeze timer if game is frozen in any way.
+		ORA $13D4|!addr					;|
+		BNE ..DisplayTimer				;/
+		LDY #$00					;\EXB 1
+		LDA ($00),y					;/
 		BNE ..Decrement
 		
 		..Increment
 			PHB
 			PHK
 			PLB
-			LDY #$01							;\EXB 2
-			LDA ($00),y							;/
+			LDY #$01				;\EXB 2
+			LDA ($00),y				;/
 			ASL #2
 			TAX
-			REP #$20							;\Increment timer
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
-			CLC								;|
-			ADC #$0001							;|
-			STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
-			ADC #$0000							;|
-			STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;/
+			REP #$20				;\Increment timer
+			LDA !Freeram_ValueDisplay1_4Bytes	;|
+			CLC					;|
+			ADC #$0001				;|
+			STA !Freeram_ValueDisplay1_4Bytes	;|
+			LDA !Freeram_ValueDisplay1_4Bytes+2	;|
+			ADC #$0000				;|
+			STA !Freeram_ValueDisplay1_4Bytes+2	;/
 			..Cap
-				LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes
+				LDA !Freeram_ValueDisplay1_4Bytes
 				SEC
 				SBC TimerMax,x
-				LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
+				LDA !Freeram_ValueDisplay1_4Bytes+2
 				SBC TimerMax+2,x
 				SEP #$20
 				BCC ...NotMaxed
@@ -93,49 +93,49 @@
 				...Maxed
 					REP #$20
 					LDA TimerMax,x
-					STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes
+					STA !Freeram_ValueDisplay1_4Bytes
 					LDA TimerMax+2,x
-					STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2
+					STA !Freeram_ValueDisplay1_4Bytes+2
 					SEP #$20
 				...NotMaxed
 			PLB
 			BRA ..DisplayTimer
 		..Decrement
-			REP #$20							;\Decrement frame counter
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|Skip if timer is already 0 and triggered a code.
-			ORA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
-			BEQ ..DisplayTimer						;/
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;\Decrement frame counter to 0.
-			SEC								;|
-			SBC #$0001							;|
-			STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;|
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
-			SBC #$0000							;|
-			STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|
-			BCS ...NoUnderflow						;|\Failsafe
-			LDA #$0000							;||
-			STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes		;||
-			STA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2	;|/
+			REP #$20				;\Decrement frame counter
+			LDA !Freeram_ValueDisplay1_4Bytes	;|Skip if timer is already 0 and triggered a code.
+			ORA !Freeram_ValueDisplay1_4Bytes+2	;|
+			BEQ ..DisplayTimer			;/
+			LDA !Freeram_ValueDisplay1_4Bytes	;\Decrement frame counter to 0.
+			SEC					;|
+			SBC #$0001				;|
+			STA !Freeram_ValueDisplay1_4Bytes	;|
+			LDA !Freeram_ValueDisplay1_4Bytes+2	;|
+			SBC #$0000				;|
+			STA !Freeram_ValueDisplay1_4Bytes+2	;|
+			BCS ...NoUnderflow			;|\Failsafe
+			LDA #$0000				;||
+			STA !Freeram_ValueDisplay1_4Bytes	;||
+			STA !Freeram_ValueDisplay1_4Bytes+2	;|/
 			
-			...NoUnderflow							;/
+			...NoUnderflow				;/
 			
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes			;\Check again, AFTER subtracting by 1, so that the code executes only once.
-			ORA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2		;|
-			BNE ...NotDecrementedToZero						;/
+			LDA !Freeram_ValueDisplay1_4Bytes	;\Check again, AFTER subtracting by 1, so that the code executes only once.
+			ORA !Freeram_ValueDisplay1_4Bytes+2	;|
+			BNE ...NotDecrementedToZero		;/
 			SEP #$20
 			JSL TimerZero			;>Code to execute once.
 			...NotDecrementedToZero
 	
 		..DisplayTimer
-			REP #$20									;
-			LDA $00										;\Preserve extra bytes address
-			PHA										;/
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes				;|Get timer format
-			STA $00										;|
-			LDA !StatusBar_TestDisplayElement_RAMToDisplay1_4Bytes+2			;|
-			STA $02										;|
-			SEP #$20									;|
-			JSL HexDec_Frames2Timer								;/
+			REP #$20					;
+			LDA $00						;\Preserve extra bytes address
+			PHA						;/
+			LDA !Freeram_ValueDisplay1_4Bytes		;|Get timer format
+			STA $00						;|
+			LDA !Freeram_ValueDisplay1_4Bytes+2		;|
+			STA $02						;|
+			SEP #$20					;|
+			JSL HexDec_Frames2Timer				;/
 				;Outputs:
 				;!Scratchram_Frames2TimeOutput+0: Hour
 				;!Scratchram_Frames2TimeOutput+1: Minutes
