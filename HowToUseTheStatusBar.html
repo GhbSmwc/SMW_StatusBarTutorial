@@ -3535,27 +3535,24 @@ To set up writing to the stripe image, I made a subroutine, <kbd>SetupStripe</kb
 	<tr><td><kbd>$06</kbd> to <kbd>$08</kbd></td><td style="text-align: center; vertical-align: middle;">3</td><td>Used when not using RLE, to calculate the terminating byte location.</td></tr>
 </table><br>
 After calling that, all you have to do is write your tile data to <kbd>$7F837D+4,x</kbd> (XY register will be 16-bit) and beyond, but be careful not to overwrite the terminating byte (and potentially the bytes after) if this is your last stripe within a frame. Just like the Super Status Bar patch
-and OWB+, its tile data format is &ldquo;2-bytes together&rdquo;.</p>
+and OWB+, its tile data format is &ldquo;2-bytes together&rdquo;. Unlike the status bar however, you absolutely must write the tile properties bytes, because whatever location in the stripe data to be written on may not always be initialized, causing possible garbage tile properties.</p>
 
 <p>Also just like sprite OAM patch, almost everything is the same except you are no longer writing to the status bar, also, note that since writing
 tiles to the stripe have &ldquo;dynamic&rdquo; location since this is a table, thus the way you write them is different.</p>
 
 <p>8-bit, 2 digits:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[1 byte] RAM address you what to show
-!Stripe_X_Pos = 1							;\Stripe tile position
-!Stripe_Y_Pos = 26							;/
-!TileProps = %00111000							;&gt;Tile properties
-!RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
-
-
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
+
+!RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
 
 	main:
 	.StripeNumberTest
-		LDA.b #!Stripe_X_Pos				;\Position
+		LDA.b #!Layer3Stripe_TestDisplayElement_PosX	;\Position
 		STA $00						;|
-		LDA.b #!Stripe_Y_Pos				;|
+		LDA.b #!Layer3Stripe_TestDisplayElement_PosY	;|
 		STA $01						;/
 		LDA #$05					;\Layer
 		STA $02						;/
@@ -3567,7 +3564,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		
 		PHX						;&gt;Push 16-bit stripe index
 		SEP #$30					;&gt;8-bit AXY
-		LDA !RAMToMeasure				;&gt;Convert this number to BCD
+		LDA !Freeram_ValueDisplay1_1Byte		;&gt;Convert this number to BCD
 		JSL HexDec_EightBitHexDec			;&gt;Get digits, A = 1s, X = 10s
 		STX $00						;&gt;Store 10s in $00 for later
 		REP #$10					;\Pull 16-bit stripe index
@@ -3581,7 +3578,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		endif
 		STA.l $7F837D+4,x				;&gt;Write 10s place
 		
-		LDA.b #!TileProps				;\Write tile properties
+		LDA.b #!StatusBar_TileProp			;\Write tile properties
 		STA.l $7F837D+4+1,x				;|
 		STA.l $7F837D+6+1,x				;/
 		SEP #$30
@@ -3591,38 +3588,35 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 <p>
 8-bit, 3 digits:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[1 byte] RAM address you what to show
-!Stripe_X_Pos = 1							;\Stripe tile position
-!Stripe_Y_Pos = 26							;/
-!TileProps = %00111000							;&gt;Tile properties
-!RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
-
-
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
+
+!RemoveLeadingZeroes = 0						;>0 = no, 1 = yes
 
 	main:
 	.StripeNumberTest
-		LDA.b #!Stripe_X_Pos				;\Position
+		LDA.b #!Layer3Stripe_TestDisplayElement_PosX	;\Position
 		STA $00						;|
-		LDA.b #!Stripe_Y_Pos				;|
+		LDA.b #!Layer3Stripe_TestDisplayElement_PosY	;|
 		STA $01						;/
 		LDA #$05					;\Layer
 		STA $02						;/
-		STZ $03						;&gt;D and RLE
+		STZ $03						;>D and RLE
 		LDA.b #$03-1					;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
-		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
+		JSL HexDec_SetupStripe				;>X (16-bit): The index position to write stripe data
 		
-		PHX						;&gt;Push 16-bit stripe index
-		SEP #$30					;&gt;8-bit AXY
-		LDA !RAMToMeasure				;&gt;Convert this number to BCD
-		JSL HexDec_EightBitHexDec3Digits		;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
-		STX $00						;&gt;Store 10s in $00 for later
-		STY $01						;&gt;Store the 100s in $01 for later
+		PHX						;>Push 16-bit stripe index
+		SEP #$30					;>8-bit AXY
+		LDA !Freeram_ValueDisplay1_1Byte		;>Convert this number to BCD
+		JSL HexDec_EightBitHexDec3Digits		;>Obtain 3 digits in A (1s), X (10s) and Y (100s).
+		STX $00						;>Store 10s in $00 for later
+		STY $01						;>Store the 100s in $01 for later
 		REP #$10					;\Pull 16-bit stripe index
 		PLX						;/
-		STA.l $7F837D+8,x				;&gt;Write 1s place
+		STA.l $7F837D+8,x				;>Write 1s place
 		if !RemoveLeadingZeroes == 0
 			LDA $01					;\100s
 			STA.l $7F837D+4,x			;/
@@ -3653,7 +3647,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 					STA.l $7F837D+6,x
 		endif
 		
-		LDA.b #!TileProps				;\Write tile properties
+		LDA.b #!StatusBar_TileProp			;\Write tile properties
 		STA.l $7F837D+4+1,x				;|
 		STA.l $7F837D+6+1,x				;|
 		STA.l $7F837D+8+1,x				;/
@@ -3663,38 +3657,35 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 <p>16-bit N-digit:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[2 bytes] RAM address you what to show
-!Stripe_X_Pos = 1							;\Stripe tile position
-!Stripe_Y_Pos = 26							;/
-!TileProps = %00111000							;&gt;Tile properties
-!RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
-
-
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
+
+!RemoveLeadingZeroes = 0						;>0 = no, 1 = yes
 
 	main:
 	.StripeNumberTest
-		LDA.b #!Stripe_X_Pos				;\Position
+		LDA.b #!Layer3Stripe_TestDisplayElement_PosX	;\Position
 		STA $00						;|
-		LDA.b #!Stripe_Y_Pos				;|
+		LDA.b #!Layer3Stripe_TestDisplayElement_PosY	;|
 		STA $01						;/
 		LDA #$05					;\Layer
 		STA $02						;/
-		STZ $03						;&gt;D and RLE
+		STZ $03						;>D and RLE
 		LDA.b #$05-1					;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
-		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
+		JSL HexDec_SetupStripe				;>X (16-bit): The index position to write stripe data
 		
-		PHX						;&gt;Push 16-bit stripe index
-		SEP #$30					;&gt;8-bit AXY
-		LDA !RAMToMeasure				;\Convert this number to BCD
+		PHX						;>Push 16-bit stripe index
+		SEP #$30					;>8-bit AXY
+		LDA !Freeram_ValueDisplay1_2Bytes		;\Convert this number to BCD
 		STA $00						;|
-		LDA !RAMToMeasure+1				;|
+		LDA !Freeram_ValueDisplay1_2Bytes+1		;|
 		STA $01						;/
-		JSL HexDec_SixteenBitHexDecDivision		;&gt;Digits stored at !Scratchram_16bitHexDecOutput
+		JSL HexDec_SixteenBitHexDecDivision		;>Digits stored at !Scratchram_16bitHexDecOutput
 		if !RemoveLeadingZeroes != 0
-			JSL HexDec_RemoveLeadingZeroes16Bit 	;&gt;Leading spaces, not zeroes
+			JSL HexDec_RemoveLeadingZeroes16Bit 	;>Leading spaces, not zeroes
 		endif
 		REP #$20
 		LDA $01,S					;\$00-$01: Stripe index, will be used for following loop to write each pair of bytes
@@ -3706,20 +3697,20 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			...Loop
 				LDA !Scratchram_16bitHexDecOutput,x
 				PHX
-				LDX $00				;&gt;X = current stripe tile index
+				LDX $00				;>X = current stripe tile index
 				STA.l $7F837D+4,x
-				LDA.b #!TileProps		;\Tile props
+				LDA.b #!StatusBar_TileProp	;\Tile props
 				STA.l $7F837D+4+1,x		;/
-				PLX				;&gt;X = what digit from 16-bit hexdec
+				PLX				;>X = what digit from 16-bit hexdec
 				....Next
 					INC $00			;\Next stripe tile index
 					INC $00			;/
-					INX			;&gt;Next digit
+					INX			;>Next digit
 					CPX #$0005		;\If 5th digit written, no more.
 					BCC ...Loop		;/
 		SEP #$20			;\8-bit A
 		REP #$10			;/
-		PLX				;&gt;Pull stripe index, into X
+		PLX				;>Pull stripe index, into X
 		SEP #$30
 		RTL
 </pre></td></tr></table></p>

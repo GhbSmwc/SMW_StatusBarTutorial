@@ -170,6 +170,36 @@ endif
 		;Position to display right-aligned numbers
 			!OverworldBorder_TestDisplayRightAlignedNumber_PosX = 31
 			!OverworldBorder_TestDisplayRightAlignedNumber_PosY = 0
+	;Stripe positions. Remember to have these settings:
+	; - [check] Force Layer 3 tiles with priority above other layers and sprites
+	; - [check] Enable advanced bypass settings for Layer 3
+	; - [uncheck] CGADSUB for Layer 3
+	; - [uncheck] Move layer 3 to subscreen
+	; - Vertical scroll: None
+	; - Horizontal scroll: None
+	; - Initial Y position: 0
+	; - Initial X position: 0
+	;
+	;Positions work the same with the status bar and overworld border plus patch.
+	;
+	;However, because the layer 3 tilemap can now be a 2x2 screen area, the range for X
+	;and Y positions can now be 0-63. But there are caveats:
+	; - Positions are handled per-screen internally, rather than absolute, as the subroutine
+	;   "SetupStripe" converts them into per-screen relative. For example: Absolute position
+	;   of (32,32) would be the bottom-right screen at its top-left corner (0,0). The
+	;   positions you enter here are absolute and you still enter X:0-31 like you would for
+	;   a status bar and overworld border patch, but the Y position can now range from 0-27.
+	;
+	; -- To add to above, any multi-tile writes crossing the screen border to the right will
+	;    wrap to the left (to relative X=0) and down 1 row (Y+1). Crossing the screen border
+	;    downwards or rightwards on the last row will end up on the "next screen" keeping
+	;    the X position but on that new screen (the 4 screens are ordered from top-left,
+	;    top-right, bottom-left, then bottom-right). Exceeding the last screen may cause
+	;    graphic data corruption.
+	; - The positions are with respect to the top-left of the layer, regardless of scrolling.
+		!Layer3Stripe_TestDisplayElement_PosX = 1
+		!Layer3Stripe_TestDisplayElement_PosY = 26
+	
 	;FreeRAM to display its amount, for both all meters on status bar, overworld borders, stripes, and sprites. The
 	;number of bytes used on each of these are obvious. Also obvious to avoid running multiple ASM files for a level
 	;using the same RAM at the same time.
