@@ -3546,7 +3546,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 
-!RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
+!RemoveLeadingZeroes = 0					;&gt;0 = no, 1 = yes
 
 	main:
 	.StripeNumberTest
@@ -3592,7 +3592,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 
-!RemoveLeadingZeroes = 0						;>0 = no, 1 = yes
+!RemoveLeadingZeroes = 0					;&gt;0 = no, 1 = yes
 
 	main:
 	.StripeNumberTest
@@ -3602,21 +3602,21 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		STA $01						;/
 		LDA #$05					;\Layer
 		STA $02						;/
-		STZ $03						;>D and RLE
+		STZ $03						;&gt;D and RLE
 		LDA.b #$03-1					;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
-		JSL HexDec_SetupStripe				;>X (16-bit): The index position to write stripe data
+		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
 		
-		PHX						;>Push 16-bit stripe index
-		SEP #$30					;>8-bit AXY
-		LDA !Freeram_ValueDisplay1_1Byte		;>Convert this number to BCD
-		JSL HexDec_EightBitHexDec3Digits		;>Obtain 3 digits in A (1s), X (10s) and Y (100s).
-		STX $00						;>Store 10s in $00 for later
-		STY $01						;>Store the 100s in $01 for later
+		PHX						;&gt;Push 16-bit stripe index
+		SEP #$30					;&gt;8-bit AXY
+		LDA !Freeram_ValueDisplay1_1Byte		;&gt;Convert this number to BCD
+		JSL HexDec_EightBitHexDec3Digits		;&gt;Obtain 3 digits in A (1s), X (10s) and Y (100s).
+		STX $00						;&gt;Store 10s in $00 for later
+		STY $01						;&gt;Store the 100s in $01 for later
 		REP #$10					;\Pull 16-bit stripe index
 		PLX						;/
-		STA.l $7F837D+8,x				;>Write 1s place
+		STA.l $7F837D+8,x				;&gt;Write 1s place
 		if !RemoveLeadingZeroes == 0
 			LDA $01					;\100s
 			STA.l $7F837D+4,x			;/
@@ -3661,7 +3661,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 
-!RemoveLeadingZeroes = 0						;>0 = no, 1 = yes
+!RemoveLeadingZeroes = 0					;&gt;0 = no, 1 = yes
 
 	main:
 	.StripeNumberTest
@@ -3671,21 +3671,21 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		STA $01						;/
 		LDA #$05					;\Layer
 		STA $02						;/
-		STZ $03						;>D and RLE
+		STZ $03						;&gt;D and RLE
 		LDA.b #$05-1					;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
-		JSL HexDec_SetupStripe				;>X (16-bit): The index position to write stripe data
+		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
 		
-		PHX						;>Push 16-bit stripe index
-		SEP #$30					;>8-bit AXY
+		PHX						;&gt;Push 16-bit stripe index
+		SEP #$30					;&gt;8-bit AXY
 		LDA !Freeram_ValueDisplay1_2Bytes		;\Convert this number to BCD
 		STA $00						;|
 		LDA !Freeram_ValueDisplay1_2Bytes+1		;|
 		STA $01						;/
-		JSL HexDec_SixteenBitHexDecDivision		;>Digits stored at !Scratchram_16bitHexDecOutput
+		JSL HexDec_SixteenBitHexDecDivision		;&gt;Digits stored at !Scratchram_16bitHexDecOutput
 		if !RemoveLeadingZeroes != 0
-			JSL HexDec_RemoveLeadingZeroes16Bit 	;>Leading spaces, not zeroes
+			JSL HexDec_RemoveLeadingZeroes16Bit 	;&gt;Leading spaces, not zeroes
 		endif
 		REP #$20
 		LDA $01,S					;\$00-$01: Stripe index, will be used for following loop to write each pair of bytes
@@ -3697,43 +3697,42 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			...Loop
 				LDA !Scratchram_16bitHexDecOutput,x
 				PHX
-				LDX $00				;>X = current stripe tile index
+				LDX $00				;&gt;X = current stripe tile index
 				STA.l $7F837D+4,x
 				LDA.b #!StatusBar_TileProp	;\Tile props
 				STA.l $7F837D+4+1,x		;/
-				PLX				;>X = what digit from 16-bit hexdec
+				PLX				;&gt;X = what digit from 16-bit hexdec
 				....Next
 					INC $00			;\Next stripe tile index
 					INC $00			;/
-					INX			;>Next digit
+					INX			;&gt;Next digit
 					CPX #$0005		;\If 5th digit written, no more.
 					BCC ...Loop		;/
 		SEP #$20			;\8-bit A
 		REP #$10			;/
-		PLX				;>Pull stripe index, into X
+		PLX				;&gt;Pull stripe index, into X
 		SEP #$30
 		RTL
 </pre></td></tr></table></p>
 
 <p>32-bit N-digit:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[4 bytes] RAM address you what to show
-!Stripe_X_Pos = 1							;\Stripe tile position
-!Stripe_Y_Pos = 26							;/
-!TileProps = %00111000							;&gt;Tile properties
-!RemoveLeadingZeroes = 0						;&gt;0 = no, 1 = yes
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
+
+!RemoveLeadingZeroes = 0					;&gt;0 = no, 1 = yes
 
 ;When handling the number of digits, be careful not to have !NumberOfDigitsDisplayed be greater than !Setting_32bitHexDec_MaxNumberOfDigits
 ;(the number digits stored in each byte in !Scratchram_32bitHexDecOutput), else garbage will appear.
 	!NumberOfDigitsDisplayed = 9		;&gt;How many digits, enter 1-10 (pointless if you enter less than 5).
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
 
 	main:
 	.StripeNumberTest
-		LDA.b #!Stripe_X_Pos				;\Position
+		LDA.b #!Layer3Stripe_TestDisplayElement_PosX	;\Position
 		STA $00						;|
-		LDA.b #!Stripe_Y_Pos				;|
+		LDA.b #!Layer3Stripe_TestDisplayElement_PosY	;|
 		STA $01						;/
 		LDA #$05					;\Layer
 		STA $02						;/
@@ -3745,9 +3744,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		
 		PHX						;&gt;Push 16-bit stripe index
 		REP #$20
-		LDA !RAMToMeasure
+		LDA !Freeram_ValueDisplay1_4Bytes
 		STA $00
-		LDA !RAMToMeasure+2
+		LDA !Freeram_ValueDisplay1_4Bytes+2
 		STA $02
 		SEP #$30
 		JSL HexDec_ThirtyTwoBitHexDecDivision
@@ -3763,20 +3762,21 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		LDA #$7F					;|
 		STA $02						;/
 
-	;Write to overworld border:
+	;Write to stripe:
 		LDX #(!NumberOfDigitsDisplayed-1)		;&gt;Digits left to write, -1, and 0-based
 		LDY #((!NumberOfDigitsDisplayed-1)*2)		;&gt;Which tile data
 		-
 		LDA (!Scratchram_32bitHexDecOutput)+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
 		STA [$00],y
-		LDA.b #!TileProps
+		LDA.b #!StatusBar_TileProp
 		INY						;\Next byte over to write properties
 		STA [$00],y					;|
 		DEY						;/
 		DEY #2						;\Loop until all tiles written.
 		DEX						;|
 		BPL -						;/
-	RTL</pre></td></tr></table>
+	RTL
+</pre></td></tr></table>
 </p>
 <p>
 16-bit N-digit with left/right aligned:
