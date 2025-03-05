@@ -197,8 +197,12 @@ endif
 	;    top-right, bottom-left, then bottom-right). Exceeding the last screen may cause
 	;    graphic data corruption.
 	; - The positions are with respect to the top-left of the layer, regardless of scrolling.
-		!Layer3Stripe_TestDisplayElement_PosX = 1
-		!Layer3Stripe_TestDisplayElement_PosY = 26
+		;Positions of most stripe display counters
+			!Layer3Stripe_TestDisplayElement_PosX = 1
+			!Layer3Stripe_TestDisplayElement_PosY = 26
+		;right-aligned stuff (as always, this is the position of the rightmost tile)
+			!Layer3Stripe_TestDisplayRightAlignedNumber_PosX = 30
+			!Layer3Stripe_TestDisplayRightAlignedNumber_PosY = 26
 	
 	;FreeRAM to display its amount, for both all meters on status bar, overworld borders, stripes, and sprites. The
 	;number of bytes used on each of these are obvious. Also obvious to avoid running multiple ASM files for a level
@@ -215,7 +219,6 @@ endif
 		;Counting animations
 			!StatusBar_TestDisplayElement_CountAnimation1_1Byte = $61 ;>The "adder", which decrements itself by 1 per frame and adds !Freeram_ValueDisplay1_1Byte by 1 each frame
 			!StatusBar_TestDisplayElement_CountAnimation2_1Byte = $62 ;>The "subtractor", which decrements itself by 1 per frame and subtracts !Freeram_ValueDisplay1_1Byte by 1 each frame
-	;Per-ASM defines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Don't edit unless you know what you're doing
 ;Feel free to use these.

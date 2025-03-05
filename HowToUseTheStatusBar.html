@@ -3781,143 +3781,196 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 <p>
 16-bit N-digit with left/right aligned:
 <table><tr><td><pre>
-!DisplayTwoNumbers = 1								;&gt;0 = only the first number, 1 = display 2.
-!RightAligned = 0								;&gt;0 = left, 1 = right.
-!RAMToMeasure = $60								;&gt;[2 bytes] RAM address you what to show
-!RAMToMeasure2 = $62								;&gt;[2 bytes] Same as above (not used if !DisplayTwoNumbers == 0)
-if !RightAligned == 0
- !Stripe_X_Pos = 01								;\Stripe tile position (left aligned)
- !Stripe_Y_Pos = 26								;/
-else
- !Stripe_X_Pos = 30								;\Stripe tile position (right-aligned)
- !Stripe_Y_Pos = 26								;/
-endif
-!DigitProps = %00111000								;&gt;Properties of the digits (when enabled).
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
+
+!DisplayTwoNumbers = 0								;&gt;0 = only the first number, 1 = display 2.
+!RightAligned = 1								;&gt;0 = left, 1 = right.
 !NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
-
-	;Don't touch, this is needed to find how many tiles will be written and how they are positioned in the stripe data.
+;Don't touch these
+	;This is needed to find how many tiles will be written and how they are positioned in the stripe data.
 	;Also used when clearing tiles.
 		!NumberOfCharactersMaxedMinus1 = !NumberOfDigitsDisplayed-1		;&gt;Maximum character index (-1 because 0-based indexing)
 		if !DisplayTwoNumbers != 0
 			!NumberOfCharactersMaxedMinus1 = (!NumberOfDigitsDisplayed*2)+1-1
 			;^Maximum index of characters (e.g 5 digits is a value of 10 because 5*2 (times 2 because we display 2 numbers), plus 1 because of the slash character, minus 1 because 0-based indexing)
 		endif
-
+	;Figure out positions
+		if !RightAligned == 0
+			!Stripe_X_Pos = !Layer3Stripe_TestDisplayElement_PosX				;\Stripe tile position (left aligned)
+			!Stripe_Y_Pos = !Layer3Stripe_TestDisplayElement_PosY				;/
+		else
+			!Stripe_X_Pos = !Layer3Stripe_TestDisplayRightAlignedNumber_PosX		;\Stripe tile position (right-aligned)
+			!Stripe_Y_Pos = !Layer3Stripe_TestDisplayRightAlignedNumber_PosY		;/
+		endif
+	;Detect user trying to make a right-aligned single number (which avoids unnecessarily uses suppress leading zeroes)
+		!IsUsingRightAlignedSingleNumber = and(notequal(!RightAligned, 0),equal(!DisplayTwoNumbers, 0))
+;Code below
 	main:
 	.NumberDisplayTest
-	if !DisplayTwoNumbers == 0
-		;Number to string.
-			;Process HexDec
-				REP #$20					;\Convert a given number to decimal digits.
-				LDA !RAMToMeasure				;|
-				STA $00						;|
-				SEP #$20					;|
-				JSL HexDec_SixteenBitHexDecDivision		;/
-			;Remove leading zeroes and have it as a character table
-				LDX #$00					;&gt;Start at character position 0.
-				JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
-	else
-		;First number
-			;Process HexDec
-				REP #$20					;\Convert a given number to decimal digits.
-				LDA !RAMToMeasure				;|
-				STA $00						;|
-				SEP #$20					;|
-				JSL HexDec_SixteenBitHexDecDivision		;/
-			;Remove leading zeroes and have it as a character table
-				LDX #$00					;&gt;Start at character position 0.
-				JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
-		;"/" symbol
-				LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
-				STA !Scratchram_CharacterTileTable,x		;/
-				INX						;&gt;Next character position.
-		;Second number
-			;Process HexDec
-				PHX						;&gt;Push X because it gets modified by the HexDec routine.
-				REP #$20					;\Convert a given number to decimal digits.
-				LDA !RAMToMeasure2				;|
-				STA $00						;|
-				SEP #$20					;|
-				JSL HexDec_SixteenBitHexDecDivision		;/
-				PLX						;&gt;Restore.
-			;Remove leading zeroes and have it as a character table
-				JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
-	endif
-	;Write to stripe
-		PHX						;&gt;push number of characters
-		if !RightAligned == 0
-			LDA.b #!Stripe_X_Pos					;\Position
+	if !IsUsingRightAlignedSingleNumber == 0
+		if !DisplayTwoNumbers == 0
+			;Number to string.
+				;Process HexDec
+					REP #$20					;\Convert a given number to decimal digits.
+					LDA !Freeram_ValueDisplay1_2Bytes		;|
+					STA $00						;|
+					SEP #$20					;|
+					JSL HexDec_SixteenBitHexDecDivision		;/
+				;Remove leading zeroes and have it as a character table
+					LDX #$00					;&gt;Start at character position 0.
+					JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
 		else
-			LDA.b #!Stripe_X_Pos-!NumberOfCharactersMaxedMinus1
+			;First number
+				;Process HexDec
+					REP #$20					;\Convert a given number to decimal digits.
+					LDA !Freeram_ValueDisplay1_2Bytes		;|
+					STA $00						;|
+					SEP #$20					;|
+					JSL HexDec_SixteenBitHexDecDivision		;/
+				;Remove leading zeroes and have it as a character table
+					LDX #$00					;&gt;Start at character position 0.
+					JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+			;"/" symbol
+					LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
+					STA !Scratchram_CharacterTileTable,x		;/
+					INX						;&gt;Next character position.
+			;Second number
+				;Process HexDec
+					PHX						;&gt;Push X because it gets modified by the HexDec routine.
+					REP #$20					;\Convert a given number to decimal digits.
+					LDA !Freeram_ValueDisplay2_2Bytes				;|
+					STA $00						;|
+					SEP #$20					;|
+					JSL HexDec_SixteenBitHexDecDivision		;/
+					PLX						;&gt;Restore.
+				;Remove leading zeroes and have it as a character table
+					JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
 		endif
-		STA $00						;|
-		LDA.b #!Stripe_Y_Pos				;|
-		STA $01						;/
-		LDA #$05					;\Layer
-		STA $02						;/
-		STZ $03						;&gt;D and RLE
-		LDA.b #!NumberOfCharactersMaxedMinus1		;\Number of tiles -1
-		STA $04						;|(create a line of tiles whose number is a maximum number of characters to allow tile clearing)
-		STZ $05						;/
-		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
-		;Write starting address of empty stripe data we set to write to
-			;RAM $7F837D,x after using "SetupStripe" locates
-			REP #$20		;\$00-$02: Address of of open stripe data (tile data's TTTTTTTT).
-			TXA			;|$03-$05: Address of of open stripe data (tile data's YXPCCCTT).
-			CLC			;|
-			ADC.w #$7F837D+4	;|Take X, the stripe index, add by #$7F8381
-			STA $00			;|and store it at $00, since we are doing "Indirect Long" 
-			INC			;|
-			STA $03			;|
-			SEP #$30		;|
-			LDA #$7F		;|
-			STA $02			;|
-			STA $05			;/
-			LDA.b #!DigitProps	;\Props (WriteStringDigitsToHUD uses $06 to write)
-			STA $06			;/
-		;Clear tiles (blank tiles by default), so that leftover characters will disappear.
-			LDY.b #!NumberOfCharactersMaxedMinus1*2
-			-
-			LDA #!StatusBarBlankTile		;\Clear tiles
-			STA [$00],y				;/
-			LDA.b #!DigitProps			;\Set tile properties
-			STA [$03],y				;/
-			DEY #2
-			BPL -
-		PLX						;&gt;Pull number of characters
-		;Prevent writing too much characters.
-			CPX.b #!NumberOfCharactersMaxedMinus1+2		;\Failsafe to avoid writing more characters than intended would write onto tiles
-			BCS ..StringTooLong				;/not being cleared from the previous code.
-		if !RightAligned != 0
-			;Find the rightmost position
-			;Formula: StringPosition = (NumberOfCharactersMax - 1) - (NumberOfCharacters - 1)
-			;
-			;Processed in this order:
-			;
-			;StringPosition = -(NumberOfCharacters - 1) + (NumberOfCharactersMax - 1)
-			REP #$20
-			TXA						;\Clear high byte just in case
-			AND #$00FF					;/
-			DEC						;&gt;(NumberOfCharacters - 1)
-			EOR #$FFFF					;\*(-1)
-			INC						;/
-			CLC						;\+ NumberOfCharactersMax
-			ADC.w #!NumberOfCharactersMaxedMinus1		;/
-			ASL						;&gt;*2 because each tile have 2 bytes
-			PHA						;&gt;Save this offset for tile properties
-			CLC						;\Offset from tile position
-			ADC $00						;|
+		;Write to stripe
+			PHX						;&gt;push number of characters
+			if !RightAligned == 0
+				LDA.b #!Stripe_X_Pos					;\Position
+			else
+				LDA.b #!Stripe_X_Pos-!NumberOfCharactersMaxedMinus1
+			endif
 			STA $00						;|
-			PLA						;|
-			CLC						;|
-			ADC $03						;|
-			STA $03						;/
-			SEP #$20					
-		endif
-		JSL HexDec_WriteStringDigitsToHUDFormat2
-	..StringTooLong
+			LDA.b #!Stripe_Y_Pos				;|
+			STA $01						;/
+			LDA #$05					;\Layer
+			STA $02						;/
+			STZ $03						;&gt;D and RLE
+			LDA.b #!NumberOfCharactersMaxedMinus1		;\Number of tiles -1
+			STA $04						;|(create a line of tiles whose number is a maximum number of characters to allow tile clearing)
+			STZ $05						;/
+			JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
+			;Write starting address of empty stripe data we set to write to
+				;RAM $7F837D,x after using "SetupStripe" locates
+				REP #$20			;\$00-$02: Address of of open stripe data (tile data's TTTTTTTT).
+				TXA				;|$03-$05: Address of of open stripe data (tile data's YXPCCCTT).
+				CLC				;|
+				ADC.w #$7F837D+4		;|Take X, the stripe index, add by #$7F8381
+				STA $00				;|and store it at $00, since we are doing "Indirect Long" 
+				INC				;|
+				STA $03				;|
+				SEP #$30			;|
+				LDA #$7F			;|
+				STA $02				;|
+				STA $05				;/
+				LDA.b #!StatusBar_TileProp	;\Props (WriteStringDigitsToHUD uses $06 to write)
+				STA $06				;/
+			;Clear tiles (blank tiles by default), so that leftover characters will disappear.
+				LDY.b #!NumberOfCharactersMaxedMinus1*2
+				-
+				LDA #!StatusBarBlankTile		;\Clear tiles
+				STA [$00],y				;/
+				LDA.b #!StatusBar_TileProp		;\Set tile properties
+				STA [$03],y				;/
+				DEY #2
+				BPL -
+			PLX						;&gt;Pull number of characters
+			;Prevent writing too much characters.
+				CPX.b #!NumberOfCharactersMaxedMinus1+2		;\Failsafe to avoid writing more characters than intended would write onto tiles
+				BCS ..StringTooLong				;/not being cleared from the previous code.
+			if !RightAligned != 0
+				;Find the rightmost position
+				;Formula: StringPosition = (NumberOfCharactersMax - 1) - (NumberOfCharacters - 1)
+				;
+				;Processed in this order:
+				;
+				;StringPosition = -(NumberOfCharacters - 1) + (NumberOfCharactersMax - 1)
+				REP #$20
+				TXA						;\Clear high byte just in case
+				AND #$00FF					;/
+				DEC						;&gt;(NumberOfCharacters - 1)
+				EOR #$FFFF					;\*(-1)
+				INC						;/
+				CLC						;\+ NumberOfCharactersMax
+				ADC.w #!NumberOfCharactersMaxedMinus1		;/
+				ASL						;&gt;*2 because each tile have 2 bytes
+				PHA						;&gt;Save this offset for tile properties
+				CLC						;\Offset from tile position
+				ADC $00						;|
+				STA $00						;|
+				PLA						;|
+				CLC						;|
+				ADC $03						;|
+				STA $03						;/
+				SEP #$20					
+			endif
+			JSL HexDec_WriteStringDigitsToHUDFormat2
+		..StringTooLong
+	else
+		LDA.b #!Stripe_X_Pos-(!NumberOfDigitsDisplayed-1)	;\Position
+		STA $00							;|
+		LDA.b #!Stripe_Y_Pos					;|
+		STA $01							;/
+		LDA #$05						;\Layer
+		STA $02							;/
+		STZ $03							;&gt;D and RLE
+		LDA.b #!NumberOfDigitsDisplayed-1			;\Number of tiles
+		STA $04							;|
+		STZ $05							;/
+		JSL HexDec_SetupStripe					;&gt;X (16-bit): The index position to write stripe data
+		PHX						;&gt;Push 16-bit stripe index
+		SEP #$30					;&gt;8-bit AXY
+		LDA !Freeram_ValueDisplay1_2Bytes		;\Convert this number to BCD
+		STA $00						;|
+		LDA !Freeram_ValueDisplay1_2Bytes+1		;|
+		STA $01						;/
+		JSL HexDec_SixteenBitHexDecDivision		;&gt;Digits stored at !Scratchram_16bitHexDecOutput
+		JSL HexDec_RemoveLeadingZeroes16Bit		;&gt;Leading spaces, not zeroes
+		REP #$20
+		LDA $01,S					;\$00-$01: Stripe index, will be used for following loop to write each pair of bytes
+		STA $00						;/(LDA $xx,s merely reads data in stack, which is better than PLX : STX $xx : PHX)
+		SEP #$20
+		REP #$10
+		..WriteToStripe
+			LDX.w #4-(!NumberOfDigitsDisplayed-1)
+			...Loop
+				LDA !Scratchram_16bitHexDecOutput,x
+				PHX
+				LDX $00						;&gt;X = current stripe tile index
+				STA.l $7F837D+4,x
+				LDA.b #!StatusBar_TileProp			;\Tile props
+				STA.l $7F837D+4+1,x				;/
+				PLX						;&gt;X = what digit from 16-bit hexdec
+				....Next
+					INC $00					;\Next stripe tile index
+					INC $00					;/
+					INX					;&gt;Next digit
+					CPX.w #5				;\If ones digit written, no more.
+					BCC ...Loop				;/
+		SEP #$20			;\8-bit A
+		REP #$10			;/
+		PLX				;&gt;Pull stripe index, into X
+		SEP #$30
+		RTL
+
+
+	endif
 	RTL
 </pre></td></tr></table>
 </p>
