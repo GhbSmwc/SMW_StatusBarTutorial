@@ -2737,32 +2737,34 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 </pre></td></tr></table></p>
 <p>A percentage:
 <table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[2 bytes] RAM address you what to show (Quantity)
-!RAMToMeasure2 = $62							;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
+
 !Default_PercentagePrecision = 2
  ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
  ; with !Scratchram_PercentageFixedPointPrecision.
 !CapAt100 = 1								;&gt;0 = allow percentage to display values greater than 100, 1 = cap at 100.
 !RightAligned = 1							;&gt;0 = left-aligned, 1 = right-aligned.
 
-if !RightAligned == 0
-	!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$00	;&gt;Where to write on the overworld border (tile number)
-	!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$00	;&gt;Same as above but tile properties
-else
-	!OverworldBorderPositionTile = !FreeramFromAnotherPatch_OWBorderTileStart+$3E	;&gt;Where to write on the overworld border (tile number, right aligned)
-	!OverworldBorderPositionProp = !FreeramFromAnotherPatch_OWBorderPropStart+$3E	;&gt;Same as above but tile properties
-endif
-!TileProps = %00111001								;&gt;Properties of the digits.
+
+;Don't touch
+	if !RightAligned == 0
+		!OverworldBorderPositionTile = !OverworldBorder_TestDisplayElement_Pos_Tile	;&gt;Where to write on the overworld border (tile number)
+		!OverworldBorderPositionProp = !OverworldBorder_TestDisplayElement_Pos_Prop	;&gt;Same as above but tile properties
+	else
+		!OverworldBorderPositionTile = !OverworldBorder_TestDisplayElement_RightAlignedText_Pos_Tile	;&gt;Where to write on the overworld border (tile number, right aligned)
+		!OverworldBorderPositionProp = !OverworldBorder_TestDisplayElement_RightAlignedText_Pos_Prop	;&gt;Same as above but tile properties
+	endif
 
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
-
+;Code below
 main:
 	;Submit fraction
 		REP #$20
-		LDA !RAMToMeasure
+		LDA !Freeram_ValueDisplay1_2Bytes
 		STA !Scratchram_PercentageQuantity
-		LDA !RAMToMeasure2
+		LDA !Freeram_ValueDisplay2_2Bytes
 		STA !Scratchram_PercentageMaxQuantity
 		SEP #$20
 		LDA #!Default_PercentagePrecision
@@ -2853,7 +2855,7 @@ main:
 						LDA #!OverWorldBorderPercentTile
 						STA !OverworldBorderPositionTile-(0*2)
 					..WriteProps
-						LDA.b #!TileProps
+						LDA.b #!OverWorldBorder_TileProp
 						STA !OverworldBorderPositionProp-(0*2)
 						STA !OverworldBorderPositionProp-(1*2)
 						STA !OverworldBorderPositionProp-(2*2)
@@ -2870,7 +2872,7 @@ main:
 					..Loop
 						LDA #!OverWorldBorderBlankTile
 						STA !OverworldBorderPositionTile,x
-						LDA.b #!TileProps
+						LDA.b #!OverWorldBorder_TileProp
 						STA !OverworldBorderPositionProp,x
 						DEX #2
 						BPL ..Loop
@@ -2893,7 +2895,7 @@ main:
 					LDA.b #!OverworldBorderPositionProp : STA $03
 					LDA.b #!OverworldBorderPositionProp&gt;&gt;8 : STA $04
 					LDA.b #!OverworldBorderPositionProp&gt;&gt;16 : STA $05
-					LDA.b #!TileProps : STA $06
+					LDA.b #!OverWorldBorder_TileProp : STA $06
 					JSL HexDec_WriteStringDigitsToHUDFormat2
 					..TooMuchDigits
 			endif
@@ -2910,12 +2912,12 @@ main:
 					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/10s place
 					JSL HexDec_SixteenBitHexDecDivisionToOWB
 					
-					LDA !Scratchram_16bitHexDecOutput+$01 : STA !OverworldBorderPositionTile-(5*2) : LDA #!TileProps : STA !OverworldBorderPositionProp-(5*2)	;&gt;100s place
-					LDA !Scratchram_16bitHexDecOutput+$02 : STA !OverworldBorderPositionTile-(4*2) : LDA #!TileProps : STA !OverworldBorderPositionProp-(4*2)	;&gt;10s place
-					LDA !Scratchram_16bitHexDecOutput+$03 : STA !OverworldBorderPositionTile-(3*2) : LDA #!TileProps : STA !OverworldBorderPositionProp-(3*2)	;&gt;1s place
-					LDA #!OverWorldBorderDotTile : STA !OverworldBorderPositionTile-(2*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(2*2)		;&gt;Decimal point symbol
-					LDA !Scratchram_16bitHexDecOutput+$04 : STA !OverworldBorderPositionTile-(1*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(1*2)	;&gt;1/10ths place
-					LDA #!OverWorldBorderPercentTile : STA !OverworldBorderPositionTile-(0*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(0*2)		;&gt;percent symbol
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA !OverworldBorderPositionTile-(5*2) : LDA #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(5*2)	;&gt;100s place
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA !OverworldBorderPositionTile-(4*2) : LDA #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(4*2)	;&gt;10s place
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA !OverworldBorderPositionTile-(3*2) : LDA #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(3*2)	;&gt;1s place
+					LDA #!OverWorldBorderDotTile : STA !OverworldBorderPositionTile-(2*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(2*2)		;&gt;Decimal point symbol
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA !OverworldBorderPositionTile-(1*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(1*2)	;&gt;1/10ths place
+					LDA #!OverWorldBorderPercentTile : STA !OverworldBorderPositionTile-(0*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(0*2)		;&gt;percent symbol
 				elseif !Default_PercentagePrecision == 2
 					JSL HexDec_RemoveLeadingZeroes16BitLeaveLast3
 					;XXX.XX%
@@ -2927,13 +2929,13 @@ main:
 					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/100s place
 					JSL HexDec_SixteenBitHexDecDivisionToOWB
 					
-					LDA !Scratchram_16bitHexDecOutput+$00 : STA !OverworldBorderPositionTile-(6*2) : LDA #!TileProps : STA !OverworldBorderPositionProp-(6*2)	;&gt;100s place
-					LDA !Scratchram_16bitHexDecOutput+$01 : STA !OverworldBorderPositionTile-(5*2) : LDA #!TileProps : STA !OverworldBorderPositionProp-(5*2)	;&gt;10s place
-					LDA !Scratchram_16bitHexDecOutput+$02 : STA !OverworldBorderPositionTile-(4*2) : LDA #!TileProps : STA !OverworldBorderPositionProp-(4*2)	;&gt;1s place
-					LDA #!OverWorldBorderDotTile : STA !OverworldBorderPositionTile-(3*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(3*2)		;&gt;Decimal point symbol
-					LDA !Scratchram_16bitHexDecOutput+$03 : STA !OverworldBorderPositionTile-(2*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(2*2)	;&gt;1/10ths place
-					LDA !Scratchram_16bitHexDecOutput+$04 : STA !OverworldBorderPositionTile-(1*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(1*2)	;&gt;1/100ths place
-					LDA #!OverWorldBorderPercentTile : STA !OverworldBorderPositionTile-(0*2) : LDA.b #!TileProps : STA !OverworldBorderPositionProp-(0*2)		;&gt;percent symbol
+					LDA !Scratchram_16bitHexDecOutput+$00 : STA !OverworldBorderPositionTile-(6*2) : LDA #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(6*2)	;&gt;100s place
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA !OverworldBorderPositionTile-(5*2) : LDA #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(5*2)	;&gt;10s place
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA !OverworldBorderPositionTile-(4*2) : LDA #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(4*2)	;&gt;1s place
+					LDA #!OverWorldBorderDotTile : STA !OverworldBorderPositionTile-(3*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(3*2)		;&gt;Decimal point symbol
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA !OverworldBorderPositionTile-(2*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(2*2)	;&gt;1/10ths place
+					LDA !Scratchram_16bitHexDecOutput+$04 : STA !OverworldBorderPositionTile-(1*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(1*2)	;&gt;1/100ths place
+					LDA #!OverWorldBorderPercentTile : STA !OverworldBorderPositionTile-(0*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(0*2)		;&gt;percent symbol
 				endif
 			elseif !RightAligned == 0
 				.ClearTiles
@@ -2969,7 +2971,7 @@ main:
 					LDA.b #!OverworldBorderPositionProp : STA $03
 					LDA.b #!OverworldBorderPositionProp&gt;&gt;8 : STA $04
 					LDA.b #!OverworldBorderPositionProp&gt;&gt;16 : STA $05
-					LDA.b #!TileProps : STA $06
+					LDA.b #!OverWorldBorder_TileProp : STA $06
 					JSL HexDec_WriteStringDigitsToHUDFormat2
 			endif
 		endif
