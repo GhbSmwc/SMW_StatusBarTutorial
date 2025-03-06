@@ -16,15 +16,15 @@
 ;Displacement = (signed) displacement between each icon.
 ;
 ;Input:
-;-$02: X position of the point to center with (signed, you can take $00/$01,
-; offset it (add by some number), and write on here), relative to screen border.
-;-$03: Same as above but Y position
-;-$04: X Displacement for each icon (signed)
-;-$05: Y Displacement for each icon (signed)
-;-$06: Max/total number of icons.
+; - $02: X position of the point to center with (signed, you can take $00/$01,
+;   offset it (add by some number), and write on here), relative to screen border.
+; - $03: Same as above but Y position
+; - $04: X Displacement for each icon (signed)
+; - $05: Y Displacement for each icon (signed)
+; - $06: Max/total number of icons.
 ;Output:
-;-$02: X position for the repeated icons to be centered (signed).
-;-$03: same as above but for Y.
+; - $02: X position for the repeated icons to be centered (signed).
+; - $03: same as above but for Y.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ?CenterRepeatingIcons:
 	PHY

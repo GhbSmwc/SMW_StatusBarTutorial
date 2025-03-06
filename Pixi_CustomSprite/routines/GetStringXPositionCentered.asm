@@ -14,22 +14,22 @@
 ; We can reduce 8/2 into 4/1 (results in just multiplying by 4):
 ;  ((NumbOfChar*4) * -1) + (SpriteXPos + OffsetToCenter)
 ;Here are what the variables mean:
-;-$00 = SpriteXPos (sprite's OAM tile X position, relative to screen border)
-;-OffsetToCenter = (signed) how many pixels to the "apparent" center of sprite.
-; Most things have their origin XY position at the top and left edge of their "bounding box". In this case
-; SpriteXPos is the leftmost pixel of the sprite. Since the body of this sprite is 16x16, we need to go right
-; 8 pixels, which is halfway between X=0 and X=16.
-;-NumbOfChar = X index
+; - $00 = SpriteXPos (sprite's OAM tile X position, relative to screen border)
+; - OffsetToCenter = (signed) how many pixels to the "apparent" center of sprite.
+;   Most things have their origin XY position at the top and left edge of their "bounding box". In this case
+;   SpriteXPos is the leftmost pixel of the sprite. Since the body of this sprite is 16x16, we need to go right
+;   8 pixels, which is halfway between X=0 and X=16.
+; - NumbOfChar = X index
 ;
 ;To be called after "SupressLeadingZeros" subroutine (or its variants).
 ;
 ;Input:
-;-X index: How many characters.
-;-$00: Sprite OAM X position, obtained from calling getdrawinfo.
-;-$03: X position of the point the string to be centered with, relative to the sprite's origin
-; (this routine takes $00, add by whats in $03, and stores to $02)
+; - X index: How many characters.
+; - $00: Sprite OAM X position, obtained from calling getdrawinfo.
+; - $03: X position of the point the string to be centered with, relative to the sprite's origin
+;   (this routine takes $00, add by whats in $03, and stores to $02)
 ;Output:
-;-$02: X position of the string, for "WriteStringAsSpriteOAM" subroutine.
+; - $02: X position of the string, for "WriteStringAsSpriteOAM" subroutine.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ?GetStringXPositionCentered:
 	TXA

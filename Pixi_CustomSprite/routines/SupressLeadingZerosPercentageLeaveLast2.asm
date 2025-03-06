@@ -2,9 +2,9 @@
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Same as above, but this is for fixed-point numbers.
 	;Input for fixed-point numbers:
-	; -$09: Character number for decimal point, for status bar (by default), it
-	;  must be #$24 for sprite OAM prior calling WriteStringAsSpriteOAM, it
-	;  must be #$0D.
+	; - $09: Character number for decimal point, for status bar (by default), it
+	;   must be #$24 for sprite OAM prior calling WriteStringAsSpriteOAM, it
+	;   must be #$0D.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	?SupressLeadingZerosPercentageLeaveLast2:
 		;XXX.X% (XXXX.X%)

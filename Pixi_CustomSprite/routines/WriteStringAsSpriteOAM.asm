@@ -9,23 +9,23 @@
 ;
 ;
 ;Input:
-;-!Scratchram_CharacterTileTable to !Scratchram_CharacterTileTable+(NumberOfChar-1):
-; The string to display. Will be written directly to $0302,y
-;-Y index: The OAM index (increments of 4)
-;-$02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
-;-$03: Y position, same as above.
-;-$04: Number of tiles to write, minus 1 ("100" is 3 characters, so this RAM should be #$02).
-;-$05: Properties (YXPPCCCT), will apply to all characters.
-;-$06 to $08 (3 bytes): 24-bit address location of the table for converting characters to graphics (such as numbers). Each byte in table lays out as follows:
-;--$00 to $09 are number tiles, which are for 0-9 digit graphics.
-;--$0A = "/"
-;--$0B = "%"
-;--$0C = "!"
-;--$0D = "."
-;--$0E = ":"
+; - !Scratchram_CharacterTileTable to !Scratchram_CharacterTileTable+(NumberOfChar-1):
+;   The string to display. Will be written directly to $0302,y
+; - Y index: The OAM index (increments of 4)
+; - $02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
+; - $03: Y position, same as above.
+; - $04: Number of tiles to write, minus 1 ("100" is 3 characters, so this RAM should be #$02).
+; - $05: Properties (YXPPCCCT), will apply to all characters.
+; - $06 to $08 (3 bytes): 24-bit address location of the table for converting characters to graphics (such as numbers). Each byte in table lays out as follows:
+; -- $00 to $09 are number tiles, which are for 0-9 digit graphics.
+; -- $0A = "/"
+; -- $0B = "%"
+; -- $0C = "!"
+; -- $0D = "."
+; -- $0E = ":"
 ; Note that all characters must be on the same page!
 ;Output:
-;-Y index: The OAM index after writing the last tile character.
+; - Y index: The OAM index after writing the last tile character.
 ;
 ;Here's is how it works: It simply takes each byte in !Scratchram_CharacterTileTable
 ;and write them into OAM. Note that control characters (spaces, and newline) are not implemented

@@ -3,15 +3,15 @@
 	;16-bit hex to 4 (or 5)-digit decimal subroutine (using right-2-left
 	;division).
 	;Input:
-	; $00-$01 = the value you want to display
+	; - $00-$01 = the value you want to display
 	;Output:
-	; !Scratchram_16bitHexDecOutput to !Scratchram_16bitHexDecOutput+4 = a digit 0-9 per byte table
-	; (used for 1-digit per 8x8 tile):
-	; +$00 = ten thousands
-	; +$01 = thousands
-	; +$02 = hundreds
-	; +$03 = tens
-	; +$04 = ones
+	; - !Scratchram_16bitHexDecOutput to !Scratchram_16bitHexDecOutput+4 = a digit 0-9 per byte table
+	;   (used for 1-digit per 8x8 tile):
+	; -- !Scratchram_16bitHexDecOutput+$00 = ten thousands
+	; -- !Scratchram_16bitHexDecOutput+$01 = thousands
+	; -- !Scratchram_16bitHexDecOutput+$02 = hundreds
+	; -- !Scratchram_16bitHexDecOutput+$03 = tens
+	; -- !Scratchram_16bitHexDecOutput+$04 = ones
 	;
 	;!Scratchram_16bitHexDecOutput is address $02 for normal ROM and $04 for SA-1.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -757,7 +757,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;Convert string that has its leading zeroes suppressed (also left-aligned)
 	;to OWB digits
 	;Input:
-	;X = Number of characters in the string
+	; - X = Number of characters in the string
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	ConvertAlignedDigitToOWB:
 		PHX
