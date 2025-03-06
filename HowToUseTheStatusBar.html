@@ -3785,8 +3785,8 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 
-!DisplayTwoNumbers = 0								;&gt;0 = only the first number, 1 = display 2.
-!RightAligned = 1								;&gt;0 = left, 1 = right.
+!DisplayTwoNumbers = 1								;&gt;0 = only the first number, 1 = display 2.
+!RightAligned = 0								;&gt;0 = left, 1 = right.
 !NumberOfDigitsDisplayed = 5							;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 
 ;Don't touch these
@@ -3948,9 +3948,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		SEP #$20
 		REP #$10
 		..WriteToStripe
-			LDX.w #4-(!NumberOfDigitsDisplayed-1)
+			LDX.w #$0000
 			...Loop
-				LDA !Scratchram_16bitHexDecOutput,x
+				LDA !Scratchram_16bitHexDecOutput+(4-(!NumberOfDigitsDisplayed-1)),x
 				PHX
 				LDX $00						;&gt;X = current stripe tile index
 				STA.l $7F837D+4,x
@@ -3961,7 +3961,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 					INC $00					;\Next stripe tile index
 					INC $00					;/
 					INX					;&gt;Next digit
-					CPX.w #5				;\If ones digit written, no more.
+					CPX.w #!NumberOfDigitsDisplayed		;\If ones digit written, no more.
 					BCC ...Loop				;/
 		SEP #$20			;\8-bit A
 		REP #$10			;/
