@@ -641,7 +641,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDX.b #((!NumberOfDigitsDisplayed-1)*2)
 			LDY.b #(!NumberOfDigitsDisplayed-1)
 			-
-			LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
+			LDA.w !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
 			STA !StatusBar_TestDisplayElement_Pos_Tile,x
 			DEY
 			DEX #2
@@ -1502,7 +1502,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDX.b #((!NumberOfDigitsDisplayed-1)*2)
 			LDY.b #(!NumberOfDigitsDisplayed-1)
 			-
-			LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
+			LDA.w !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
 			STA !StatusBar_TestDisplayElement_Pos_Tile,x
 			DEY
 			DEX #2
@@ -1561,7 +1561,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			LDX.b #((!NumberOfDigitsDisplayed-1)*2)
 			LDY.b #(!NumberOfDigitsDisplayed-1)
 			-
-			LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
+			LDA.w !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
 			STA !StatusBar_TestDisplayElement_Pos_Tile,x
 			DEY
 			DEX #2
@@ -2450,7 +2450,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX.b #((!NumberOfDigitsDisplayed-1)*2)
 		LDY.b #(!NumberOfDigitsDisplayed-1)
 		-
-		LDA.w (!Scratchram_16bitHexDecOutput)+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
+		LDA.w !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1)|!dp,y
 		STA !OverworldBorder_TestDisplayElement_Pos_Tile,x
 		LDA.b #!OverWorldBorder_TileProp						;\Page 1, Palette 6, and Priority ON
 		STA.l !OverworldBorder_TestDisplayElement_Pos_Prop,x				;/
@@ -3662,6 +3662,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 
 !RemoveLeadingZeroes = 0					;&gt;0 = no, 1 = yes
+!NumberOfDigitsDisplayed = 5					;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 
 	main:
 	.StripeNumberTest
@@ -3695,19 +3696,19 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		..WriteToStripe
 			LDX #$0000
 			...Loop
-				LDA !Scratchram_16bitHexDecOutput,x
+				LDA !Scratchram_16bitHexDecOutput+$04-(!NumberOfDigitsDisplayed-1),x
 				PHX
-				LDX $00				;&gt;X = current stripe tile index
+				LDX $00					;&gt;X = current stripe tile index
 				STA.l $7F837D+4,x
-				LDA.b #!StatusBar_TileProp	;\Tile props
-				STA.l $7F837D+4+1,x		;/
-				PLX				;&gt;X = what digit from 16-bit hexdec
+				LDA.b #!StatusBar_TileProp		;\Tile props
+				STA.l $7F837D+4+1,x			;/
+				PLX					;&gt;X = what digit from 16-bit hexdec
 				....Next
-					INC $00			;\Next stripe tile index
-					INC $00			;/
-					INX			;&gt;Next digit
-					CPX #$0005		;\If 5th digit written, no more.
-					BCC ...Loop		;/
+					INC $00				;\Next stripe tile index
+					INC $00				;/
+					INX				;&gt;Next digit
+					CPX.w !NumberOfDigitsDisplayed	;\If 5th digit written, no more.
+					BCC ...Loop			;/
 		SEP #$20			;\8-bit A
 		REP #$10			;/
 		PLX				;&gt;Pull stripe index, into X
