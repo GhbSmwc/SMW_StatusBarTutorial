@@ -3662,7 +3662,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 
 !RemoveLeadingZeroes = 0					;&gt;0 = no, 1 = yes
-!NumberOfDigitsDisplayed = 5					;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
+!NumberOfDigitsDisplayed = 3					;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 
 	main:
 	.StripeNumberTest
@@ -3673,7 +3673,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDA #$05					;\Layer
 		STA $02						;/
 		STZ $03						;&gt;D and RLE
-		LDA.b #$05-1					;\Number of tiles
+		LDA.b #!NumberOfDigitsDisplayed-1		;\Number of tiles
 		STA $04						;|
 		STZ $05						;/
 		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
@@ -3707,7 +3707,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 					INC $00				;\Next stripe tile index
 					INC $00				;/
 					INX				;&gt;Next digit
-					CPX.w !NumberOfDigitsDisplayed	;\If 5th digit written, no more.
+					CPX.w #!NumberOfDigitsDisplayed	;\If 5th digit written, no more.
 					BCC ...Loop			;/
 		SEP #$20			;\8-bit A
 		REP #$10			;/
