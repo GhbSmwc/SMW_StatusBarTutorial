@@ -416,7 +416,7 @@ should increment the highword), before calling the routine, and also write the m
 		<td><kbd>$00</kbd>-<kbd>$01</kbd> (16-bit/2-byte)</td>
 		<td>
 			<table>
-				<tr><th>Relative to RAM being defined</th><th>RAM used in normal hack</th><th>RAM used under SA-1</th><th>Place value</th></tr>
+				<tr><th>Relative to RAM being defined</th><th>RAM used in LoROM</th><th>RAM used under SA-1</th><th>Place value</th></tr>
 				<tr><td><kbd>!Scratchram_16bitHexDecOutput+0</kbd></td><td><kbd>$02</kbd></td><td><kbd>$04</kbd></td><td>10,000s place</td></tr>
 				<tr><td><kbd>!Scratchram_16bitHexDecOutput+1</kbd></td><td><kbd>$03</kbd></td><td><kbd>$05</kbd></td><td>1,000s place</td></tr>
 				<tr><td><kbd>!Scratchram_16bitHexDecOutput+2</kbd></td><td><kbd>$04</kbd></td><td><kbd>$06</kbd></td><td>100s place</td></tr>
@@ -3950,7 +3950,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		..WriteToStripe
 			LDX.w #$0000
 			...Loop
-				LDA !Scratchram_16bitHexDecOutput+(4-(!NumberOfDigitsDisplayed-1)),x
+				LDA !Scratchram_16bitHexDecOutput+4-(!NumberOfDigitsDisplayed-1),x
 				PHX
 				LDX $00						;&gt;X = current stripe tile index
 				STA.l $7F837D+4,x
