@@ -29,23 +29,23 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;
 ;
 ;Input:
-;-!Scratchram_CharacterTileTable to !Scratchram_CharacterTileTable+(NumberOfChar-1):
-; The string to display. Will be written directly to $0302,y
-;-Y index: The OAM index (increments of 4)
-;-$02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
-;-$03: Y position, same as above.
-;-$04: Number of tiles to write, minus 1 ("100" is 3 characters, so this RAM should be #$02).
-;-$05: Properties (YXPPCCCT), will apply to all characters.
-;-$06 to $08 (3 bytes): 24-bit address location of the table for converting characters to graphics (such as numbers). Each byte in table lays out as follows:
-;--$00 to $09 are number tiles, which are for 0-9 digit graphics.
-;--$0A = "/"
-;--$0B = "%"
-;--$0C = "!"
-;--$0D = "."
-;--$0E = ":"
-; Note that all characters must be on the same page!
+; - !Scratchram_CharacterTileTable to !Scratchram_CharacterTileTable+(NumberOfChar-1):
+;   The string to display. Will be written directly to $0302,y
+; - Y index: The OAM index (increments of 4)
+; - $02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
+; - $03: Y position, same as above.
+; - $04: Number of tiles to write, minus 1 ("100" is 3 characters, so this RAM should be #$02).
+; - $05: Properties (YXPPCCCT), will apply to all characters.
+; - $06 to $08 (3 bytes): 24-bit address location of the table for converting characters to graphics (such as numbers). Each byte in table lays out as follows:
+; -- $00 to $09 are number tiles, which are for 0-9 digit graphics.
+; -- $0A = "/"
+; -- $0B = "%"
+; -- $0C = "!"
+; -- $0D = "."
+; -- $0E = ":"
+;   Note that all characters must be on the same page!
 ;Output:
-;-Y index: The OAM index after writing the last tile character.
+; - Y index: The OAM index after writing the last tile character.
 ;
 ;Here's is how it works: It simply takes each byte in !Scratchram_CharacterTileTable
 ;and write them into OAM. Note that control characters (spaces, and newline) are not implemented
@@ -96,16 +96,17 @@ WriteStringAsSpriteOAM:
 ;Convert strings to tile graphics (for pixi sprites).
 ;
 ;Input:
-;$04 (1 byte) = Number of characters, minus 1
-;$06 (3 bytes) = Table location of each character to convert to.
-;!Scratchram_CharacterTileTable (NumberOfChar bytes) = to convert:
-;--$00 to $09 are number tiles, which are for 0-9 digit graphics.
-;--$0A = "/"
-;--$0B = "%"
-;--$0C = "!"
-;--$0D = "."
-;Output: !Scratchram_CharacterTileTable (NumberOfChar bytes): converted
-; to tile numbers
+; - $04 (1 byte) = Number of characters, minus 1
+; - $06 (3 bytes) = Table location of each character to convert to.
+; - !Scratchram_CharacterTileTable (NumberOfChar bytes) = to convert:
+; -- $00 to $09 are number tiles, which are for 0-9 digit graphics.
+; -- $0A = "/"
+; -- $0B = "%"
+; -- $0C = "!"
+; -- $0D = "."
+;Output:
+; - !Scratchram_CharacterTileTable (NumberOfChar bytes): converted
+;   to tile numbers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ConvertStringChars:
 	PHY
@@ -127,11 +128,12 @@ ConvertStringChars:
 ;Convert strings to tile graphics (for OAM-only sprites).
 ;
 ;Input:
-;$04 (1 byte) = Number of characters, minus 1
-;$07 (3 bytes) = Table location of each character to convert to.
-;!Scratchram_CharacterTileTable (NumberOfChar bytes) = to convert.
-;Output: !Scratchram_CharacterTileTable (NumberOfChar bytes): converted
-; to tile numbers
+; - $04 (1 byte) = Number of characters, minus 1
+; - $07 (3 bytes) = Table location of each character to convert to.
+; - !Scratchram_CharacterTileTable (NumberOfChar bytes) = to convert.
+;Output:
+; - !Scratchram_CharacterTileTable (NumberOfChar bytes): converted
+;   to tile numbers
 ;
 ;Had to duplicate the routine due to scratch RAM layout being different.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -164,22 +166,22 @@ ConvertStringChars_OAMOnly:
 ; We can reduce 8/2 into 4/1 (results in just multiplying by 4):
 ;  ((NumbOfChar*4) * -1) + (SpriteXPos + OffsetToCenter)
 ;Here are what the variables mean:
-;-$00 = SpriteXPos (sprite's OAM tile X position, relative to screen border)
-;-OffsetToCenter = (signed) how many pixels to the "apparent" center of sprite.
-; Most things have their origin XY position at the top and left edge of their "bounding box". In this case
-; SpriteXPos is the leftmost pixel of the sprite. Since the body of this sprite is 16x16, we need to go right
-; 8 pixels, which is halfway between X=0 and X=16.
-;-NumbOfChar = X index
+; - $00 = SpriteXPos (sprite's OAM tile X position, relative to screen border)
+; - OffsetToCenter = (signed) how many pixels to the "apparent" center of sprite.
+;   Most things have their origin XY position at the top and left edge of their "bounding box". In this case
+;   SpriteXPos is the leftmost pixel of the sprite. Since the body of this sprite is 16x16, we need to go right
+;   8 pixels, which is halfway between X=0 and X=16.
+; - NumbOfChar = X index
 ;
 ;To be called after "SupressLeadingZeros" subroutine (or its variants).
 ;
 ;Input:
-;-X index: How many characters.
-;-$00: Sprite OAM X position, obtained from calling getdrawinfo.
-;-$03: X position of the point the string to be centered with, relative to the sprite's origin
-; (this routine takes $00, add by whats in $03, and stores to $02)
+; - X index: How many characters.
+; - $00: Sprite OAM X position, obtained from calling getdrawinfo.
+; - $03: X position of the point the string to be centered with, relative to the sprite's origin
+;   (this routine takes $00, add by whats in $03, and stores to $02)
 ;Output:
-;-$02: X position of the string, for "WriteStringAsSpriteOAM" subroutine.
+; - $02: X position of the string, for "WriteStringAsSpriteOAM" subroutine.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 GetStringXPositionCentered:
 	TXA
@@ -199,30 +201,30 @@ GetStringXPositionCentered:
 ;represents 3/6)
 ;
 ;Input:
-;-Y index: The OAM index
-;-$02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
-;-$03: Y position, same as above.
-;-Displacement of each icon, in pixels. Both of these are signed and also represents the
-; direction of the line of repeated icons. As a side note, you can even have diagonal repeated icons.
-;--$04: Horizontal. Positive ($00 to $7F) would extend and fill to the right, negative ($80 to $FF)
-;  extends to the left.
-;--$05: Vertical. Positive ($00 to $7F) would extend and fill downwards, negative ($80 to $FF)
-;  extend upwards.
-;-$06: "Empty" icon tile number
-;-$07: "Empty" icon tile properties (YXPPCCCT)
-;-$08: "Full" icon tile number
-;-$09: "Full" icon tile properties (YXPPCCCT)
-;-$0A: How many icons are filled
-;-$0B: How many total icons there are (max total).
+; - Y index: The OAM index
+; - $02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
+; - $03: Y position, same as above.
+; - Displacement of each icon, in pixels. Both of these are signed and also represents the
+;   direction of the line of repeated icons. As a side note, you can even have diagonal repeated icons.
+; -- $04: Horizontal. Positive ($00 to $7F) would extend and fill to the right, negative ($80 to $FF)
+;    extends to the left.
+; -- $05: Vertical. Positive ($00 to $7F) would extend and fill downwards, negative ($80 to $FF)
+;    extend upwards.
+; - $06: "Empty" icon tile number
+; - $07: "Empty" icon tile properties (YXPPCCCT)
+; - $08: "Full" icon tile number
+; - $09: "Full" icon tile properties (YXPPCCCT)
+; - $0A: How many icons are filled
+; - $0B: How many total icons there are (max total).
 ;
 ;
 ;Output:
-;-Y index: The OAM index after writing all the icons
-;-$02: Gets displaced by $07 for each icon written.
-;-$03: Gets displaced by $08 for each icon written.
+; - Y index: The OAM index after writing all the icons
+; - $02: Gets displaced by $07 for each icon written.
+; - $03: Gets displaced by $08 for each icon written.
 ;Destroyed:
-;-$0A: Will be [max(0, NumberOfFilledIcons-Total)] when routine is finished, used as a countdown on how many full tiles to write.
-;-$0B: Will be #$00 when routine is finished, used as a countdown on how many left to write.
+; - $0A: Will be [max(0, NumberOfFilledIcons-Total)] when routine is finished, used as a countdown on how many full tiles to write.
+; - $0B: Will be #$00 when routine is finished, used as a countdown on how many left to write.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	WriteRepeatedIconsAsOAM:
 	
@@ -298,15 +300,15 @@ GetStringXPositionCentered:
 ;Displacement = (signed) displacement between each icon.
 ;
 ;Input:
-;-$02: X position of the point to center with (signed, you can take $00/$01,
-; offset it (add by some number), and write on here), relative to screen border.
-;-$03: Same as above but Y position
-;-$04: X Displacement for each icon (signed)
-;-$05: Y Displacement for each icon (signed)
-;-$06: Max/total number of icons.
+; - $02: X position of the point to center with (signed, you can take $00/$01,
+;   offset it (add by some number), and write on here), relative to screen border.
+; - $03: Same as above but Y position
+; - $04: X Displacement for each icon (signed)
+; - $05: Y Displacement for each icon (signed)
+; - $06: Max/total number of icons.
 ;Output:
-;-$02: X position for the repeated icons to be centered (signed).
-;-$03: same as above but for Y.
+; - $02: X position for the repeated icons to be centered (signed).
+; - $03: same as above but for Y.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CenterRepeatingIcons:
 	PHY
@@ -395,15 +397,15 @@ CenterRepeatingIcons:
 ;
 ;
 ;Input:
-;-!Scratchram_CharacterTileTable to !Scratchram_CharacterTileTable+(NumberOfChar-1):
-; The string to display. Will be written directly to $0200,y
-;-$00 to $01: (16-bit) X position, relative to screen border
-;-$02 to $03: (16-bit) Y position, relative to screen border
-;-$04 to $05: Number of tiles to write, minus 1.
-;-$06: Properties (YXPPCCCT), will apply to all characters.
-;-$07 to $09 (3 bytes): 24-bit address location of the table for converting characters to number graphics. Same as WriteStringAsSpriteOAM.
+; - !Scratchram_CharacterTileTable to !Scratchram_CharacterTileTable+(NumberOfChar-1):
+;   The string to display. Will be written directly to $0200,y
+; - $00 to $01: (16-bit) X position, relative to screen border
+; - $02 to $03: (16-bit) Y position, relative to screen border
+; - $04 to $05: Number of tiles to write, minus 1.
+; - $06: Properties (YXPPCCCT), will apply to all characters.
+; - $07 to $09 (3 bytes): 24-bit address location of the table for converting characters to number graphics. Same as WriteStringAsSpriteOAM.
 ;Overwritten:
-;$00 to $01: Displaced after each write of the tile.
+; - $00 to $01: Displaced after each write of the tile.
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WriteStringAsSpriteOAM_OAMOnly:
@@ -515,8 +517,8 @@ FindNFreeOAMSlot:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Check if given 8x8 tile is offscreen or not.
 ;Input:
-;-$00 to $01: X position, relative to screen border
-;-$02 to $03: Y position, relative to screen border
+; - $00 to $01: X position, relative to screen border
+; - $02 to $03: Y position, relative to screen border
 ;Output:
 ;Carry: Clear if visible on-screen, set of offscreen.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -554,12 +556,12 @@ CheckIf8x8IsOffScreen:
 ;interactable sprites have a given position that is not necessary.
 ;
 ;Input:
-;-X index: How many characters (8-bit).
-;-$00 to $01: The position you want the string to be centered around on, relative
-; to the border of the screen.
+; - X index: How many characters (8-bit).
+; - $00 to $01: The position you want the string to be centered around on, relative
+;   to the border of the screen.
 ;Output:
-;-$00 to $01: X position of the string, for "WriteStringAsSpriteOAM" subroutine, relative to
-; the border of the screen.
+; - $00 to $01: X position of the string, for "WriteStringAsSpriteOAM" subroutine, relative to
+;   the border of the screen.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 GetStringXPositionCentered16Bit:
 	TXA
@@ -579,21 +581,21 @@ GetStringXPositionCentered16Bit:
 ;sprites
 ;
 ;Input:
-;-$00 to $01: X position
-;-$02 to $03: Y position
-;-$04: X displacement (8-bit signed)
-;-$05: Y displacement (8-bit signed)
-;-$06: Empty tile number
-;-$07: Empty tile properties
-;-$08: Full tile number
-;-$09: Full tile properties
-;-$0A: How many tiles filled
-;-$0B: How many tiles total
+; - $00 to $01: X position
+; - $02 to $03: Y position
+; - $04: X displacement (8-bit signed)
+; - $05: Y displacement (8-bit signed)
+; - $06: Empty tile number
+; - $07: Empty tile properties
+; - $08: Full tile number
+; - $09: Full tile properties
+; - $0A: How many tiles filled
+; - $0B: How many tiles total
 ;Output:
-;-$00 to $03: Overwritten as each tile displaced
+; - $00 to $03: Overwritten as each tile displaced
 ;Overwritten:
-;-$0A: Will be [max(0, NumberOfFilledIcons-Total)] when routine is finished, used as a countdown on how many full tiles to write.
-;-$0B: Will be 0 when routine finished, used as a countdown on how many total tiles to write
+; - $0A: Will be [max(0, NumberOfFilledIcons-Total)] when routine is finished, used as a countdown on how many full tiles to write.
+; - $0B: Will be 0 when routine finished, used as a countdown on how many total tiles to write
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WriteRepeatedIconsAsOAM_OAMOnly:
 	PHB
@@ -732,15 +734,15 @@ WriteRepeatedIconsAsOAM_OAMOnly:
 ;Displacement = (signed) displacement between each icon.
 ;
 ;Input:
-;-$00 to $01: X position, relative to screen border (example: take $7E
-; (Mario's Xpos on screen), add #$0004, then store here).
-;-$02 to $03: Y position, same as above.
-;-$04: X Displacement between each icon (8-bit signed)
-;-$05: Y Displacement between each icon (8-bit signed)
-;-$06: Total number of icons
+; - $00 to $01: X position, relative to screen border (example: take $7E
+;   (Mario's Xpos on screen), add #$0004, then store here).
+; - $02 to $03: Y position, same as above.
+; - $04: X Displacement between each icon (8-bit signed)
+; - $05: Y Displacement between each icon (8-bit signed)
+; - $06: Total number of icons
 ;Output:
-;-$00 to $01: X position centered.
-;-$02 to $03: Y position centered.
+; - $00 to $01: X position centered.
+; - $02 to $03: Y position centered.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CenterRepeatingIcons_OAMOnly:
 	LDY #$02

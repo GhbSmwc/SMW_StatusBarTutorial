@@ -259,15 +259,15 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;16-bit hex to 4 (or 5)-digit decimal subroutine (using right-2-left
 	;division).
 	;Input:
-	; $00-$01 = the value you want to display
+	; - $00-$01 = the value you want to display
 	;Output:
-	; !Scratchram_16bitHexDecOutput to !Scratchram_16bitHexDecOutput+4 = a digit 0-9 per byte table
-	; (used for 1-digit per 8x8 tile):
-	; +$00 = ten thousands
-	; +$01 = thousands
-	; +$02 = hundreds
-	; +$03 = tens
-	; +$04 = ones
+	; - !Scratchram_16bitHexDecOutput to !Scratchram_16bitHexDecOutput+4 = a digit 0-9 per byte table
+	;   (used for 1-digit per 8x8 tile):
+	; -- !Scratchram_16bitHexDecOutput+$00 = ten thousands
+	; -- !Scratchram_16bitHexDecOutput+$01 = thousands
+	; -- !Scratchram_16bitHexDecOutput+$02 = hundreds
+	; -- !Scratchram_16bitHexDecOutput+$03 = tens
+	; -- !Scratchram_16bitHexDecOutput+$04 = ones
 	;
 	;!Scratchram_16bitHexDecOutput is address $02 for normal ROM and $04 for SA-1.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -331,27 +331,27 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;32-bit hex-dec (using right-2-left division)
 	;input:
-	;-$00-$03 = the 32-bit number, in little endian, example:
-	; $11223344 ([$44,$33,$22,$11]) should output 287454020.
-	; Maximum value is 4,294,967,295.
+	; - $00-$03 = the 32-bit number, in little endian, example:
+	;   $11223344 ([$44,$33,$22,$11]) should output 287454020.
+	;   Maximum value is 4,294,967,295.
 	;output:
-	;-[!Scratchram_32bitHexDecOutput] to [!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)]:
-	; Contains value 0-9 on every byte, in decreasing significant digits (last byte is always
-	; the 1s place). Formula to get what RAM of a given digit:
-	;
-	; !Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(DigitIndex)
-	;
-	; Where DigitIndex is an integer ranging from 0 to !Setting_32bitHexDec_MaxNumberOfDigits-1, representing what digit with 0
-	; being the ones, 2 being 10s, and so on:
-	; DigitValue = 0: 1s place (ex. w/ 6 digits: $7F8453)
-	; DigitValue = 1: 10s place (ex. w/ 6 digits: $7F8452)
-	; DigitValue = 2: 100s place (ex. w/ 6 digits: $7F8451)
-	; DigitValue = 3: 1000s place (ex. w/ 6 digits: $7F8450)
-	; [...]
-	; DigitValue = 5: 100000s place (ex. w/ 6 digits: $7F844E)
+	; - [!Scratchram_32bitHexDecOutput] to [!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)]:
+	;   Contains value 0-9 on every byte, in decreasing significant digits (last byte is always
+	;   the 1s place). Formula to get what RAM of a given digit:
+	; 
+ 	;   !Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(DigitIndex)
+	; 
+ 	;   Where DigitIndex is an integer ranging from 0 to !Setting_32bitHexDec_MaxNumberOfDigits-1, representing what digit with 0
+	;   being the ones, 2 being 10s, and so on:
+	;   DigitValue = 0: 1s place (ex. w/ 6 digits: $7F8453)
+	;   DigitValue = 1: 10s place (ex. w/ 6 digits: $7F8452)
+	;   DigitValue = 2: 100s place (ex. w/ 6 digits: $7F8451)
+	;   DigitValue = 3: 1000s place (ex. w/ 6 digits: $7F8450)
+	;   [...]
+	;   DigitValue = 5: 100000s place (ex. w/ 6 digits: $7F844E)
 	;
 	;Overwritten
-	;-$04 to $05: because remainder of the division.
+	; - $04 to $05: because remainder of the division.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 			ThirtyTwoBitHexDecDivision:
 			LDX.b #!Setting_32bitHexDec_MaxNumberOfDigits-1
@@ -548,15 +548,15 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;
 	;Usage:
 	; Input:
-	;  -!Scratchram_16bitHexDecOutput to !Scratchram_16bitHexDecOutput+4 = a 5-digit 0-9 per byte (used for
-	;   1-digit per 8x8 tile, using my 4/5 hexdec routine; ordered from high to low digits)
-	;  -X = the starting location within the table to place the string in. X=$00 means the starting byte.
+	;  - !Scratchram_16bitHexDecOutput to !Scratchram_16bitHexDecOutput+4 = a 5-digit 0-9 per byte (used for
+	;    1-digit per 8x8 tile, using my 4/5 hexdec routine; ordered from high to low digits)
+	;  - X = the starting location within the table to place the string in. X=$00 means the starting byte.
 	; Output:
-	;  -!Scratchram_CharacterTileTable = A table containing a string of numbers with
-	;   unnecessary spaces and zeroes stripped out.
-	;  -X = the location to place string AFTER the numbers (increments every character written). Also use
-	;   for indicating the last digit (or any tile) number for how many tiles to be written to the status
-	;   bar, overworld border, etc.
+	;  - !Scratchram_CharacterTileTable = A table containing a string of numbers with
+	;    unnecessary spaces and zeroes stripped out.
+	;  - X = the location to place string AFTER the numbers (increments every character written). Also use
+	;    for indicating the last digit (or any tile) number for how many tiles to be written to the status
+	;    bar, overworld border, etc.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	SupressLeadingZeros:
 		LDY #$00				;>Start looking at the leftmost (highest) digit
@@ -585,9 +585,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Same as above, but this is for fixed-point numbers.
 	;Input for fixed-point numbers:
-	; -$09: Character number for decimal point, for status bar (by default), it
-	;  must be #$24 for sprite OAM prior calling WriteStringAsSpriteOAM, it
-	;  must be #$0D.
+	; - $09: Character number for decimal point, for status bar (by default), it
+	;   must be #$24 for sprite OAM prior calling WriteStringAsSpriteOAM, it
+	;   must be #$0D.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	SupressLeadingZerosPercentageLeaveLast2:
 		;XXX.X% (XXXX.X%)
@@ -696,23 +696,23 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;$00-$02 is now the left tile position.
 	;
 	;Input:
-	; -$00-$02 = 24-bit address location to write to status bar tile number.
-	; -If tile properties are edit-able:
-	; --$03-$05 = Same as $00-$02 but tile properties.
-	; -X = The number of characters to write, ("123" would have X = 3)
+	; - $00-$02 = 24-bit address location to write to status bar tile number.
+	; - If tile properties are edit-able:
+	; -- $03-$05 = Same as $00-$02 but tile properties.
+	; - X = The number of characters to write, ("123" would have X = 3)
 	;Output:
-	; -$00-$02 and $03-$05 are subtracted by [(NumberOfCharacters-1)*!StatusbarFormat]
-	;  so that the last character is always at a fixed location and as the number
-	;  of characters increase, the string would extend leftwards. Therefore,
-	;  $00-$02 and $03-$05 before calling this routine contains the ending address
-	;  which the last character will be written.
+	; - $00-$02 and $03-$05 are subtracted by [(NumberOfCharacters-1)*!StatusbarFormat]
+	;   so that the last character is always at a fixed location and as the number
+	;   of characters increase, the string would extend leftwards. Therefore,
+	;   $00-$02 and $03-$05 before calling this routine contains the ending address
+	;   which the last character will be written.
 	;
 	;Note:
-	; -ConvertToRightAligned is designed for [TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]
-	; -ConvertToRightAlignedFormat2 is designed for [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
-	; -This routine is meant to be used when displaying 2 numbers (For example: 123/456). Since
-	;  when displaying a single number, using HexDec and removing leading zeroes (turns them
-	;  into leading spaces) is automatically right-aligned, using this routine is pointless.
+	; - ConvertToRightAligned is designed for [TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]
+	; - ConvertToRightAlignedFormat2 is designed for [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+	; - This routine is meant to be used when displaying 2 numbers (For example: 123/456). Since
+	;   when displaying a single number, using HexDec and removing leading zeroes (turns them
+	;   into leading spaces) is automatically right-aligned, using this routine is pointless.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	ConvertToRightAligned:
 		TXA					;>Transfer X (number of tiles) to A
@@ -805,17 +805,17 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;Write aligned digits to Status bar/OWB+
 	;
 	;Input:
-	; -$00-$02 = 24-bit address location to write to status bar tile number.
-	; -If tile properties are edit-able (if !StatusBar_UsingCustomProperties != 0):
-	; --$03-$05 = Same as $00-$02 but tile properties
-	; --$06 = the tile properties, for all tiles
-	; -X = The number of characters to write, ("123" would have X = 3)
-	; -!Scratchram_CharacterTileTable-(!Scratchram_CharacterTileTable+N-1)
-	;  the string to write to the status bar.
+	; - $00-$02 = 24-bit address location to write to status bar tile number.
+	; - If tile properties are edit-able (if !StatusBar_UsingCustomProperties != 0):
+	; -- $03-$05 = Same as $00-$02 but tile properties
+	; -- $06 = the tile properties, for all tiles
+	; - X = The number of characters to write, ("123" would have X = 3)
+	; - !Scratchram_CharacterTileTable-(!Scratchram_CharacterTileTable+N-1)
+	;   the string to write to the status bar.
 	;
 	;Note:
-	; -WriteStringDigitsToHUD is designed for [TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]
-	; -WriteStringDigitsToHUDFormat2 is designed for [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
+	; - WriteStringDigitsToHUD is designed for [TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]
+	; - WriteStringDigitsToHUDFormat2 is designed for [TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	WriteStringDigitsToHUD:
 		DEX
@@ -882,16 +882,15 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;	SEP #$20
 	;
 	;Input:
-	;-$00 to $03: the frame value (little endian!).
+	; - $00 to $03: the frame value (little endian!).
 	;Output:
-	;-!Scratchram_Frames2TimeOutput (4 bytes): timer in real world
-	; units format:
-	; -!Scratchram_Frames2TimeOutput+0 = hour
-	; -!Scratchram_Frames2TimeOutput+1 = minutes (value ranges from 0-59 (#$00-#$3B))
-	; -!Scratchram_Frames2TimeOutput+2 = seconds (value ranges from 0-59 (#$00-#$3B))
-	; -!Scratchram_Frames2TimeOutput+3 = centiseconds (display 00 to 99 (actually 00-98 because 59/60 = 0.98[3], (#$00-#$62)))
+	; - !Scratchram_Frames2TimeOutput (4 bytes): timer in real world units format:
+	; -- !Scratchram_Frames2TimeOutput+0 = hour
+	; -- !Scratchram_Frames2TimeOutput+1 = minutes (value ranges from 0-59 (#$00-#$3B))
+	; -- !Scratchram_Frames2TimeOutput+2 = seconds (value ranges from 0-59 (#$00-#$3B))
+	; -- !Scratchram_Frames2TimeOutput+3 = centiseconds (display 00 to 99 (actually 00-98 because 59/60 = 0.98[3], (#$00-#$62)))
 	;Overwritten:
-	;-$00 to $05 was used by division routine
+	; - $00 to $05 was used by division routine
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	Frames2Timer:
 		LDX #$03
@@ -983,29 +982,29 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Convert fraction to percentage
 	;Input:
-	; !Scratchram_PercentageQuantity to !Scratchram_PercentageQuantity+1:
-	;  The numerator of the fraction
-	; !Scratchram_PercentageMaxQuantity to !Scratchram_PercentageMaxQuantity+1:
-	;  The denominator of the fraction
-	; !Scratchram_PercentageFixedPointPrecision:
-	;  Precision, rather to convert the fraction to:
-	;   $00 = out of 100 (display whole percentage).
-	;   $01 = out of 1000 (display 1/10 precision (1 digit after decimal), can be converted to XXX.X% via fixed point)
-	;   $02 = out of 10000 (display 1/100 precision (2 digits after decimal), can be converted to XXX.XX%, same as a above)
+	; - !Scratchram_PercentageQuantity to !Scratchram_PercentageQuantity+1:
+	;   The numerator of the fraction
+	; - !Scratchram_PercentageMaxQuantity to !Scratchram_PercentageMaxQuantity+1:
+	;   The denominator of the fraction
+	; - !Scratchram_PercentageFixedPointPrecision:
+	;   Precision, rather to convert the fraction to:
+	; -- $00 = out of 100 (display whole percentage).
+	; -- $01 = out of 1000 (display 1/10 precision (1 digit after decimal), can be converted to XXX.X% via fixed point)
+	; -- $02 = out of 10000 (display 1/100 precision (2 digits after decimal), can be converted to XXX.XX%, same as a above)
 	;Output:
-	; $00-$03: Percentage, using fixed-point notation (an integer here, then scaled by 1/(10**!Scratchram_PercentageFixedPointPrecision)),
-	;          rounded 1/2 up to the nearest 1*10**(-!Scratchram_PercentageFixedPointPrecision). Using 32-bit unsigned integer to prevent
-	;          potential overflow (mainly going beyond 65535) if your hack allows going higher than 100% and with higher
-	;          !Scratchram_PercentageFixedPointPrecision precision. If the denominator is zero, will be 0% or 100% (division by zero).
-	; Y register: Detect rounding to 0 or 100. Can be used to display 1% if exclusively between 0 and 1%
-	;             and 99% if exclusively between 99 and 100%. This is useful for avoid misleading 0 and 100% displays when actually close
-	;             to such numbers. This also applies to higher precision, but instead of by the ones place, it is actually the
-	;             rightmost/last digit:
-	;              Y=$00: no
-	;              Y=$01: Rounded to 0 ([0 < X < 5*10**(-Precision)] would've round to 0% misleadingly)
-	;              Y=$02: Rounded from 99 to 100 ([100-(5*10**(-Precision-1)) <= X < 100] would've round to 100% misleadingly)
+	; - $00-$03: Percentage, using fixed-point notation (an integer here, then scaled by 1/(10**!Scratchram_PercentageFixedPointPrecision)),
+	;   rounded 1/2 up to the nearest 1*10**(-!Scratchram_PercentageFixedPointPrecision). Using 32-bit unsigned integer to prevent
+	;   potential overflow (mainly going beyond 65535) if your hack allows going higher than 100% and with higher
+	;   !Scratchram_PercentageFixedPointPrecision precision. If the denominator is zero, will be 0% or 100% (division by zero).
+	; - Y register: Detect rounding to 0 or 100. Can be used to display 1% if exclusively between 0 and 1%
+	;   and 99% if exclusively between 99 and 100%. This is useful for avoid misleading 0 and 100% displays when actually close
+	;   to such numbers. This also applies to higher precision, but instead of by the ones place, it is actually the
+	;   rightmost/last digit:
+	; -- Y=$00: no
+	; -- Y=$01: Rounded to 0 ([0 < X < 5*10**(-Precision)] would've round to 0% misleadingly)
+	; -- Y=$02: Rounded from 99 to 100 ([100-(5*10**(-Precision-1)) <= X < 100] would've round to 100% misleadingly)
 	;Destroyed:
-	; $06-$07: Needed to compare the remainder with half the denominator.
+	; - $06-$07: Needed to compare the remainder with half the denominator.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		ConvertToPercentage:
 			JSL ConvertToPercentageRoundDown
@@ -1136,18 +1135,18 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;  Gradual += floor((Gradual - Actual)/Rate) + 1
 ;
 ;Input:
-;-$04-$06 (3 bytes): RAM address of the 16-bit number that is the "Actual"
-; amount
-;-$07-$09 (3 bytes): RAM address of the 16-bit number that is the "Gradual"
-; which increases or decreases to the actual amount at a rate proportional how big the difference.
-;-$0A (1 byte): The "change rate" per execution of this routine, higher
-; number written here = slower.
+; - $04-$06 (3 bytes): RAM address of the 16-bit number that is the "Actual"
+;   amount
+; - $07-$09 (3 bytes): RAM address of the 16-bit number that is the "Gradual"
+;   which increases or decreases to the actual amount at a rate proportional how big the difference.
+; - $0A (1 byte): The "change rate" per execution of this routine, higher
+;   number written here = slower.
 ;
 ;Output:
-;RAM_stored_In_07: the updated display number
+; - RAM_stored_In_07: the updated display number
 ;
 ;Destroyed:
-;$00-$03: Used for the division routine.
+; - $00-$03: Used for the division routine.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CountingAnimation16Bit:
 	REP #$20
@@ -1195,24 +1194,24 @@ CountingAnimation16Bit:
 ;and writes the terminating byte. You only need to write the tile data
 ;afterwards.
 ;
-;-$00: X position (%00XXXXXX, only bits 0-5 used, ranges from 0-63 ($00-$3F))
-;-$01: Y position (%00YYYYYY, only bits 0-5 used, ranges from 0-63 ($00-$3F))
-;-$02: What layer:
-;  $02 = Layer 1
-;  $03 = Layer 2
-;  $05 = Layer 3
-;-$03: Direction and RLE: %DR000000
-;  D = Direction: 0 = horizontal (rightwards), 1 = vertical (downwards)
-;  R = RLE: 0 = no (manually write different tiles), 1 = yes (write one
+; - $00: X position (%00XXXXXX, only bits 0-5 used, ranges from 0-63 ($00-$3F))
+; - $01: Y position (%00YYYYYY, only bits 0-5 used, ranges from 0-63 ($00-$3F))
+; - $02: What layer:
+; -- $02 = Layer 1
+; -- $03 = Layer 2
+; -- $05 = Layer 3
+; - $03: Direction and RLE: %DR000000
+;   D = Direction: 0 = horizontal (rightwards), 1 = vertical (downwards)
+;   R = RLE: 0 = no (manually write different tiles), 1 = yes (write one
 ;   tile multiple times, based on input $04-$05).
-;-$04 to $05 (16-bit): Number of tiles, minus 1 (a value of 2 here means 3
-;  tiles). (If RLE is used, this is how many times a tile is repeated).
+; - $04 to $05 (16-bit): Number of tiles, minus 1 (a value of 2 here means 3
+;   tiles). (If RLE is used, this is how many times a tile is repeated).
 ;Output:
-;-$7F837B-$7F837C: Updated length of stripe data.
-;-X register (16-bit, XY registers are 16-bit): The index position of where
-; to write tile data (starting at $7F837D+4,x)
+; - $7F837B-$7F837C: Updated length of stripe data.
+; - X register (16-bit, XY registers are 16-bit): The index position of where
+;   to write tile data (starting at $7F837D+4,x)
 ;Destroyed:
-;-$06-$08: Used when not using RLE, to calculate the terminating byte location.
+; - $06-$08: Used when not using RLE, to calculate the terminating byte location.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;note to self
 ; $7F837B = Length of stripe, counting header and tile data, but not the terminating byte.

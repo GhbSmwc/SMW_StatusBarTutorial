@@ -12,3 +12,6 @@
  -- If timer is between a minute and an hour, will only show minutes and seconds ("MM:SS")
  - Fixed an incorrect statement about WriteRepeatedSymbolsWriteVertically that $0C should
    be either $00 or $01, when actuality should be $00 or $02.
+ - Updated the info on WriteRepeatedSymbolsWriteVertically this time mentioning that the
+   position inputs refer to the top tile extending downwards for downwards and the bottom tile
+   extending upwards when extending upwards.

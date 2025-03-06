@@ -3,30 +3,31 @@
 ;represents 3/6)
 ;
 ;Input:
-;-Y index: The OAM index
-;-$02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
-;-$03: Y position, same as above.
-;-Displacement of each icon, in pixels. Both of these are signed and also represents the
-; direction of the line of repeated icons. As a side note, you can even have diagonal repeated icons.
-;--$04: Horizontal. Positive ($00 to $7F) would extend and fill to the right, negative ($80 to $FF)
-;  extends to the left.
-;--$05: Vertical. Positive ($00 to $7F) would extend and fill downwards, negative ($80 to $FF)
-;  extend upwards.
-;-$06: "Empty" icon tile number
-;-$07: "Empty" icon tile properties (YXPPCCCT)
-;-$08: "Full" icon tile number
-;-$09: "Full" icon tile properties (YXPPCCCT)
-;-$0A: How many icons are filled
-;-$0B: How many total icons there are (max total).
+; - Y index: The OAM index
+; - $02: X position, relative to screen border (you can take $00/$01, offset it (add by some number), and write on here).
+;   Note that this is the position of the first tile that fills up.
+; - $03: Y position, same as above.
+; - Displacement of each icon, in pixels. Both of these are signed and also represents the
+;   direction of the line of repeated icons. As a side note, you can even have diagonal repeated icons.
+; -- $04: Horizontal. Positive ($00 to $7F) would extend and fill to the right, negative ($80 to $FF)
+;    extends to the left.
+; -- $05: Vertical. Positive ($00 to $7F) would extend and fill downwards, negative ($80 to $FF)
+;    extend upwards.
+; - $06: "Empty" icon tile number
+; - $07: "Empty" icon tile properties (YXPPCCCT)
+; - $08: "Full" icon tile number
+; - $09: "Full" icon tile properties (YXPPCCCT)
+; - $0A: How many icons are filled
+; - $0B: How many total icons there are (max total).
 ;
 ;
 ;Output:
-;-Y index: The OAM index after writing all the icons
-;-$02: Gets displaced by $07 for each icon written.
-;-$03: Gets displaced by $08 for each icon written.
+; - Y index: The OAM index after writing all the icons
+; - $02: Gets displaced by $07 for each icon written.
+; - $03: Gets displaced by $08 for each icon written.
 ;Destroyed:
-;-$0A: Will be [max(0, NumberOfFilledIcons-Total)] when routine is finished, used as a countdown on how many full tiles to write.
-;-$0B: Will be #$00 when routine is finished, used as a countdown on how many left to write.
+; - $0A: Will be [max(0, NumberOfFilledIcons-Total)] when routine is finished, used as a countdown on how many full tiles to write.
+; - $0B: Will be #$00 when routine is finished, used as a countdown on how many left to write.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	?WriteRepeatedIconsAsOAM:
 	
