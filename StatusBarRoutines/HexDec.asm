@@ -385,10 +385,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX #$00				;>Start at the leftmost digit
 		
 		.Loop
-		LDA !Scratchram_16bitHexDecOutput,x			;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
+		LDA !Scratchram_16bitHexDecOutput,x	;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
 		BNE .NonZero				;/
-		LDA #!StatusBarBlankTile				;\blank tile to replace leading zero
-		STA !Scratchram_16bitHexDecOutput,x			;/
+		LDA #!StatusBarBlankTile		;\blank tile to replace leading zero
+		STA !Scratchram_16bitHexDecOutput,x	;/
 		INX					;>next digit
 		CPX.b #$04				;>last digit to check. So that it can display a single 0.
 		BCC .Loop				;>if not done yet, continue looping.
@@ -402,10 +402,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX #$00				;>Start at the leftmost digit
 		
 		.Loop
-		LDA !Scratchram_16bitHexDecOutput,x			;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
+		LDA !Scratchram_16bitHexDecOutput,x	;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
 		BNE .NonZero				;/
-		LDA #!StatusBarBlankTile				;\blank tile to replace leading zero
-		STA !Scratchram_16bitHexDecOutput,x			;/
+		LDA #!StatusBarBlankTile		;\blank tile to replace leading zero
+		STA !Scratchram_16bitHexDecOutput,x	;/
 		INX					;>next digit
 		CPX.b #$03				;>last digit to check. So that it can display a single 0.
 		BCC .Loop				;>if not done yet, continue looping.
@@ -417,10 +417,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX #$00				;>Start at the leftmost digit
 		
 		.Loop
-		LDA !Scratchram_16bitHexDecOutput,x			;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
+		LDA !Scratchram_16bitHexDecOutput,x	;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
 		BNE .NonZero				;/
-		LDA #!StatusBarBlankTile				;\blank tile to replace leading zero
-		STA !Scratchram_16bitHexDecOutput,x			;/
+		LDA #!StatusBarBlankTile		;\blank tile to replace leading zero
+		STA !Scratchram_16bitHexDecOutput,x	;/
 		INX					;>next digit
 		CPX.b #$02				;>last digit to check. So that it can display a single 0.
 		BCC .Loop				;>if not done yet, continue looping.
@@ -432,13 +432,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX #$00				;>Start at the leftmost digit
 		
 		.Loop
-		LDA !Scratchram_32bitHexDecOutput,x	;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
-		BNE .NonZero				;/
+		LDA !Scratchram_32bitHexDecOutput,x			;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
+		BNE .NonZero						;/
 		LDA #!StatusBarBlankTile				;\blank tile to replace leading zero
-		STA !Scratchram_32bitHexDecOutput,x	;/
-		INX					;>next digit
+		STA !Scratchram_32bitHexDecOutput,x			;/
+		INX							;>next digit
 		CPX.b #!Setting_32bitHexDec_MaxNumberOfDigits-1		;>last digit to check. So that it can display a single 0.
-		BCC .Loop				;>if not done yet, continue looping.
+		BCC .Loop						;>if not done yet, continue looping.
 		
 		.NonZero
 		RTL

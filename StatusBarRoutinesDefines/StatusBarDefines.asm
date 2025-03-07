@@ -56,7 +56,7 @@ endif
 	;Note: These are tile numbers and properties.
 	;-Tile numbers refer to what tile within a page
 	;-Tile properties are YXPCCCTT, in binary (notice the percent symbol prefix).
-		;Status bar tiles for various symbols
+		;Status bar and Layer 3 stripe tiles for various symbols
 			!StatusBarSlashCharacterTileNumb = $29		;>Slash tile number (status bar, now OWB!)
 			!StatusBarBlankTile = $FC			;>Don't change! just in case if you installed a status bar patch that relocated the blank tile.
 			!StatusBarDotTile = $24
