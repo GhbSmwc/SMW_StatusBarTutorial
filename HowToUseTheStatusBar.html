@@ -147,7 +147,7 @@ memory viewer window, go to &ldquo;Search&rdquo; &rightarrow; &ldquo;Go to Addre
 Now, for the RAM address, each byte is each 8x8 tile, meaning each time you go to the next address, its the next 8x8 tile number:<br><br>
 <table id="SMWStatusBarTable"></table><br>
 All of these bytes stored in RAM <kbd>$7E0EF9-$7E0F2E</kbd> are <kbd>TTTTTTTT</kbd>, which means you can only modify the tile number through RAM in-game. You may be wondering, if I wanted to edit the tiles here,
-what value should I put? Well, <kbd>TTTTTTTT</kbd> is actually <i>what tile number to use</i>, from the tile data. When viewing the tile data stored in <kbd>GFX28</kbd> via <a href="https://www.smwcentral.net/?p=section&a=details&id=15671">YY-CHR</a>,
+what value should I put? Well, <kbd>TTTTTTTT</kbd> is actually <i>what tile number to use</i>, from the tile data. When viewing the tile data stored in <kbd>GFX28.bin</kbd> file via <a href="https://www.smwcentral.net/?p=section&a=details&id=15671">YY-CHR</a>,
 you can find what tile graphic to use by hovering your mouse over the 8x8 tile you want to use. After this, you should see on the bottom bar of the window showing what tile number that is:<br>
 <img src="Readme_Files/TileNumber.png"><br>
 Of course, you can view the tile &ldquo;number&rdquo; with Mesen's &ldquo;Tile Viewer&rdquo; (Debugger &rightarrow; Tile viewer (not to be confused with tile<b>map</b> viewer)), it will only display its <i>tilemap address</i> on the right panel as well as the hover on your mouse cursor.
@@ -155,6 +155,10 @@ I've made a conversion <a id="TileDataAddr" href="Readme_Files/TileDataAddr.html
 
 Now you have the value you need. Just write that desired tile number to any tile number you want to write (either debugger or uberasm, if uberasm tool, you have to save, insert to your game, and run it to view the changes). For example, to write an
 item box corner tile on the left of the top row, then it is tile number <kbd>$3A</kbd> to write at <kbd>$7E0EF9</kbd>, if using uberasm tool, its <kbd>LDA #$3A : STA $0EF9|!addr</kbd>.</p>
+
+<p>Please note that graphic files in these <kbd>.bin</kbd> covers half a page, and are always displayed at the top-half of that page on YY-CHR (assuming you have the &ldquo;Use Joined GFX files&rdquo; in the &ldquo;ROM Editing Options&rdquo; unchecked). And YY-CHR
+always have the tile numbering start at <kbd>$00</kbd> on the top left of that page, even when that graphic file is used on the page's bottom half when used in the game. If that's the case, you can convert the YY-CHR's top-half-only numbering to bottom-half by
+simply adding its tile number shown by the program by <kbd>$80</kbd>. For example, The big zero (used by the bonus stars counter) top-half is tile <kbd>$37</kbd> in <kbd>GFX2A.bin</kbd> in YY-CHR, but when loaded into the game, it is <kbd>$37 + $80 = $B7</kbd>.</p>
 
 <p>Now hold up, when you play around with the tiles, many tiles will use the wrong palette, well, this is part of the tile properties (in binary, its <kbd>%YXPCCCTT</kbd>) that's hard-coded, that's right, there are actually 2 bytes of information
 for each 8x8 tile with the tile numbers being in ROM and RAM and the properties all being hardcoded. When the level loads, the status bar routine will first transfer default tile number and properties from ROM addresses <kbd>$008C81-$008CFE</kbd>,
