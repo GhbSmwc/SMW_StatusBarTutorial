@@ -15,3 +15,4 @@
  - Updated the info on WriteRepeatedSymbolsWriteVertically this time mentioning that the
    position inputs refer to the top tile extending downwards for downwards and the bottom tile
    extending upwards when extending upwards.
+ - Code blocks in the main readme now uses CSS overflows and re-sizable for ease of reading.

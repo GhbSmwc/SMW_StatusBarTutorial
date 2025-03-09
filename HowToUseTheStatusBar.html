@@ -16,6 +16,17 @@
 				white-space: nowrap;
 			}
 			
+			div.CodeBlock {
+				overflow: auto;
+				width: 1000px;
+				height: 500px;
+				border: 1px solid white;
+				resize: both;
+			}
+			pre {
+				margin-top: 0px;
+			}
+			
 			abbr{cursor: help;}
 		</style>
 	</head>
@@ -218,23 +229,23 @@ are &ldquo;TileNumber and Props in their own table&rdquo; format but without the
 <th>2-bytes together</th>
 </tr>
 <tr>
-<td><table><tr><td><pre>!TileNumbAddr: TTTTTTTT (tile 0)
+<td><div class="CodeBlock"><pre>!TileNumbAddr: TTTTTTTT (tile 0)
 !TileNumbAddr+1: TTTTTTTT (tile 1)
 !TileNumbAddr+2: TTTTTTTT (tile 2)
 !TileNumbAddr+3: TTTTTTTT (tile 3)
-[...]</pre></td></tr></table>
+[...]</pre></div>
 On a separate table:
-<table><tr><td><pre>!TilePropAddr: YXPCCCTT (tile 0)
+<div class="CodeBlock"><pre>!TilePropAddr: YXPCCCTT (tile 0)
 !TilePropAddr+1: YXPCCCTT (tile 1)
 !TilePropAddr+2: YXPCCCTT (tile 2)
 !TilePropAddr+3: YXPCCCTT (tile 3)
 [...]
-;I refer this as "[TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]"</pre></td></tr></table><br>
+;I refer this as "[TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]"</pre></div><br>
 Tile numbers and properties are stored in 2 separate tables, one for each.
 Every time you advance the next byte, you are on the next 8x8 tile.
 </td>
 
-<td><table><tr><td><pre>!TileAddr: TTTTTTTT (tile 0)
+<td><div class="CodeBlock"><pre>!TileAddr: TTTTTTTT (tile 0)
 !TileAddr+1: YXPCCCTT (tile 0)
 !TileAddr+2: TTTTTTTT (tile 1)
 !TileAddr+3: YXPCCCTT (tile 1)
@@ -244,7 +255,7 @@ Every time you advance the next byte, you are on the next 8x8 tile.
 !TileAddr+7: YXPCCCTT (tile 3)
 [...]
 
-;I call refer this as "[TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]"</pre></td></tr></table><br>
+;I call refer this as "[TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]"</pre></div><br>
 Every tile have 2 bytes placed one after another, so both tile numbers and properties are alternating
 every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead of one.
 
@@ -310,7 +321,7 @@ the score gets covered by boss's heath bar that only shows up during bosses) and
 
 <p>Before we start using the subroutines, we will demonstrate how to write tiles that change based on a given info <kbd>!Freeram_ValueDisplay1_1Byte</kbd>. It's very easy to write a tile that is different depending on
 a condition using branches:
-<table><tr><td><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
+<div class="CodeBlock"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
@@ -322,9 +333,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	LDA #$01
 	++
 	STA !StatusBar_TestDisplayElement_Pos_Tile
-	RTL</pre></td></tr></table><br>
+	RTL</pre></div><br>
 and if you are tired of using branches, then an even simpler approach is to use tables:
-<table><tr><td><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
+<div class="CodeBlock"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
@@ -340,7 +351,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	db $0C ;&gt;When !Freeram_ValueDisplay1_1Byte = $02
 	
 	;If !Freeram_ValueDisplay1_1Byte contains values greater than $02,
-	;it will read past the last byte of the table into unrelated (garbage) data.</pre></td></tr></table></p>
+	;it will read past the last byte of the table into unrelated (garbage) data.</pre></div></p>
 	
 <p>But what about other not-so-simple displays? Well, the following shows you how to do that.</p>
 
@@ -519,7 +530,7 @@ for the tens and <kbd><span style="color: blue">$02</span>+$22 = $24</kbd> for t
 
 
 <p>Create a text file, name it <kbd>StatusBarTest.asm</kbd>. Edit that text file to include only this code:
-<table><tr><td><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
+<div class="CodeBlock"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
@@ -529,7 +540,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	TXA								;&gt;if you are using status bar patches, STX $xxxxxx will not work.
 	STA !StatusBar_TestDisplayElement_Pos_Tile			;&gt;Write 10s place
 	RTL
-</pre></td></tr></table></p>
+</pre></div></p>
 
 <p>Now save, and insert in either as gamemode under number 14 (level), or level. Then run the tool to apply the changes.</p>
 
@@ -558,7 +569,7 @@ other than digits. This is because of how the routine works, is that the 10s pla
 &ldquo;digits&rdquo; greater than 9 (98, 99, A0, A1, A2...).</p>
 
 <p>You can fix this problem and make it allow the full range of the 8-bit value by after writing the ones digit, TXA, then call the routine again, and after that, A is the 10s, and X is the 100s place:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -572,7 +583,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	TXA								;&gt;STX $xxxxxx don't exists.
 	STA !StatusBar_TestDisplayElement_Pos_Tile			;&gt; Write 100s place
 	RTL
-</pre></td></tr></table><br>
+</pre></div><br>
 How this works is that it uses <a href="https://en.wikipedia.org/wiki/Euclidean_division">euclidean division</a>. The subroutine <kbd>HexDec_EightBitHexDec</kbd>
 subtract the input A by 10 repeatedly until A is less than 10, it also counts how many times it subtracted, and have that value in the X register. Because euclidean division
 is essentially repeated subtraction, the output X is the quotient (rounded down) and A is the remainder. With the X register increasing every 10th value, this can represent the
@@ -585,7 +596,7 @@ will be able to glitch out at 1000. For more information how base conversion wor
 digits outputted, not really harsh since this is 8-bit, so up to 25 iterations for a 2-digit (plus up to 2 more for 10s and 100s by calling the HexDec routine again). However, if you
 DO want speed/performance, do this instead. This works the digits from left-to-right by repeatedly subtracting 100 until A is 0-99. The number of subtractions is now how many 100s for the 100s digit, after
 that, with A being 0-99, we do the same but with 10s (how many 10s) instead of 100s to find how many 10s. After that, A is 0-9 which is already the ones place:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -598,7 +609,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	TYA								;\Write 100s place.
 	STA !StatusBar_TestDisplayElement_Pos_Tile			;/
 	RTL
-</pre></td></tr></table></p>
+</pre></div></p>
 
 <p>What about if I wanted to convert 16-bit numbers (or if you have 3-5 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit HexDec
 converters. Introducing <kbd>SixteenBitHexDecDivision</kbd>. Here is the following code in question (up to 65535). Example, RAM $60 contains the value <kbd>$1234</kbd>
@@ -616,7 +627,7 @@ As a side note, all &ldquo;bigger number&rdquo; (handles more bytes to handle la
 the higher byte(s). For example: using a 16-bit hexdec, an 8-bit number #$FF, when supplied into the input, you then zero out the high byte (<kbd>STZ $01</kbd>) so that it treats the value as <kbd>#$00FF</kbd>.
 
 Here is the code in question for you to test:</p>
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -647,7 +658,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			DEX #2
 			BPL -
 		endif
-	RTL</pre></td></tr></table><br>
+	RTL</pre></div><br>
 	
 	<p>Greater than 65535? (unlikely for other stuff besides a huge currency counter or custom score). This one is a 32-bit (4 bytes) HexDec, up to
 	4,294,967,295 (<kbd>$FFFFFFFF</kbd>) can be properly displayed. Remember, this is little endian, for example: a number
@@ -673,7 +684,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	</table><br>
 	
 	Code in question:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -712,7 +723,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			DEX #2
 			BPL -
 		endif
-	RTL</pre></td></tr></table><br>
+	RTL</pre></div><br>
 	
 Don't ask me to make an even larger number display, because not many games would ever display 10 digits at once, plus, it takes up space on the HUD.</p>
 
@@ -732,7 +743,7 @@ unused digits always showing 0 on the millions (1000000s) and beyond (so don't d
 	a routine isn't necessary:
 	<ul>
 		<li>For 2-digit numbers, just replace the 10s place digit with tile #$FC (defined as <kbd>!StatusBarBlankTile</kbd>) if it is 0:
-<table><tr><td><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
+<div class="CodeBlock"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
@@ -747,10 +758,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	
 	.NotLeadingZero
 	STA !StatusBar_TestDisplayElement_Pos_Tile			;&gt;Write 10s place
-	RTL</pre></td></tr></table>
+	RTL</pre></div>
 		</li>
 		<li>For 3-digit numbers, use this code template:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -783,7 +794,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				TXA								;\Write 10s place
 				STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;/
 	.Done
-	RTL</pre></td></tr></table></li>
+	RTL</pre></div></li>
 	</ul>
 	</p>
 <h3 id="AlignedDigits"><a href="#AlignedDigitsBack">^</a>Remove Leading zeros, with left/right-aligned digits</h3>
@@ -799,7 +810,7 @@ When written to the status bar:<br>
 <img src="Readme_Files/StatusBarStringTransfer.png">
 </p>
 <p>To use the routine, here is the code template:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -850,9 +861,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_WriteStringDigitsToHUDFormat2
 		endif
 	..TooMuchDigits
-	RTL</pre></td></tr></table>
+	RTL</pre></div>
 32-bit? Here you go:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -905,7 +916,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_WriteStringDigitsToHUDFormat2
 		endif
 	..TooMuchDigits
-	RTL</pre></td></tr></table><br>
+	RTL</pre></div><br>
 
 But what if I wanted to display 2 numbers &ldquo;X/Y&rdquo; (for example: &ldquo;260/300&rdquo;)? Well, you just have the codes be (loosely) called twice under &ldquo;<kbd>Number to string</kbd>&rdquo; but like this instead:
 <ol>
@@ -928,7 +939,7 @@ But what if I wanted to display 2 numbers &ldquo;X/Y&rdquo; (for example: &ldquo
 	</li>
 </ol>
 Here is an example using 2 16-bit numbers:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -994,9 +1005,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_WriteStringDigitsToHUDFormat2
 		endif
 	..TooMuchDigits
-	RTL</pre></td></tr></table>
+	RTL</pre></div>
 ...and 2 32-bit numbers (Debugging for SA-1 remapped default RAM addresses: <kbd>!RAMToMeasure = $3060</kbd>, <kbd>!RAMToMeasure2 = $6F3A</kbd>):
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -1067,7 +1078,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_WriteStringDigitsToHUDFormat2
 		endif
 	..TooMuchDigits
-	RTL</pre></td></tr></table>
+	RTL</pre></div>
 Again, use the debugger if you wanted to test the values using the memory editor and editing the RAM address defined by <kbd>!RAMToMeasure</kbd>, and this time, also <kbd>!RAMToMeasure2</kbd>.</p>
 
 <h4 id="RightAligned"><a href="#RightAlignedBack">^</a>Right aligned display</h3>
@@ -1079,7 +1090,7 @@ on how long the string are (loop-writes are based on the starting byte of an arr
 routine to write to the HUD.<br><br>
 
 16-bit:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -1147,11 +1158,11 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_WriteStringDigitsToHUDFormat2
 		endif
 	..TooMuchDigits
-	RTL</pre></td></tr></table>
+	RTL</pre></div>
 	It should result like this:<br>
 	<img src="Readme_Files/RightAligned2Numbers.png"></p>
 	32-bit version:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -1223,16 +1234,16 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_WriteStringDigitsToHUDFormat2
 		endif
 	..TooMuchDigits
-	RTL</pre></td></tr></table>
+	RTL</pre></div>
 <h3 id="IncrementDecrementAnimation"><a href="#IncrementDecrementAnimationBack">^</a>Counting animation</h3>
 <p>In many video games, when a number is displayed on the HUD and is added or subtracted by another value (that is greater than 1), the number will gradually increase or decrease,
 then stops, instead of instantly displaying the new result value. SMW does have that with the bonus stars and score when completing the level. SMW also does this with the coins,
 but most of the time increment by 1 in the main game (an unused flying red coin, sprite $7E increments by 5). This is done by using $13CC as an &ldquo;adder&rdquo;, for every
 value in this RAM, increments the coin count, and decreases itself once per frame. See this code here from its code:
-<table><tr><td><pre>CODE_008F1D:        AD CC 13      LDA.W $13CC               ; \ If Coin increase isn't x00, 
+<div class="CodeBlock"><pre>CODE_008F1D:        AD CC 13      LDA.W $13CC               ; \ If Coin increase isn't x00, 
 CODE_008F20:        F0 19         BEQ CODE_008F3B           ; / branch to $8F3B 
 CODE_008F22:        CE CC 13      DEC.W $13CC               ; Decrease "Coin increase" 
-CODE_008F25:        EE BF 0D      INC.W RAM_StatusCoins     ; Increase coins by 1 </pre></td></tr></table>
+CODE_008F25:        EE BF 0D      INC.W RAM_StatusCoins     ; Increase coins by 1 </pre></div>
 
 There are two types of increment animation:
 <ul>
@@ -1256,7 +1267,7 @@ I usually call this a &ldquo;record effect&rdquo; on my older ASM works, but thi
 <tr><th>Actual amount counting</th><th>Mere display counting</th></tr>
 <tr>
 <td>
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -1317,13 +1328,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;each other out as both will increase and decrease together (results !Freeram_ValueDisplay1_1Byte
 	;will stay the same), until one or the other is zero and starts adding or subtracting,
 	;whatever is greater. For example, Adder is 30 and Subtracter is 5, results 5 frames
-	;of no change, then increments by 1 25 times.</pre></td></tr></table>
+	;of no change, then increments by 1 25 times.</pre></div>
 Note that if you want to stack values (say you want to add by 30 twice individually), it is a better idea to not set <kbd>!Freeram_Adder</kbd> to <kbd>#$1E</kbd>, rather to
 take <kbd>!Freeram_Adder</kbd>, then add <kbd>CLC : ADC.b &lt;AdderAmount&gt;</kbd>, and then write back to <kbd>!Freeram_Adder</kbd>, otherwise it will not add properly (the second increase amount would be
 <kbd>SetToAmount - AdderAmountLeft</kbd> instead where in this example that <kbd>SetToAmount = 30</kbd> and <kbd>AdderAmountLeft</kbd> is the current amount to add up to <kbd>!RAMToMeasure</kbd>).
 </td>
 <td>
-<table><tr><td><pre>
+<div class="CodeBlock" style="height: 400px;"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -1356,22 +1367,22 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)	;/
 	TYA								;\Write 100s place.
 	STA !StatusBar_TestDisplayElement_Pos_Tile			;/
-	RTL</pre></td></tr></table><br>
+	RTL</pre></div><br>
 If you want the counter to count even slower instead of once per frame, under the sublabel
 <kbd>.CountingAnimation</kbd>, and before the first <kbd>LDA</kbd> add this code:
-<table><tr><td><pre>	LDA $13
+<div class="CodeBlock" style="height:60px;"><pre>	LDA $13
 	AND.b #%00000011
-	BNE ..NoChange</pre></td></tr></table><br>
+	BNE ..NoChange</pre></div><br>
 The AND values must be powers of 2, minus 1 (value_for_AND = (2^n)-1) where n is how much delay, in powers of 2 of frames.
 What will happen is that the number will change by 1 every 2<sup>n</sup> frames. If you want the display to freeze when $9D is set, use this code instead:
-<table><tr><td><pre>	LDA $9D
+<div class="CodeBlock" style="height: 150px;"><pre>	LDA $9D
 	ORA $13D4|!addr
 	BNE ..NoChange
 
 	LDA $14
 	AND.b #%00000011		;&gt;Again, this is value_for_AND = (2^n)-1 where n is powers of 2 delay.
 	BNE ..NoChange
-</pre></td></tr></table>
+</pre></div>
 </td>
 </tr>
 </table>
@@ -1382,14 +1393,14 @@ Note that there are a major drawback:
 adder/subtractor be reset during transitions, otherwise the amount change gets cut off, which stops the counter prematurely and therefore not get the total or difference properly. You can &ldquo;skip the
 animation&rdquo; (&ldquo;fast-foward&rdquo;, instantly add) by taking the current value, add by the remaining values to be added (like taking the coin counter (<kbd>$0DBF</kbd>), add <kbd>CLC : ADC</kbd> by <kbd>$13CC</kbd>, store the total back to <kbd>$0DBF</kbd>) and then
 set the adder to zero (since it is already added and we do not want to add even more):
-<table><tr><td><pre>LDA $0DBF		;\Instantly add
+<div class="CodeBlock"><pre>LDA $0DBF		;\Instantly add
 CLC			;|
 ADC $13CC		;|
 STA $0DBF		;/
 STZ $13CC		;&gt;And stop adding even more (one coin count up is one adder down, until adder is zero).
-</pre></td></tr></table>
+</pre></div>
 Now note that the above is just a mock up, and does not handle a 100-coin rollover (going over 100 would subtract by 100 simulating a wraparound). Use this code instead for real coin handling (has a strong failsafe measure) (<kbd>JSL</kbd> to it during fade outs, like gamemode <kbd>$0F<kbd> for example):
-<table><tr><td><pre>AddNCoinsWithRollOver:
+<div class="CodeBlock"><pre>AddNCoinsWithRollOver:
 	LDA $0DBF|!addr		;\Instantly add
 	CLC			;|
 	ADC $13CC|!addr		;|
@@ -1423,14 +1434,14 @@ AddLivesInstantly:
 			STA $0DBE|!addr
 		..NotMaxed
 	Done:
-	RTL</pre></td></tr></table>
+	RTL</pre></div>
 
 </p></li>
 </ul>
 </p>
 For the &ldquo;Mere display counting&rdquo; you can alleviate the lengthy counting animation by taking the absolute difference of the display amount and actual amount, and check if the difference is too big, would
 subtract/add by a larger amount, therefore instead of subtracting by a set amount per frame, you subtract by the proportion of the difference size. Here is an example using 16-bit number:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -1508,11 +1519,11 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			DEX #2
 			BPL -
 		endif
-	RTL</pre></td></tr></table><br>
+	RTL</pre></div><br>
 	
 Alternatively, I developed a subroutine that you can supply any RAM addresses as the input for the subroutine <kbd>CountingAnimation16Bit</kbd> (both RAMs must be 16-bit) and it will increment/decrement
 the display value for you:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -1567,7 +1578,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 			DEX #2
 			BPL -
 		endif
-	RTL</pre></td></tr></table>
+	RTL</pre></div>
 <hr>
 <h2 id="Frames2Timer"><a href="#Frames2TimerBack">^</a>Display a timer in Hours:Minutes:Seconds:Centiseconds format</h2>
 Perhaps, if you wanted to display a timer on the HUD in HH:MM:SS.CC (or MM:SS.CC) format, I've provided a routine for that and a code to use it, see <a href="UberasmTool_HudTest/Level_Timer.asm"><kbd>UberasmTool_HudTest/Level_Timer.asm</kbd></a>
@@ -1610,9 +1621,9 @@ Perhaps, if you wanted to display a timer on the HUD in HH:MM:SS.CC (or MM:SS.CC
 </table>
 </p>
 <p>This works by taking a 32-bit frame counter (it must increment by 1 every 1/60th of a second, which is the NTSC SNES's game loop speed) and doing repeated divisions by 60:
-<table><tr><td><pre>Frames / 60 = Q: Seconds R: Frames		;&gt;We have seconds (not wrapped 0-59 yet), and frames (wrapped 0-59, then displayed as 0-<abbr title="Actually 98, due to 59/60 = 0.98[3]">99</abbr>)
+<div class="CodeBlock"><pre>Frames / 60 = Q: Seconds R: Frames		;&gt;We have seconds (not wrapped 0-59 yet), and frames (wrapped 0-59, then displayed as 0-<abbr title="Actually 98, due to 59/60 = 0.98[3]">99</abbr>)
 Seconds / 60 = Q: Minutes R: Seconds		;&gt;We have minutes (not wrapped 0-59 yet), and seconds (wrapped 0-59)
-Minutes / 60 = Q: Hours R: Minutes		;&gt;We have hours (not wrapped 0-59), and minutes (wrapped 0-59)</pre></td></tr></table>
+Minutes / 60 = Q: Hours R: Minutes		;&gt;We have hours (not wrapped 0-59), and minutes (wrapped 0-59)</pre></div>
 
 
 This is an entirely different format from <a href="https://www.smwcentral.net/?p=section&a=details&id=16365">Imamelia's timer</a>
@@ -1650,7 +1661,7 @@ As of the time of writing this, the rightmost number on Imamelia's timer isn't t
 			</ul>
 	</li>
 	This is commonly done in pseudo 8-bit math to produce a potentially 16-bit number, for example with addition:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 	;Made-up example: #$<span style="color: blue">12</span><span style="color: red">34</span> + #$<span style="color: blue">56</span><span style="color: red">78</span> without carry set.
 		LDA <span style="color: red">#$34</span>	;\Low byte
 		CLC		;|#$34 + #$78 = #$AC
@@ -1670,7 +1681,7 @@ As of the time of writing this, the rightmost number on Imamelia's timer isn't t
 		ADC <span style="color: blue">#$02</span>	;|carry set after this since A went above #$FF.
 		STA $01		;/
 		
-		;$00 to $01 = #$0100, carry set. The actual correct math is #$FEFF + #$0201 = #$10100 but the low 2 bytes are stored in $00-$01.</pre></td></tr></table>
+		;$00 to $01 = #$0100, carry set. The actual correct math is #$FEFF + #$0201 = #$10100 but the low 2 bytes are stored in $00-$01.</pre></div>
 	The exact same thing can be done using 16-bit numbers to produce values that are bigger than the maximum register size (bigger than 16-bit, like 32-bit mode). Off-topic note: this also works with bit shifting as well, by using ASL/LSR, and then ROL/ROR.
 	The carry flag is essentially a &ldquo;bridge&rdquo; to numbers bigger than the register size. To detect an overflow/underflow, just use BCC/BCS (branch if carry clear/set) AFTER all the bytes are added/subtracted/shifted. Also another off-topic is that
 	SBC is very similar to CMP, but without affecting the A register.
@@ -1681,14 +1692,14 @@ As of the time of writing this, the rightmost number on Imamelia's timer isn't t
 in case if you need to check their values stored in memory or needed to put direct frame values in there for adding/subtracting.</p>
 
 <p>Protip: most video games never have a countdown timer of over 10 minutes, so you don't need a 32-bit number, you can simply use a smaller number of bytes (preferably 16-bit, 65535 frames is about 18 minutes, see table below) and mask the high n bytes with zeroes. For example:
-<table><tr><td><pre>	..StopTimer
+<div class="CodeBlock" style="height: 150px;"><pre>	..StopTimer
 	REP #$20			;\Get timer format
 	LDA !RAMToMeasure		;|
 	STA $00				;|
 	LDA #$0000			;|\High words (upper 2 bytes of the 4-byte 32-bit input masked)
 	STA $02				;|/Alternative, you can replace these 2 lines with STZ $02.
 	SEP #$20			;|
-	JSL HexDec_Frames2Timer		;/</pre></td></tr></table>
+	JSL HexDec_Frames2Timer		;/</pre></div>
 Here are the maximums values of the frame value and their timer equivalents:
 <table>
 	<tr><th>Number of bytes (max value/hex)</th><th>How long</th></tr>
@@ -1702,7 +1713,7 @@ Here are the maximums values of the frame value and their timer equivalents:
 <h2 id="Percentage"><a href="#PercentageBack">^</a>Display a percentage</h2>
 <p>This tutorial displays a number representing a percentage of something. Because we are dealing with integers here (The SNES does not support floating point numbers), we have to multiply first before we divide, as every
 arithmetic operation <a href="https://en.wikipedia.org/wiki/Rounding">rounds</a> (specifically, division) the number to an integer:
-<table><tr><td><pre>Improper way of dividing integers:
+<div class="CodeBlock"><pre>Improper way of dividing integers:
 	Percentage = (Amount / TotalAmount) * PercentagePrecision
 	
 	Result: Only values 0% and 100% are possible results, values in between are not.
@@ -1736,11 +1747,11 @@ Example:
 			and after division:
 				66 when rounded down, off by a meager 0.[6]
 				67 when rounded up, off by a meager 0.[3]
-</pre></td></tr></table><br>
+</pre></div><br>
 <kbd>PercentagePrecision</kbd> is 100, 1000, or 10000. The reason of this is to allow a more precise display by showing decimal fractions of a percentage (example: 50.03%). This works by using
 <a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point arithmetic</a>. Meaning that a value <kbd>5003</kbd> stored in memory means 50.03 when using 10000 scaling. Here is a sample template
 code to display a percentage:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -2004,7 +2015,7 @@ main:
 		endif
 			.Done
 	;Done
-		RTL</pre></td></tr></table><br>
+		RTL</pre></div><br>
 The calculation to find the percentage is handled in <kbd>ConvertToPercentage</kbd>. Depending on what is written to <kbd>!Scratchram_PercentageFixedPointPrecision</kbd> determines should the numerator be out of 100, 1000, or 10000,
 which after the HexDec routine, you can write the first n digits, then the decimal point (tile <kbd>#$24</kbd>), and then the last n digits, example:
 <table>
@@ -2092,7 +2103,7 @@ You may be wondering, why am I using 16-bit on some areas (including within the 
 <font size="10">&#9642;&#9642;&#9642;&#9642;&#9643;</font><br>
 SMW actually does this with its yoshi coin counter (some or all of them shows a coin symbol with the rest showing tile $FC). This is often used whenever a number of something is a small amount. Code follows (make sure you insert
 &ldquo;<kbd>RepeatedSymbols.asm</kbd>&rdquo; into uberasm tool's library as well):
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -2139,13 +2150,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL RepeatedSymbols_WriteRepeatedSymbolsLeftwardsFormat2
 		endif
 	endif
-	RTL</pre></td></tr></table><br>
+	RTL</pre></div><br>
 Using that code from above, the result is this with RAM $60 containing the value 3:<br>
 <kbd>WriteRepeatedSymbols</kbd>: <img src="Readme_Files/RepeatedSymbol_3_5.png"> (SMW does not have a &ldquo;empty tile&rdquo; that is visible, so instead of using tile $FC, I used
 tile $26, which is the &ldquo;X&rdquo; symbol.), when using <kbd>WriteRepeatedSymbolsLeftwards</kbd> (<kbd>!Leftwards = 1</kbd>): <img src="Readme_Files/RepeatedSymbolLeftwards_3_5.png"></p>
 
 <p>I also included vertical version, <kbd>WriteRepeatedSymbolsWriteVertically</kbd>. Example code:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -2197,7 +2208,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	else
 		JSL RepeatedSymbols_WriteRepeatedSymbolsWriteVerticallyFormat2
 	endif
-	RTL</pre></td></tr></table>
+	RTL</pre></div>
 Please note that this only supports status bars whose rows are all 32 tiles each, with each rows are lined up vertically, and each row are contiguous to each other, else your tiles will not line up vertically.
 Only Super status bar patch, SMB3 status bar, and OWB+ patch have these at the time of writing this. Also note that this is not to be used for stripe images, as stripe images have their own dedicated vertical version
 of tile writes.<br><br>
@@ -2327,7 +2338,7 @@ graphic. The filename in <kbd>ExGFX</kbd> should be obvious.</p>
 
 
 <p>8-bit 2-digit:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -2362,10 +2373,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDA.b #!OverWorldBorder_TileProp
 		STA !OverworldBorder_TestDisplayElement_Pos_Prop
 		STA !OverworldBorder_TestDisplayElement_Pos_Prop+(1*2)
-	RTL</pre></td></tr></table></p>
+	RTL</pre></div></p>
 
 <p>8-bit 3-digit:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -2423,9 +2434,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			STA !OverworldBorder_TestDisplayElement_Pos_Prop
 			STA !OverworldBorder_TestDisplayElement_Pos_Prop+(1*2)
 			STA !OverworldBorder_TestDisplayElement_Pos_Prop+(2*2)
-		RTL</pre></td></tr></table></p>
+		RTL</pre></div></p>
 <p>16-bit N-digit:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -2458,9 +2469,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		DEX #2
 		BPL -
 	RTL
-</pre></td></tr></table></p>
+</pre></div></p>
 <p>32-bit n-digit:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -2501,9 +2512,9 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		DEY
 		DEX #2
 		BPL -
-	RTL</pre></td></tr></table></p>
+	RTL</pre></div></p>
 <p>Left and right aligned with 16-bit numbers:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -2615,9 +2626,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		endif
 		JSL HexDec_WriteStringDigitsToHUDFormat2
 	..TooMuchDigits
-	RTL</pre></td></tr></table></p>
+	RTL</pre></div></p>
 <p>Left and right aligned with 32-bit numbers:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -2734,9 +2745,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		endif
 	..TooMuchDigits
 	RTL
-</pre></td></tr></table></p>
+</pre></div></p>
 <p>A percentage:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -2978,7 +2989,7 @@ main:
 			.Done
 	;Done
 		RTL
-</pre></td></tr></table></p>
+</pre></div></p>
 
 <hr>
 <h2 id="OAMHud"><a href="#OAMHudBack">^</a>Sprite-based HUD</h2>
@@ -3541,7 +3552,7 @@ and OWB+, its tile data format is &ldquo;2-bytes together&rdquo;. Unlike the sta
 tiles to the stripe have &ldquo;dynamic&rdquo; location since this is a table, thus the way you write them is different.</p>
 
 <p>8-bit, 2 digits:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -3583,11 +3594,11 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		STA.l $7F837D+6+1,x				;/
 		SEP #$30
 		RTL
-</pre></td></tr></table>
+</pre></div>
 </p>
 <p>
 8-bit, 3 digits:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -3653,10 +3664,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		STA.l $7F837D+8+1,x				;/
 		SEP #$30
 		RTL
-</pre></td></tr></table></p>
+</pre></div></p>
 
 <p>16-bit N-digit:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -3714,10 +3725,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		PLX				;&gt;Pull stripe index, into X
 		SEP #$30
 		RTL
-</pre></td></tr></table></p>
+</pre></div></p>
 
 <p>32-bit N-digit:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -3777,11 +3788,11 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		DEX						;|
 		BPL -						;/
 	RTL
-</pre></td></tr></table>
+</pre></div>
 </p>
 <p>
 16-bit N-digit with left/right aligned:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -3970,12 +3981,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		SEP #$30
 	endif
 	RTL
-</pre></td></tr></table>
+</pre></div>
 </p>
 
 <p>
 32-bit N-digit with left and right aligned:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -4175,36 +4186,34 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		RTL
 	endif
 	RTL
-</pre></td></tr></table>
+</pre></div>
 </p>
 <p>Percentage:
-<table><tr><td><pre>
-!RAMToMeasure = $60							;&gt;[2 bytes] RAM address you what to show (Quantity)
-!RAMToMeasure2 = $62							;&gt;[2 bytes] RAM address you what to show (MaxQuantity)
+<div class="CodeBlock"><pre>
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
 !Default_PercentagePrecision = 2
  ;^0 = show whole number precisions, 1 = 1/10 of a percentage, 2 = 1/100. Not to be confused
  ; with !Scratchram_PercentageFixedPointPrecision.
 !CapAt100 = 1								;&gt;0 = allow percentage to display values greater than 100, 1 = cap at 100.
 !RightAligned = 0							;&gt;0 = left-aligned, 1 = right-aligned.
 
-if !RightAligned == 0
- !Stripe_X_Pos = 01								;\Stripe tile position (left aligned)
- !Stripe_Y_Pos = 26								;/
-else
- !Stripe_X_Pos = 30								;\Stripe tile position (right-aligned)
- !Stripe_Y_Pos = 26								;/
-endif
-!TileProps = %00111000								;&gt;Properties of the digits (when enabled).
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
-
-	;Don't touch
-		!NumberOfCharactersMaxedMinus1 = 3 ;&gt;"100%" is 4 characters, which means a value of 3 should be used
-		if !Default_PercentagePrecision == 1
-			!NumberOfCharactersMaxedMinus1 = 5 ;&gt;"100.0%" is 6 characters, which means a value of 5 should be used
-		elseif !Default_PercentagePrecision == 2
-			!NumberOfCharactersMaxedMinus1 = 6 ;&gt;"100.00%". 7 -&gt; 6
-		endif
+;Don't touch
+	if !RightAligned == 0
+		!Stripe_X_Pos = !Layer3Stripe_TestDisplayElement_PosX	;\Stripe tile position (left aligned)
+		!Stripe_Y_Pos = !Layer3Stripe_TestDisplayElement_PosY	;/
+	else
+		!Stripe_X_Pos = !Layer3Stripe_TestDisplayRightAlignedNumber_PosX	;\Stripe tile position (right-aligned)
+		!Stripe_Y_Pos = !Layer3Stripe_TestDisplayRightAlignedNumber_PosY	;/
+	endif
+	!NumberOfCharactersMaxedMinus1 = 3 ;&gt;"100%" is 4 characters, which means a value of 3 should be used
+	if !Default_PercentagePrecision == 1
+		!NumberOfCharactersMaxedMinus1 = 5 ;&gt;"100.0%" is 6 characters, which means a value of 5 should be used
+	elseif !Default_PercentagePrecision == 2
+		!NumberOfCharactersMaxedMinus1 = 6 ;&gt;"100.00%". 7 -&gt; 6
+	endif
 
 main:
 	;Setup stripe
@@ -4227,9 +4236,9 @@ main:
 		SEP #$30
 	;Submit fraction
 		REP #$20
-		LDA !RAMToMeasure
+		LDA !Freeram_ValueDisplay1_2Bytes
 		STA !Scratchram_PercentageQuantity
-		LDA !RAMToMeasure2
+		LDA !Freeram_ValueDisplay2_2Bytes
 		STA !Scratchram_PercentageMaxQuantity
 		SEP #$20
 		LDA #!Default_PercentagePrecision
@@ -4312,7 +4321,7 @@ main:
 							LDA #!StatusBarBlankTile			;&gt;If 0, replace 10s digit with blank.
 						...WriteTens
 							STA $7F8381+(1*2),x				;&gt;Write 10s place
-						LDA #!TileProps
+						LDA #!StatusBar_TileProp
 						STA $7F8381+(0*2)+1,x
 						STA $7F8381+(1*2)+1,x
 						STA $7F8381+(2*2)+1,x
@@ -4344,7 +4353,7 @@ main:
 					..Loop
 						LDA #!StatusBarBlankTile
 						STA [!Scratchram_16bitHexDecOutput+5],y
-						LDA.b #!TileProps
+						LDA.b #!StatusBar_TileProp
 						INY
 						STA [!Scratchram_16bitHexDecOutput+5],y
 						DEY
@@ -4362,20 +4371,20 @@ main:
 					BCS ..TooMuchDigits
 					STX $07			;&gt;Save number of characters
 				;Write to layer 3
-					LDA #$7F		;\$00-$02: Stripe to write tile numbers
-					STA $02			;|$03-$05: Stripe to write tile properties
-					STA $05			;|
-					REP #$30		;|
-					PLX			;|&gt;Pull 16-bit stripe index
-					TXA			;|
-					CLC			;|
-					ADC.w #$7F8381		;|
-					STA $00			;|
-					INC			;|
-					STA $03			;|
-					SEP #$30		;/
-					LDA.b #!TileProps	;\Tile Properties
-					STA $06			;/
+					LDA #$7F			;\$00-$02: Stripe to write tile numbers
+					STA $02				;|$03-$05: Stripe to write tile properties
+					STA $05				;|
+					REP #$30			;|
+					PLX				;|&gt;Pull 16-bit stripe index
+					TXA				;|
+					CLC				;|
+					ADC.w #$7F8381			;|
+					STA $00				;|
+					INC				;|
+					STA $03				;|
+					SEP #$30			;/
+					LDA.b #!StatusBar_TileProp	;\Tile Properties
+					STA $06				;/
 					LDX $07			;&gt;Number of characters
 					JSL HexDec_WriteStringDigitsToHUDFormat2
 					RTL
@@ -4402,7 +4411,7 @@ main:
 					LDA #$24 : STA $7F8381+(3*2),x					;&gt;.
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA $7F8381+(4*2),x	;&gt;1/10ths
 					LDA #!StatusBarPercentTile : STA $7F8381+(5*2),x		;&gt;%
-					LDA #!TileProps
+					LDA #!StatusBar_TileProp
 					STA $7F8381+(0*2)+1,x						;&gt;100s
 					STA $7F8381+(1*2)+1,x						;&gt;10s
 					STA $7F8381+(2*2)+1,x						;&gt;1s
@@ -4426,8 +4435,8 @@ main:
 					LDA #$24 : STA $7F8381+(3*2)					;&gt;.
 					LDA !Scratchram_16bitHexDecOutput+$03 : STA $7F8381+(4*2),x	;&gt;1/10s
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA $7F8381+(5*2),x	;&gt;1/100s
-					LDA #!StatusBarPercentTile : STA $7F8381+(6*2),x			;&gt;%
-					LDA #!TileProps
+					LDA #!StatusBarPercentTile : STA $7F8381+(6*2),x		;&gt;%
+					LDA #!StatusBar_TileProp
 					STA $7F8381+(0*2)+1,x						;&gt;100s
 					STA $7F8381+(1*2)+1,x						;&gt;10s
 					STA $7F8381+(2*2)+1,x						;&gt;1s
@@ -4457,7 +4466,7 @@ main:
 					..Loop
 						LDA #!StatusBarBlankTile
 						STA [!Scratchram_16bitHexDecOutput+5],y
-						LDA.b #!TileProps
+						LDA.b #!StatusBar_TileProp
 						INY
 						STA [!Scratchram_16bitHexDecOutput+5],y
 						DEY
@@ -4493,7 +4502,7 @@ main:
 					INC					;|
 					STA $03					;/
 					SEP #$30
-					LDA #!TileProps				;\Tile properties to use
+					LDA #!StatusBar_TileProp		;\Tile properties to use
 					STA $06					;/
 					LDX $07
 					JSL HexDec_WriteStringDigitsToHUDFormat2
@@ -4503,11 +4512,11 @@ main:
 				RTL
 			endif
 		endif
-</pre></td></tr></table>
+</pre></div>
 </p>
 
 <p>Repeating icons
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 !MaxNumberOfSymbols = 5								;&gt;Total number of symbols (maximum)
 
 !Stripe_X_Pos = 01								;\Stripe tile position (top-leftmost tile, regardless if filling in any directions)
@@ -4570,10 +4579,10 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		JSL RepeatedSymbols_WriteRepeatedSymbolsLeftwardsFormat2
 	endif
 	RTL
-</pre></td></tr></table>
+</pre></div>
 </p>
 Timer:
-<table><tr><td><pre>
+<div class="CodeBlock"><pre>
 !RAMToMeasure = $60							;&gt;[4 bytes] the 32-bit frame counter
 
 ;Settings
@@ -4796,7 +4805,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		STA $7D		;/
 		RTL
 	endif
-</pre></td></tr></table>
+</pre></div>
 <hr>
 <h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
 <ul>
@@ -4809,7 +4818,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		it is handled from left-to-right (just <a href="#Left2RightHexDec">like this</a>), and by subtracting by 10<sup>(NumberOfDigits-1) &rightarrow; 0</sup> repeatedly. Here is what I mean with the example of a number 123456 ($01E240).
 		Note that the score is stored internally as the displayed number, divided by 10 (&ldquo;1234560&rdquo; is 123456, which that is $01E240 in hex, stored in little endian as
 		<kbd>[$40, $E2, $01]</kbd>, not as $12D680/<kbd>[$80, $D6, $12]</kbd>.), here is an example showing that same number:
-<table><tr><td><pre>;Subtract by 100000 ($0186A0) repeatedly to get the 100000s place
+<div class="CodeBlock"><pre>;Subtract by 100000 ($0186A0) repeatedly to get the 100000s place
 $01E240 (123456, SubtractCount = 0) -&gt; 
 $005BA0 (023456, SubtractCount = <u>1</u>), cannot subtract anymore, so SubtractCount (1) is the correct 100000s place.
 
@@ -4849,7 +4858,7 @@ $000003 (000003, SubtractCount = 3) -&gt;
 $000002 (000002, SubtractCount = 4) -&gt;
 $000001 (000001, SubtractCount = 5) -&gt;
 $000000 (000000, SubtractCount = <u>6</u>), cannot subtract anymore, so SubtractCount (6) is the correct 1s place.
-</pre></td></tr></table>
+</pre></div>
 The routine is handled at address $009012-$009044, and the 10<sup>n</sup> table at $008FFA-$009011. This one is better
 than doing digits from right to left using subtraction by 10 only (I mean, a number 999999 would take ages to finally get
 the ones place, and then another ages to get the 10s, and so on. Which is why subtraction by <i>powers</i> of 10 from
