@@ -4517,27 +4517,25 @@ main:
 
 <p>Repeating icons
 <div class="CodeBlock"><pre>
-!MaxNumberOfSymbols = 5								;&gt;Total number of symbols (maximum)
-
-!Stripe_X_Pos = 01								;\Stripe tile position (top-leftmost tile, regardless if filling in any directions)
-!Stripe_Y_Pos = 26								;/
-
-!Vertical = $00									;&gt;$00 = horizontal, $80 = vertical. Best not to use other values
-!RAMToMeasure = $60								;&gt;[1 byte] RAM address you what to show
-!Leftwards = 0									;&gt;0 = left-to-right (top to bottom if vertical) when filling, 1 = right-to-left (bottom to top if vertical) when filling.
-
-;Tile number and properties to use
-	!EmptyTile = $26
-	!EmptyTileProp = %00111000
-	!FullTile = $2E
-	!FullTileProp = %00111000
-
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
+;Notes:
+; - Positioning here is always the top-leftmost icon, regardless of the fill direction
+; - Because this is a stripe image, subroutine "WriteRepeatedSymbolsWriteVertically"
+;   (including its "Format2" variant) should not be used. Stripe in vertical write
+;   mode will automatically write one tile downwards for every next tile.
+
+!MaxNumberOfSymbols = 5			;&gt;Total number of symbols (maximum)
+!Vertical = $00				;&gt;$00 = horizontal, $80 = vertical. Best not to use other values
+!Leftwards = 1				;&gt;0 = left-to-right (top to bottom if vertical) when filling, 1 = right-to-left (bottom to top if vertical) when filling.
+
+;Code below
 
 	main:
-	LDA.b #!Stripe_X_Pos
+	LDA.b #!Layer3Stripe_TestDisplayElement_PosX
 	STA $00
-	LDA.b #!Stripe_Y_Pos
+	LDA.b #!Layer3Stripe_TestDisplayElement_PosY
 	STA $01
 	LDA #$05
 	STA $02
@@ -4549,29 +4547,29 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	JSL HexDec_SetupStripe		;&gt;X (16-bit): index of stripe
 	
 	
-	LDA !RAMToMeasure		;\$00: How many filled icons
-	STA $00				;/
-	LDA #!MaxNumberOfSymbols	;\$01: How many total icons
-	STA $01				;/
-	LDA #!EmptyTile			;\$02: Empty tile number
-	STA $02				;/
-	LDA #!FullTile			;\$03: Full tile number
-	STA $03				;/
-	LDA.b #!EmptyTileProp		;\$07: Empty tile property
-	STA $07				;/
-	LDA.b #!FullTileProp		;\$08: Full tile property
-	STA $08				;/
-	LDA #$7F			;\$04-$06: Address for tile numbers to write to
-	STA $06				;|$09-$0B: Address for tile number properties to write to
-	STA $0B				;|
-	REP #$20			;|
-	TXA				;|
-	CLC				;|
-	ADC.w #$7F837D+4		;|
-	STA $04				;|
-	INC				;|
-	STA $09				;|
-	SEP #$30			;/
+	LDA !Freeram_ValueDisplay1_1Byte		;\$00: How many filled icons
+	STA $00						;/
+	LDA #!MaxNumberOfSymbols			;\$01: How many total icons
+	STA $01						;/
+	LDA #!StatusBar_RepeatedSymbols_EmptyTile	;\$02: Empty tile number
+	STA $02						;/
+	LDA #!StatusBar_RepeatedSymbols_FullTile	;\$03: Full tile number
+	STA $03						;/
+	LDA.b #!StatusBar_RepeatedSymbols_EmptyProp	;\$07: Empty tile property
+	STA $07						;/
+	LDA.b #!StatusBar_RepeatedSymbols_FullProp	;\$08: Full tile property
+	STA $08						;/
+	LDA #$7F					;\$04-$06: Address for tile numbers to write to
+	STA $06						;|$09-$0B: Address for tile number properties to write to
+	STA $0B						;|
+	REP #$20					;|
+	TXA						;|
+	CLC						;|
+	ADC.w #$7F837D+4				;|
+	STA $04						;|
+	INC						;|
+	STA $09						;|
+	SEP #$30					;/
 
 	if !Leftwards == 0
 		JSL RepeatedSymbols_WriteRepeatedSymbolsFormat2
