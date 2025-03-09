@@ -3487,7 +3487,8 @@ as it would make this tutorial unnecessarily long.</p>
 <p><i>See <a href="https://www.smwcentral.net/?p=viewthread&t=14531">this post at SMWC</a> about stripe images. Due to that not being updated for more than a decade and some info are wrong, best read
 <a href="https://smwc.me/1600801">this one</a> and other posts after it afterwards before attempting this.</i></p>
 
-<p>This section explains how to write layer 3 tiles anywhere on the layer 3 than just on the HUD.</p>
+<p>This section explains how to write layer 3 tiles anywhere on the layer 3 than just on the HUD. Please note this assumes you are using the <b>level</b>, not overworld, as the tiles here by default
+uses status bar tiles.</p>
 
 <p>Use this if you are not having a layer 3 background. And have the following set for your layer 3 scrolling:
 <ul>
@@ -3538,7 +3539,7 @@ To set up writing to the stripe image, I made a subroutine, <kbd>SetupStripe</kb
 <table>
 	<tr><th>Output</th><th>Number of bytes</th><th>Description</th></tr>
 	<tr><td><kbd>$7F837B</kbd> to <kbd>$7F837C</kbd></td><td style="text-align: center; vertical-align: middle;">2</td><td>Updated length of stripe data.</td></tr>
-	<tr><td><kbd>X register</kbd></td><td style="text-align: center; vertical-align: middle;">2 (not stored)</td><td>The index position of where to write tile data (starting at <kbd>$7F837D+4,x</kbd>).</td></tr>
+	<tr><td><kbd>X register</kbd></td><td style="text-align: center; vertical-align: middle;">2 (not stored)</td><td>The index position of where to write tile data (starting at <kbd>$7F837D+4,x</kbd>). Note that the XY registers will be 16-bit.</td></tr>
 </table><br><br>
 
 <table>
