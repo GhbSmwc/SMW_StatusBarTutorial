@@ -229,13 +229,13 @@ are &ldquo;TileNumber and Props in their own table&rdquo; format but without the
 <th>2-bytes together</th>
 </tr>
 <tr>
-<td><div class="CodeBlock"><pre>!TileNumbAddr: TTTTTTTT (tile 0)
+<td><div class="CodeBlock" style="width: 300px; height: 100px"><pre>!TileNumbAddr: TTTTTTTT (tile 0)
 !TileNumbAddr+1: TTTTTTTT (tile 1)
 !TileNumbAddr+2: TTTTTTTT (tile 2)
 !TileNumbAddr+3: TTTTTTTT (tile 3)
 [...]</pre></div>
 On a separate table:
-<div class="CodeBlock"><pre>!TilePropAddr: YXPCCCTT (tile 0)
+<div class="CodeBlock" style="width: 500px; height: 150px"><pre>!TilePropAddr: YXPCCCTT (tile 0)
 !TilePropAddr+1: YXPCCCTT (tile 1)
 !TilePropAddr+2: YXPCCCTT (tile 2)
 !TilePropAddr+3: YXPCCCTT (tile 3)
@@ -245,7 +245,7 @@ Tile numbers and properties are stored in 2 separate tables, one for each.
 Every time you advance the next byte, you are on the next 8x8 tile.
 </td>
 
-<td><div class="CodeBlock"><pre>!TileAddr: TTTTTTTT (tile 0)
+<td><div class="CodeBlock" style="width: 500px; height: 200px"><pre>!TileAddr: TTTTTTTT (tile 0)
 !TileAddr+1: YXPCCCTT (tile 0)
 !TileAddr+2: TTTTTTTT (tile 1)
 !TileAddr+3: YXPCCCTT (tile 1)
@@ -321,7 +321,7 @@ the score gets covered by boss's heath bar that only shows up during bosses) and
 
 <p>Before we start using the subroutines, we will demonstrate how to write tiles that change based on a given info <kbd>!Freeram_ValueDisplay1_1Byte</kbd>. It's very easy to write a tile that is different depending on
 a condition using branches:
-<div class="CodeBlock"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
+<div class="CodeBlock" style="width: 500px; height: 210px"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
@@ -335,7 +335,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	STA !StatusBar_TestDisplayElement_Pos_Tile
 	RTL</pre></div><br>
 and if you are tired of using branches, then an even simpler approach is to use tables:
-<div class="CodeBlock"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
+<div class="CodeBlock" style="width: 700px; height: 300px"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
@@ -530,7 +530,7 @@ for the tens and <kbd><span style="color: blue">$02</span>+$22 = $24</kbd> for t
 
 
 <p>Create a text file, name it <kbd>StatusBarTest.asm</kbd>. Edit that text file to include only this code:
-<div class="CodeBlock"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
+<div class="CodeBlock" style="width: 1000px; height: 210px"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
@@ -569,7 +569,7 @@ other than digits. This is because of how the routine works, is that the 10s pla
 &ldquo;digits&rdquo; greater than 9 (98, 99, A0, A1, A2...).</p>
 
 <p>You can fix this problem and make it allow the full range of the 8-bit value by after writing the ones digit, TXA, then call the routine again, and after that, A is the 10s, and X is the 100s place:
-<div class="CodeBlock"><pre>
+<div class="CodeBlock" style="width: 1000px; height: 210px"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -596,7 +596,7 @@ will be able to glitch out at 1000. For more information how base conversion wor
 digits outputted, not really harsh since this is 8-bit, so up to 25 iterations for a 2-digit (plus up to 2 more for 10s and 100s by calling the HexDec routine again). However, if you
 DO want speed/performance, do this instead. This works the digits from left-to-right by repeatedly subtracting 100 until A is 0-99. The number of subtractions is now how many 100s for the 100s digit, after
 that, with A being 0-99, we do the same but with 10s (how many 10s) instead of 100s to find how many 10s. After that, A is 0-9 which is already the ones place:
-<div class="CodeBlock"><pre>
+<div class="CodeBlock" style="width: 1000px; height: 200px"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -743,7 +743,7 @@ unused digits always showing 0 on the millions (1000000s) and beyond (so don't d
 	a routine isn't necessary:
 	<ul>
 		<li>For 2-digit numbers, just replace the 10s place digit with tile #$FC (defined as <kbd>!StatusBarBlankTile</kbd>) if it is 0:
-<div class="CodeBlock"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
+<div class="CodeBlock" style="width: 1000px; height: 300px"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 	main:
@@ -1240,7 +1240,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 then stops, instead of instantly displaying the new result value. SMW does have that with the bonus stars and score when completing the level. SMW also does this with the coins,
 but most of the time increment by 1 in the main game (an unused flying red coin, sprite $7E increments by 5). This is done by using $13CC as an &ldquo;adder&rdquo;, for every
 value in this RAM, increments the coin count, and decreases itself once per frame. See this code here from its code:
-<div class="CodeBlock"><pre>CODE_008F1D:        AD CC 13      LDA.W $13CC               ; \ If Coin increase isn't x00, 
+<div class="CodeBlock" style="width: 1000px; height: 80px"><pre>CODE_008F1D:        AD CC 13      LDA.W $13CC               ; \ If Coin increase isn't x00, 
 CODE_008F20:        F0 19         BEQ CODE_008F3B           ; / branch to $8F3B 
 CODE_008F22:        CE CC 13      DEC.W $13CC               ; Decrease "Coin increase" 
 CODE_008F25:        EE BF 0D      INC.W RAM_StatusCoins     ; Increase coins by 1 </pre></div>
@@ -1267,7 +1267,7 @@ I usually call this a &ldquo;record effect&rdquo; on my older ASM works, but thi
 <tr><th>Actual amount counting</th><th>Mere display counting</th></tr>
 <tr>
 <td>
-<div class="CodeBlock"><pre>
+<div class="CodeBlock" style="width: 500px; height: 500px"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -1334,7 +1334,7 @@ take <kbd>!Freeram_Adder</kbd>, then add <kbd>CLC : ADC.b &lt;AdderAmount&gt;</k
 <kbd>SetToAmount - AdderAmountLeft</kbd> instead where in this example that <kbd>SetToAmount = 30</kbd> and <kbd>AdderAmountLeft</kbd> is the current amount to add up to <kbd>!RAMToMeasure</kbd>).
 </td>
 <td>
-<div class="CodeBlock" style="height: 400px;"><pre>
+<div class="CodeBlock" style="width: 500px; height: 500px"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -1370,12 +1370,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	RTL</pre></div><br>
 If you want the counter to count even slower instead of once per frame, under the sublabel
 <kbd>.CountingAnimation</kbd>, and before the first <kbd>LDA</kbd> add this code:
-<div class="CodeBlock" style="height:60px;"><pre>	LDA $13
+<div class="CodeBlock" style="width: 500px; height: 500px"><pre>	LDA $13
 	AND.b #%00000011
 	BNE ..NoChange</pre></div><br>
 The AND values must be powers of 2, minus 1 (value_for_AND = (2^n)-1) where n is how much delay, in powers of 2 of frames.
 What will happen is that the number will change by 1 every 2<sup>n</sup> frames. If you want the display to freeze when $9D is set, use this code instead:
-<div class="CodeBlock" style="height: 150px;"><pre>	LDA $9D
+<div class="CodeBlock" style="width: 500px; height: 500px"><pre>	LDA $9D
 	ORA $13D4|!addr
 	BNE ..NoChange
 
@@ -1393,7 +1393,7 @@ Note that there are a major drawback:
 adder/subtractor be reset during transitions, otherwise the amount change gets cut off, which stops the counter prematurely and therefore not get the total or difference properly. You can &ldquo;skip the
 animation&rdquo; (&ldquo;fast-foward&rdquo;, instantly add) by taking the current value, add by the remaining values to be added (like taking the coin counter (<kbd>$0DBF</kbd>), add <kbd>CLC : ADC</kbd> by <kbd>$13CC</kbd>, store the total back to <kbd>$0DBF</kbd>) and then
 set the adder to zero (since it is already added and we do not want to add even more):
-<div class="CodeBlock"><pre>LDA $0DBF		;\Instantly add
+<div class="CodeBlock" style="width: 1000px; height: 90px"><pre>LDA $0DBF		;\Instantly add
 CLC			;|
 ADC $13CC		;|
 STA $0DBF		;/
@@ -1621,7 +1621,7 @@ Perhaps, if you wanted to display a timer on the HUD in HH:MM:SS.CC (or MM:SS.CC
 </table>
 </p>
 <p>This works by taking a 32-bit frame counter (it must increment by 1 every 1/60th of a second, which is the NTSC SNES's game loop speed) and doing repeated divisions by 60:
-<div class="CodeBlock"><pre>Frames / 60 = Q: Seconds R: Frames		;&gt;We have seconds (not wrapped 0-59 yet), and frames (wrapped 0-59, then displayed as 0-<abbr title="Actually 98, due to 59/60 = 0.98[3]">99</abbr>)
+<div class="CodeBlock" style="width: 1000px; height: 60px"><pre>Frames / 60 = Q: Seconds R: Frames		;&gt;We have seconds (not wrapped 0-59 yet), and frames (wrapped 0-59, then displayed as 0-<abbr title="Actually 98, due to 59/60 = 0.98[3]">99</abbr>)
 Seconds / 60 = Q: Minutes R: Seconds		;&gt;We have minutes (not wrapped 0-59 yet), and seconds (wrapped 0-59)
 Minutes / 60 = Q: Hours R: Minutes		;&gt;We have hours (not wrapped 0-59), and minutes (wrapped 0-59)</pre></div>
 
@@ -1661,7 +1661,7 @@ As of the time of writing this, the rightmost number on Imamelia's timer isn't t
 			</ul>
 	</li>
 	This is commonly done in pseudo 8-bit math to produce a potentially 16-bit number, for example with addition:
-<div class="CodeBlock"><pre>
+<div class="CodeBlock" style="width: 1000px; height: 350px"><pre>
 	;Made-up example: #$<span style="color: blue">12</span><span style="color: red">34</span> + #$<span style="color: blue">56</span><span style="color: red">78</span> without carry set.
 		LDA <span style="color: red">#$34</span>	;\Low byte
 		CLC		;|#$34 + #$78 = #$AC
