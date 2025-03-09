@@ -2,22 +2,22 @@
 ;To be used as "Level" for uberasm tool 2.0+.
 
 ;Extra bytes information:
-;EXB 1: $00 = Increment, $01 decrement (do something when timer hits 0).
-;EXB 2: Display mode:
-;       - $00 = MM:SS.CC
-;       - $01 = HH:MM:SS.CC
-;       - $02 = Display only 2 most significant units
-;               - If timer is less than a minute, display "SS.CC"
-;               - If timer is between a minute and hour long, display "MM:SS"
-;               - Otherwise display "HH:MM"
-;EXB 3-6: Starting frame value when countdown is being used (4 bytes, little endian).
-;         See "Readme_Files/JS_FrameToTimer.html" to convert to frames.
-;EXB 7: Effect number/Event to trigger when timer hits 0. Must be a range of 0-127 ($00-$7F):
-;       - $00 = do nothing
-;       - $01 = Lose life
-;       - $02 = Fling player upwards
-;       - Any higher values, you must edit and add code below "EventJumpTable". A value
-;         pointing anything beyond the last item in the table causes glitch/crash.
+; - EXB 1: $00 = Increment, $01 decrement (do something when timer hits 0).
+; - EXB 2: Display mode:
+; -- $00 = MM:SS.CC
+; -- $01 = HH:MM:SS.CC
+; -- $02 = Display only 2 most significant units:
+; --- If timer is less than a minute, display "SS.CC"
+; --- If timer is between a minute and hour long, display "MM:SS"
+; --- Otherwise display "HH:MM"
+; - EXB 3-6: Starting frame value when countdown is being used (4 bytes, little endian).
+;   See "Readme_Files/JS_FrameToTimer.html" to convert to frames.
+; - EXB 7: Effect number/Event to trigger when timer hits 0. Must be a range of 0-127 ($00-$7F):
+; -- $00 = do nothing
+; -- $01 = Lose life
+; -- $02 = Fling player upwards
+; -- Any higher values, you must edit and add code below "EventJumpTable". A value
+;    pointing anything beyond the last item in the table causes glitch/crash.
 ;
 ;Example of a countdown timer in MM:SS.CC,
 ;of 1 minute and 30 seconds before killing the player:
@@ -283,7 +283,7 @@
 		;Events to trigger when countdown timer hits zero.
 		;You can have up to 127 events (because each item here takes up 2 bytes, and the indexing (which is the number of bytes offset from the first item)
 		;is 8-bit (which ranges from 0-255), gets multiplied by 2 (now byte indexes above 127 is an overflow) to correctly point to the correct position
-		;corresponding to the items below here). You probably wouldn't need that many events anyway.
+		;corresponding to the items below here), and the fact that index 0 is reserved for doing nothing. You probably wouldn't need that many events anyway.
 		dw .KillPlayer		;>Event 1 (Byte Index = $02)
 		dw .FlingPlayer		;>Event 2 (Byte Index = $04)
 		
