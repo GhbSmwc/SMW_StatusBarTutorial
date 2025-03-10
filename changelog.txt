@@ -16,3 +16,4 @@
    position inputs refer to the top tile extending downwards for downwards and the bottom tile
    extending upwards when extending upwards.
  - Code blocks in the main readme now uses CSS overflows and re-sizable for ease of reading.
+ - Added full explanation about stripe tiles crossing tilemap screen border.

@@ -3491,8 +3491,8 @@ as it would make this tutorial unnecessarily long.</p>
 <p><i>See <a href="https://www.smwcentral.net/?p=viewthread&t=14531">this post at SMWC</a> about stripe images. Due to that not being updated for more than a decade and some info are wrong, best read
 <a href="https://smwc.me/1600801">this one</a> and other posts after it afterwards before attempting this.</i></p>
 
-<p>This section explains how to write layer 3 tiles anywhere on the layer 3 than just on the HUD. Please note this assumes you are using the <b>level</b>, not overworld, as the tiles here by default
-uses status bar tiles.</p>
+<p>This section explains how to write layer 3 tiles anywhere on the layer 3 than just on the HUD. Please note this assumes you are using these ASM resources for <b>level</b>, not overworld, as the
+tiles here by default uses status bar tiles.</p>
 
 <p>Use this if you are not having a layer 3 background. And have the following set for your layer 3 scrolling:
 <ul>
@@ -3539,7 +3539,6 @@ To set up writing to the stripe image, I made a subroutine, <kbd>SetupStripe</kb
 	</tr>
 	<tr><td><kbd>$04</kbd> to <kbd>$05</kbd></td><td style="text-align: center; vertical-align: middle;">2</td><td>Number of tiles, minus 1 (a value of 2 here means 3 tiles). If RLE is used, this is how many times a tile is repeated, minus 1.</td></tr>
 </table><br><br>
-
 <table>
 	<tr><th>Output</th><th>Number of bytes</th><th>Description</th></tr>
 	<tr><td><kbd>$7F837B</kbd> to <kbd>$7F837C</kbd></td><td style="text-align: center; vertical-align: middle;">2</td><td>Updated length of stripe data.</td></tr>
@@ -3550,8 +3549,116 @@ To set up writing to the stripe image, I made a subroutine, <kbd>SetupStripe</kb
 	<tr><th>Destroyed</th><th>Number of bytes</th><th>Description</th></tr>
 	<tr><td><kbd>$06</kbd> to <kbd>$08</kbd></td><td style="text-align: center; vertical-align: middle;">3</td><td>Used when not using RLE, to calculate the terminating byte location.</td></tr>
 </table><br>
-After calling that, all you have to do is write your tile data to <kbd>$7F837D+4,x</kbd> (XY register will be 16-bit) and beyond, but be careful not to overwrite the terminating byte (and potentially the bytes after) if this is your last stripe within a frame. Just like the Super Status Bar patch
-and OWB+, its tile data format is &ldquo;2-bytes together&rdquo;. Unlike the status bar however, you absolutely must write the tile properties bytes, because whatever location in the stripe data to be written on may not always be initialized, causing possible garbage tile properties.</p>
+<p>Notes:
+	<ul>
+		<li>The entire tilemap (assuming it is a 64x64 tile grid), is handled subdivided into 2x2 "screens" each having individual 32x32 tile zones, which internally handles XY position relative to each "screen". This subroutine treats XY position as
+		absolute to the whole thing (example: a position of <kbd>X=32, Y=32</kbd> would be the bottom-right screen's <kbd>X=0, Y=0</kbd>).</li><br>
+		<li>
+			Any multi-tile writes crossing the screen border will either:
+			<ul>
+				<li>If the tile write is set to horizontal, and extends beyond the right edge (<kbd>X=31</kbd> within a screen), will wrap back to <kbd>X=0</kbd> and down a line (<kbd>Y+1</kbd>). If the same were to happen on the bottom row of the screen <kbd>Y=31</kbd>, would wrap around and advances
+				to the next screen.</li><br>
+				<li>If the tile write is set to vertical, and extends beyond the bottom edge of the screen, will the Y position to <kbd>Y=0</kbd> and retains the X position but on the next screen.</li><br>
+			</ul>
+			What screens will multi-tile writes be written to goes in this order: Top-left &rightarrow; Top-right &rightarrow; Bottom-left &rightarrow; Bottom-right. Tiles written advancing past the bottom-right screen can corrupt the graphics, from my experience, several strange pixels from Mario sprite
+			started showing. Here is a code testing the wraparound:
+<div class="CodeBlock"><pre>
+incsrc "../StatusBarRoutinesDefines/Defines.asm"
+incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+
+;This ASM is for testing stripe wraparounds. Writes a red text "0123" onto the layer 3 tilemap.
+
+init:
+;Note to self
+; $7F837D+4+(T*2)+P,x
+;  - T = what tile along a stripe, starts at 0 at the given XY position, and each +1 is next tile.
+;  - P = Tile byte type: 0 = tile number (TTTTTTTT), 1 = properties (YXPCCCTT)
+;
+
+!StatusBar_TilePropRed #= (!StatusBar_TileProp&%11100011)|%00001100
+
+;Horizontal wraparound (Stripe 1)
+	LDA.b #30
+	STA $00
+	LDA.b #5
+	STA $01
+	LDA #$05
+	STA $02
+	STZ $03
+	LDA #$03
+	STA $04
+	STZ $05
+	JSL HexDec_SetupStripe 
+	LDA #$00 : STA $7F837D+4+(0*2)+0,x
+	LDA #$01 : STA $7F837D+4+(1*2)+0,x
+	LDA #$02 : STA $7F837D+4+(2*2)+0,x
+	LDA #$03 : STA $7F837D+4+(3*2)+0,x
+	LDA #!StatusBar_TilePropRed
+	STA $7F837D+4+(0*2)+1,x
+	STA $7F837D+4+(1*2)+1,x
+	STA $7F837D+4+(2*2)+1,x
+	STA $7F837D+4+(3*2)+1,x
+	SEP #$10
+;Same but on bottom row (stripe 2)
+	LDA.b #30
+	STA $00
+	LDA.b #31
+	STA $01
+	LDA #$05
+	STA $02
+	STZ $03
+	LDA #$03
+	STA $04
+	STZ $05
+	JSL HexDec_SetupStripe 
+	LDA #$00 : STA $7F837D+4+(0*2)+0,x
+	LDA #$01 : STA $7F837D+4+(1*2)+0,x
+	LDA #$02 : STA $7F837D+4+(2*2)+0,x
+	LDA #$03 : STA $7F837D+4+(3*2)+0,x
+	LDA #!StatusBar_TilePropRed
+	STA $7F837D+4+(0*2)+1,x
+	STA $7F837D+4+(1*2)+1,x
+	STA $7F837D+4+(2*2)+1,x
+	STA $7F837D+4+(3*2)+1,x
+	SEP #$10
+;Vertical write (stripe 3)
+	LDA.b #15
+	STA $00
+	LDA.b #30
+	STA $01
+	LDA #$05
+	STA $02
+	LDA.b #%10000000
+	STA $03
+	LDA #$03
+	STA $04
+	STZ $05
+	JSL HexDec_SetupStripe
+	LDA #$00 : STA $7F837D+4+(0*2)+0,x
+	LDA #$01 : STA $7F837D+4+(1*2)+0,x
+	LDA #$02 : STA $7F837D+4+(2*2)+0,x
+	LDA #$03 : STA $7F837D+4+(3*2)+0,x
+	LDA #!StatusBar_TilePropRed
+	STA $7F837D+4+(0*2)+1,x
+	STA $7F837D+4+(1*2)+1,x
+	STA $7F837D+4+(2*2)+1,x
+	STA $7F837D+4+(3*2)+1,x
+	
+	SEP #$30		;&gt;Failsafe
+	RTL
+</pre></div><br><br>
+And the results viewed on the tilemap viewer (the yellow lines represents the tilemap screen border), assuming you are not using any layer 3 backgrounds:<br>
+<img src="Readme_Files/32x32Layer3Tilemap_StripeWraps.png">
+
+
+
+		</li>
+	</ul>
+</p>
+
+After calling that, all you have to do is write your tile data to <kbd>$7F837D+4,x</kbd> (XY register will be 16-bit) and beyond, but be careful not to overwrite the terminating byte (and potentially the bytes after) if this is your last stripe within a frame.
+Just like the Super Status Bar patch and OWB+, its tile data format is &ldquo;2-bytes together&rdquo;. Unlike the status bar however, you absolutely must write the tile properties bytes, because whatever location in the stripe data to be written on may not
+always be initialized, causing possible garbage tile properties.</p>
 
 <p>Also just like sprite OAM patch, almost everything is the same except you are no longer writing to the status bar, also, note that since writing
 tiles to the stripe have &ldquo;dynamic&rdquo; location since this is a table, thus the way you write them is different.</p>
