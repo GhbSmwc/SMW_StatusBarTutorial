@@ -141,12 +141,12 @@ contents in the mentioned RAM address. There are 2 ways you can edit RAM address
 <li>Most recommended: a debugger, specifically, <a href="https://github.com/SourMesen/Mesen2">Mesen</a>. After running your game on the emulator, go to the menu bar, &ldquo;Debug&rdquo; &rightarrow; &ldquo;Memory Viewer&rdquo;. On the
 memory viewer window, go to &ldquo;Search&rdquo; &rightarrow; &ldquo;Go to Address&rdquo; It should now scroll to that address. From here, type in the hexadecimal number.<br>
 <img src="Readme_Files/MemoryEditorAddress.png"></li>
-<li>Create an ASM file to run under <a href="https://www.smwcentral.net/?p=section&a=details&id=19982">uberasm tool</a> as <kbd>level</kbd> under <kbd>main:</kbd> label, and just use <kbd>LDA #$xx : STA $xxxxxx</kbd>.</li>
+<li>Create an ASM file to run under <a href="https://www.smwcentral.net/?p=section&a=details&id=19982">uberasm tool</a> as <kbd>level</kbd> under <kbd>main:</kbd> label, and just use <kbd>LDA #$&lt;Number_00_to_FF&gt; : STA $&lt;Number_0EF9_to_0F2F&gt;|!addr</kbd>.</li>
 </ul>
 
 Now, for the RAM address, each byte is each 8x8 tile, meaning each time you go to the next address, its the next 8x8 tile number:<br><br>
 <table id="SMWStatusBarTable"></table><br>
-All of these bytes stored in RAM <kbd>$7E0EF9-$7E0F2E</kbd> are <kbd>TTTTTTTT</kbd>, which means you can only modify the tile number through RAM in-game. You may be wondering, if I wanted to edit the tiles here,
+All of these bytes stored in RAM <kbd>$7E0EF9-$7E0F2F</kbd> are <kbd>TTTTTTTT</kbd>, which means you can only modify the tile number through RAM in-game. You may be wondering, if I wanted to edit the tiles here,
 what value should I put? Well, <kbd>TTTTTTTT</kbd> is actually <i>what tile number to use</i>, from the tile data. When viewing the tile data stored in <kbd>GFX28.bin</kbd> file via <a href="https://www.smwcentral.net/?p=section&a=details&id=15671">YY-CHR</a>,
 you can find what tile graphic to use by hovering your mouse over the 8x8 tile you want to use. After this, you should see on the bottom bar of the window showing what tile number that is:<br>
 <img src="Readme_Files/TileNumber.png"><br>
