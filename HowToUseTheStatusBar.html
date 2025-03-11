@@ -1271,7 +1271,7 @@ I usually call this a &ldquo;record effect&rdquo; on my older ASM works, but thi
 <tr><th>Actual amount counting</th><th>Mere display counting</th></tr>
 <tr>
 <td>
-<div class="CodeBlock" style="width: 500px; height: 500px"><pre>
+<div class="CodeBlock" style="width: 500px; height: 125px"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -1338,7 +1338,7 @@ take <kbd>!Freeram_Adder</kbd>, then add <kbd>CLC : ADC.b &lt;AdderAmount&gt;</k
 <kbd>SetToAmount - AdderAmountLeft</kbd> instead where in this example that <kbd>SetToAmount = 30</kbd> and <kbd>AdderAmountLeft</kbd> is the current amount to add up to <kbd>!RAMToMeasure</kbd>).
 </td>
 <td>
-<div class="CodeBlock" style="width: 500px; height: 500px"><pre>
+<div class="CodeBlock" style="width: 500px; height: 125px"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
@@ -1374,12 +1374,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	RTL</pre></div><br>
 If you want the counter to count even slower instead of once per frame, under the sublabel
 <kbd>.CountingAnimation</kbd>, and before the first <kbd>LDA</kbd> add this code:
-<div class="CodeBlock" style="width: 500px; height: 500px"><pre>	LDA $13
+<div class="CodeBlock" style="width: 500px; height: 70px"><pre>	LDA $13
 	AND.b #%00000011
 	BNE ..NoChange</pre></div><br>
 The AND values must be powers of 2, minus 1 (value_for_AND = (2^n)-1) where n is how much delay, in powers of 2 of frames.
 What will happen is that the number will change by 1 every 2<sup>n</sup> frames. If you want the display to freeze when $9D is set, use this code instead:
-<div class="CodeBlock" style="width: 500px; height: 500px"><pre>	LDA $9D
+<div class="CodeBlock" style="width: 500px; height: 140px"><pre>	LDA $9D
 	ORA $13D4|!addr
 	BNE ..NoChange
 
@@ -3159,7 +3159,7 @@ as it would make this tutorial unnecessarily long.</p>
 		<kbd>Y index</kbd> (8-bit, pixi sprites only): The OAM index after writing the last tile character. Does not output anything for OAM-only.
 	</td>
 	<td>
-		Writes 8x8 tiles (often for numbers) into OAM in the form of text-style (1 line only). Use after <kbd>SupressLeadingZeros</kbd>.
+		Writes 8x8 tiles (often for numbers) into OAM in the form of text-style (1 line only). Can be used after calling Hexdec routines or after <kbd>SupressLeadingZeros</kbd>.
 	</td>
 </tr>
 <tr>
@@ -3554,11 +3554,11 @@ To set up writing to the stripe image, I made a subroutine, <kbd>SetupStripe</kb
 		<li>The entire tilemap (assuming it is a 64x64 tile grid), is handled subdivided into 2x2 "screens" each having individual 32x32 tile zones, which internally handles XY position relative to each "screen". This subroutine treats XY position as
 		absolute to the whole thing (example: a position of <kbd>X=32, Y=32</kbd> would be the bottom-right screen's <kbd>X=0, Y=0</kbd>).</li><br>
 		<li>
-			Any multi-tile writes crossing the screen border will either:
+			Any multi-tile writes crossing the screen border will cause wraparounds:
 			<ul>
-				<li>If the tile write is set to horizontal, and extends beyond the right edge (<kbd>X=31</kbd> within a screen), will wrap back to <kbd>X=0</kbd> and down a line (<kbd>Y+1</kbd>). If the same were to happen on the bottom row of the screen <kbd>Y=31</kbd>, would wrap around and advances
-				to the next screen.</li><br>
-				<li>If the tile write is set to vertical, and extends beyond the bottom edge of the screen, will the Y position to <kbd>Y=0</kbd> and retains the X position but on the next screen.</li><br>
+				<li>If the tile write is set to horizontal, and extends beyond the right edge (<kbd>X=31</kbd> within a screen), will wrap back to <kbd>X=0</kbd> and down a line (<kbd>Y+1</kbd>). If the same were to happen on the bottom row of
+				the screen <kbd>Y=31</kbd>, would similarly wrap around but also advances to the next screen.</li><br>
+				<li>If the tile write is set to vertical, and extends beyond the bottom edge of the screen, will wrap the Y position to <kbd>Y=0</kbd> and retains the X position but on the next screen.</li><br>
 			</ul>
 			What screens will multi-tile writes be written to goes in this order: Top-left &rightarrow; Top-right &rightarrow; Bottom-left &rightarrow; Bottom-right. Tiles written advancing past the bottom-right screen can corrupt the graphics, from my experience, several strange pixels from Mario sprite
 			started showing. Here is a code testing the wraparound:
