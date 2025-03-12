@@ -22,6 +22,7 @@
 				height: 500px;
 				border: 1px solid white;
 				resize: both;
+				background-color: #101010;
 			}
 			pre {
 				margin-top: 0px;
@@ -3549,7 +3550,8 @@ To set up writing to the stripe image, I made a subroutine, <kbd>SetupStripe</kb
 	<tr><th>Destroyed</th><th>Number of bytes</th><th>Description</th></tr>
 	<tr><td><kbd>$06</kbd> to <kbd>$08</kbd></td><td style="text-align: center; vertical-align: middle;">3</td><td>Used when not using RLE, to calculate the terminating byte location.</td></tr>
 </table><br>
-<p>Notes:
+<div style="border: 20px; background-color: #300000; border: 20px solid #300000">
+<p>Notes:</p>
 	<ul>
 		<li>The entire tilemap (assuming it is a 64x64 tile grid), is handled subdivided into 2x2 "screens" each having individual 32x32 tile zones, which internally handles XY position relative to each "screen". This subroutine treats XY position as
 		absolute to the whole thing (example: a position of <kbd>X=32, Y=32</kbd> would be the bottom-right screen's <kbd>X=0, Y=0</kbd>).</li><br>
@@ -3649,12 +3651,29 @@ init:
 </pre></div><br><br>
 And the results viewed on the tilemap viewer (the yellow lines represents the tilemap screen border), assuming you are not using any layer 3 backgrounds:<br>
 <img src="Readme_Files/32x32Layer3Tilemap_StripeWraps.png">
-
-
-
+		</li>
+		<li>It is easier to write too many tiles at once to cause v-blank overflows; black bars flickering at the top of the screen (especially if written
+		every frame). Status bars and overworld border+	patches would transfer RAM to VRAM data via DMA transfer, which reduces the risk of v-blank overflows.<br><br>
+		
+		One way to avoid this is only write when a tile change is needed. For example: If you have a symbol indicating something like a coin symbol before the number,
+		then only the number can be written every frame while the two symbols before it only needs to be written once.</li><br>
+		
+		<li>Be careful not to write stripe data during a &ldquo;COURSE CLEAR!&rdquo; text is on screen when the player completes the level, as vanilla SMW writes the
+		message at a <b>fixed location</b> in the stripe data (see code at <kbd>$05CCCB</kbd>). You can check RAM <kbd>$1493</kbd> and <kbd>%1426</kbd> (latter is for message box,
+		as a failsafe just in case that also is placed in a fixed location):
+<div class="CodeBlock" style="height: 180px"><pre>	LDA $1493|!addr		;&gt;Goal timer
+	ORA $1426|!addr		;&gt;Message box (to me, I did experienced screen went black except for the layer 3, I kept this here anyways just in case)
+	BEQ .SafeToWrite	;&gt;0 = None of the above are active, Nonzero: Any of above are active.
+	.NotSafeToWrite
+		;[...]
+		RTL
+	.SafeToWrite
+		;Code to write your stripe tiles here
+		;[...]
+		RTL</pre></div>
 		</li>
 	</ul>
-</p>
+</div>
 
 After calling that, all you have to do is write your tile data to <kbd>$7F837D+4,x</kbd> (XY register will be 16-bit) and beyond, but be careful not to overwrite the terminating byte (and potentially the bytes after) if this is your last stripe within a frame.
 Just like the Super Status Bar patch and OWB+, its tile data format is &ldquo;2-bytes together&rdquo;. Unlike the status bar however, you absolutely must write the tile properties bytes, because whatever location in the stripe data to be written on may not
