@@ -17,3 +17,8 @@
    extending upwards when extending upwards.
  - Code blocks in the main readme now uses CSS overflows and re-sizable for ease of reading.
  - Added full explanation about stripe tiles crossing tilemap screen border.
+ - Corrected various incorrect info on the warmup: "$7E0EF9-$7E0F2E" should be "$7E0EF9-$7E0F2F"
+   and in "Create an ASM file to run under" stated that the LDA and STA values should be
+ - Added info about subroutine "WriteStringDigitsToHUD" in the main HTML file
+ - Moved the default RAM "!Scratchram_Frames2TimeOutput" for LoROM due to an update on timer
+   written on a stripe image.

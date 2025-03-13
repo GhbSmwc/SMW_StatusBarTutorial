@@ -802,13 +802,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;Misc routines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;Write aligned digits to Status bar/OWB+
+	;Write string to Status bar/OWB+
 	;
 	;Input:
 	; - $00-$02 = 24-bit address location to write to status bar tile number.
 	; - If tile properties are edit-able (if !StatusBar_UsingCustomProperties != 0):
 	; -- $03-$05 = Same as $00-$02 but tile properties
-	; -- $06 = the tile properties, for all tiles
+	; -- $06 = Tile properties to use for all tiles of the string.
 	; - X = The number of characters to write, ("123" would have X = 3)
 	; - !Scratchram_CharacterTileTable-(!Scratchram_CharacterTileTable+N-1)
 	;   the string to write to the status bar.

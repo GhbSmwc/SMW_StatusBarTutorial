@@ -1,24 +1,24 @@
 ;>bytes 7
 ;To be used as "Level" for uberasm tool 2.0+.
-;This displays a timer on the status bar.
+;This displays a timer on the layer 3 stripe image.
 
 ;Extra bytes information:
-; - EXB 1: $00 = Increment, $01 decrement (do something when timer hits 0).
-; - EXB 2: Display mode:
-; -- $00 = MM:SS.CC
-; -- $01 = HH:MM:SS.CC
-; -- $02 = Display only 2 most significant units:
-; --- If timer is less than a minute, display "SS.CC"
-; --- If timer is between a minute and hour long, display "MM:SS"
-; --- Otherwise display "HH:MM"
-; - EXB 3-6: Starting frame value when countdown is being used (4 bytes, little endian).
-;   See "Readme_Files/JS_FrameToTimer.html" to convert to frames.
-; - EXB 7: Effect number/Event to trigger when timer hits 0. Must be a range of 0-127 ($00-$7F):
-; -- $00 = do nothing
-; -- $01 = Lose life
-; -- $02 = Fling player upwards
-; -- Any higher values, you must edit and add code below "EventJumpTable". A value
-;    pointing anything beyond the last item in the table causes glitch/crash.
+;EXB 1: $00 = Increment, $01 decrement (do something when timer hits 0).
+;EXB 2: Display mode:
+;       - $00 = MM:SS.CC
+;       - $01 = HH:MM:SS.CC
+;       - $02 = Display only 2 most significant units
+;               - If timer is less than a minute, display "SS.CC"
+;               - If timer is between a minute and hour long, display "MM:SS"
+;               - Otherwise display "HH:MM"
+;EXB 3-6: Starting frame value when countdown is being used (4 bytes, little endian).
+;         See "Readme_Files/JS_FrameToTimer.html" to convert to frames.
+;EXB 7: Effect number/Event to trigger when timer hits 0. Must be a range of 0-127 ($00-$7F):
+;       - $00 = do nothing
+;       - $01 = Lose life
+;       - $02 = Fling player upwards
+;       - Any higher values, you must edit and add code below "EventJumpTable". A value
+;         pointing anything beyond the last item in the table causes glitch/crash.
 ;
 ;Example of a countdown timer in MM:SS.CC,
 ;of 1 minute and 30 seconds before killing the player:
@@ -128,6 +128,9 @@
 			...NotDecrementedToZero
 	
 		..DisplayTimer
+			;Note: I have to write it to a string buffer !Scratchram_Frames2TimeOutput, then write it to a stripe image
+			;because I don't really like juggling with the X register being used for both EightBitHexDec's 10s place digit (8-bit)
+			;and as a stripe image (16-bit).
 			REP #$20					;
 			LDA $00						;\Preserve extra bytes address
 			PHA						;/
@@ -142,22 +145,23 @@
 				;!Scratchram_Frames2TimeOutput+1: Minutes
 				;!Scratchram_Frames2TimeOutput+2: Seconds
 				;!Scratchram_Frames2TimeOutput+3: Centiseconds
+				wdm
 			REP #$20
 			PLA										;\Restore extra bytes address
 			STA $00										;/
-			SEP #$20
-			LDY #$01
-			LDA ($00),y
-			BNE +
-			JMP ...MinutesSecondsCentiseconds
-			+
-			CMP #$01
-			BNE +
-			JMP ...HoursMinutesSecondsCentiseconds
-			+
-			...TwoSignificantUnitsOnly
+			SEP #$20									;\Determine what format to display
+			LDY #$01									;|
+			LDA ($00),y									;|
+			BNE +										;|
+			JMP ...MinutesSecondsCentiseconds						;|
+			+										;|
+			CMP #$01									;|
+			BNE +										;|
+			JMP ...HoursMinutesSecondsCentiseconds						;|
+			+										;/
+			...TwoSignificantUnitsOnly							;>"XX:XX" or "XX.XX". Always 5 characters long ($04-$05: #$0004)
 				LDA #$78								;\Colon (overwritten to be a period if less than a minute)
-				STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)		;/
+				STA !Scratchram_CharacterTileTable+2					;/
 			
 				LDA !Scratchram_Frames2TimeOutput+0					;\If hours nonzero, show HH:MM
 				BNE ....HoursMinutes							;/
@@ -166,107 +170,149 @@
 				
 				....SecondsCentiseconds							;>If less than minute long, show SS.CC
 					LDA !Scratchram_Frames2TimeOutput+2
-					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)
+					JSL HexDec_EightBitHexDec					;>A: 1s, X: 10s
+					STA !Scratchram_CharacterTileTable+1
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+0
 					
-					LDA #$24
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)
+					LDA #$24							;\Decimal point
+					STA !Scratchram_CharacterTileTable+2				;/
 					
 					LDA !Scratchram_Frames2TimeOutput+3
 					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(4*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+4
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(3*!StatusbarFormat)
-					RTL
+					STA !Scratchram_CharacterTileTable+3
+					REP #$20
+					LDA.w #5-1				;>TwoSignificantUnitsOnly is always 4 digits and one separator (":" and "."), totaling 5 characters
+					JMP ...TransferStringToStripe
 				....HoursMinutes
 					LDA !Scratchram_Frames2TimeOutput+0
 					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+1
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+0
 					
 					LDA !Scratchram_Frames2TimeOutput+1
 					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(4*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+4
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(3*!StatusbarFormat)
-					RTL
+					STA !Scratchram_CharacterTileTable+3
+					REP #$20
+					LDA.w #5-1				;>TwoSignificantUnitsOnly is always 4 digits and one separator (":" and "."), totaling 5 characters
+					JMP ...TransferStringToStripe
 				....MinutesSeconds
 					LDA !Scratchram_Frames2TimeOutput+1
 					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+1
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+0
 					
 					LDA !Scratchram_Frames2TimeOutput+2
 					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(4*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+4
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(3*!StatusbarFormat)
-					RTL
-			...MinutesSecondsCentiseconds
+					STA !Scratchram_CharacterTileTable+3
+					REP #$20
+					LDA.w #5-1				;>TwoSignificantUnitsOnly is always 4 digits and one separator (":" and "."), totaling 5 characters
+					JMP ...TransferStringToStripe
+			...MinutesSecondsCentiseconds				;>"MM:SS.CC"
 				;Minutes
 					LDA !Scratchram_Frames2TimeOutput+1
 					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+1
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+0
 				;Colon symbol
 					LDA #$78
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+2
 				;Seconds
 					LDA !Scratchram_Frames2TimeOutput+2
 					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(4*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+4
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(3*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+3
 				;Period symbol
 					LDA #$24
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(5*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+5
 				;Centiseconds
 					LDA !Scratchram_Frames2TimeOutput+3
 					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(7*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+7
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(6*!StatusbarFormat)
-				RTL
-			...HoursMinutesSecondsCentiseconds
+					STA !Scratchram_CharacterTileTable+6
+					REP #$20
+					LDA.w #8-1				;>"MM:SS.CC" is 8 characters.
+					JMP ...TransferStringToStripe
+			...HoursMinutesSecondsCentiseconds			;>"HH:MM:SS.CC"
 				;Hours
 					LDA !Scratchram_Frames2TimeOutput+0
 					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(1*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+1
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+0
 				;Colon symbol
 					LDA #$78
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+2
 				;Minutes
 					LDA !Scratchram_Frames2TimeOutput+1
 					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(4*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+4
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(3*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+3
 				;Colon symbol
 					LDA #$78
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(5*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+5
 				;Seconds
 					LDA !Scratchram_Frames2TimeOutput+2
 					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(7*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+7
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(6*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+6
 				;Period symbol
 					LDA #$24
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(8*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+8
 				;Centiseconds
 					LDA !Scratchram_Frames2TimeOutput+3
 					JSL HexDec_EightBitHexDec
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(10*!StatusbarFormat)
+					STA !Scratchram_CharacterTileTable+0
 					TXA
-					STA !StatusBar_TestDisplayElement_Pos_Tile+(9*!StatusbarFormat)
-	RTL
+					STA !Scratchram_CharacterTileTable+9
+					REP #$20
+					LDA.w #11-1				;>"HH:MM:SS.CC" is 11 characters.
+			...TransferStringToStripe
+				PHA						;>Preserve character count
+				STA $04
+				SEP #$20
+				LDA.b #!Layer3Stripe_TestDisplayElement_PosX
+				STA $00
+				LDA.b #!Layer3Stripe_TestDisplayElement_PosY
+				STA $01
+				LDA #$05
+				STA $02
+				STZ $03
+				JSL HexDec_SetupStripe				;X (16-bit): Index of stripe
+				
+				REP #$20			;\$00-$02: Address of of open stripe data (tile data's TTTTTTTT).
+				TXA				;|$03-$05: Address of of open stripe data (tile data's YXPCCCTT).
+				CLC				;|
+				ADC.w #$7F837D+4		;|Take X, the stripe index, add by #$7F8381
+				STA $00				;|and store it at $00, since we are doing "Indirect Long" 
+				INC				;|
+				STA $03				;|
+				SEP #$30			;|
+				LDA #$7F			;|
+				STA $02				;|
+				STA $05				;/
+				LDA.b #!StatusBar_TileProp	;\Props (WriteStringDigitsToHUD uses $06 to write)
+				STA $06				;/
+				REP #$20			;\Number of characters
+				PLA				;|
+				SEP #$20			;|
+				INC				;|
+				TAX				;/
+				JSL HexDec_WriteStringDigitsToHUDFormat2
+				RTL
 	
 	TimerZero:
 	LDY #$06
@@ -283,7 +329,7 @@
 		;Events to trigger when countdown timer hits zero.
 		;You can have up to 127 events (because each item here takes up 2 bytes, and the indexing (which is the number of bytes offset from the first item)
 		;is 8-bit (which ranges from 0-255), gets multiplied by 2 (now byte indexes above 127 is an overflow) to correctly point to the correct position
-		;corresponding to the items below here), and the fact that index 0 is reserved for doing nothing. You probably wouldn't need that many events anyway.
+		;corresponding to the items below here). You probably wouldn't need that many events anyway.
 		dw .KillPlayer		;>Event 1 (Byte Index = $02)
 		dw .FlingPlayer		;>Event 2 (Byte Index = $04)
 		

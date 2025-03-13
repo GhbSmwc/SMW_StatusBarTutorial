@@ -58,9 +58,9 @@
 			!Scratchram_CharacterTileTable = $40414A
 		endif
 		;^[X bytes] A table containing strings of "characters"
-		; (more specifically digits). The number of bytes used
-		; is the highest number of characters you would write
-		; in your entire game.
+		; (often digits). The number of bytes used is the highest
+		; number of characters you would write in your entire
+		; game.
 		; For example:
 		; - If you want to display a 5-digit 16-bit number 65535,
 		;   that will be 5 bytes.
@@ -72,7 +72,7 @@
 		; -- For X/Y display: (!Setting_32bitHexDec_MaxNumberOfDigits*2)+1
 	;For 32-bit timer frame to Hours:Minutes:Seconds:Centiseconds format.
 		if !sa1 == 0
-			!Scratchram_Frames2TimeOutput = $7F8458
+			!Scratchram_Frames2TimeOutput = $7F846C
 		else
 			!Scratchram_Frames2TimeOutput = $40416A
 		endif

@@ -814,6 +814,42 @@ See picture below:<br>
 When written to the status bar:<br>
 <img src="Readme_Files/StatusBarStringTransfer.png">
 </p>
+
+<p>The subroutine <kbd>WriteStringDigitsToHUD</kbd> (including the <kbd>Format2</kbd> variant) transfers the string stored in <kbd>!Scratchram_CharacterTileTable</kbd> to the status bar:
+<table>
+	<tr>
+		<th>Input</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>
+			<table>
+				<tr>
+					<td><kbd>$00</kbd> to <kbd>$02</kbd> (3 bytes)</td>
+					<td>24-bit address location to write tile numbere here and tiles after</td>
+				</tr>
+				<tr>
+					<td><kbd>$03</kbd> to <kbd>$05</kbd> (3 bytes, used when <kbd>!StatusBar_UsingCustomProperties != 0</kbd>)</td>
+					<td>Same as above but for tile properties</td>
+				</tr>
+				<tr>
+					<td><kbd>$06</kbd> (1 byte, used when <kbd>!StatusBar_UsingCustomProperties != 0</kbd>)</td>
+					<td>Tile properties to use for all tiles of the string.</td>
+				</tr>
+				<tr>
+					<td><kbd>X register</kbd> (1 byte, not stored)</td>
+					<td>Number of character to write.</td>
+				</tr>
+			</table>
+		</td>
+		<td>
+			Tile data are written at an address stored in <kbd>$00-$02</kbd> and <kbd>$03-$05</kbd> (latter applies when using custom properties)
+		</td>
+	</tr>
+</table>
+
+</p>
+
 <p>To use the routine, here is the code template:
 <div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -4710,231 +4746,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	RTL
 </pre></div>
 </p>
-Timer:
-<div class="CodeBlock"><pre>
-!RAMToMeasure = $60							;&gt;[4 bytes] the 32-bit frame counter
-
-;Settings
-!Stripe_X_Pos = 1							;\Stripe tile position
-!Stripe_Y_Pos = 26							;/
-
- !Decrement = 0								;&gt;0 = increment, 1 = decrement
- !ShowHours = 0								;&gt;0 = MM:SS.CC, 1 = HH:MM:SS.CC
-;Start timer (used only when set to decrement):
- !StartTimerHour = 0
- !StartTimerMinute = 3
- !StartTimerSeconds = 30
-;Tile Properties
- !TileProps = %00111000							;&gt;Tile properties
-
-;Don't touch
-	;calculates how many tiles to write
-		!HourOffset = 0 ;&gt;This adjusts so that if the hour is included, shift the last 8 tiles to the right by 3 tiles
-		!Timer_NumberOfTilesMinus1 = 7 ;&gt;"00:00.00" is 8 tiles, -1 = 7
-		if !ShowHours != 0
-			!HourOffset = 3
-			!Timer_NumberOfTilesMinus1 = 10 ;&gt;"00:00:00.00" is 11 tiles, -1 = 10
-		endif
-	;Max time value
-		!MaxTimer = $00034BBF
-		if !ShowHours != 0
-			!MaxTimer = $014996FF
-		endif
-
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
-
-	init:
-	if !Decrement != 0
-		REP #$20
-		LDA.w #(!StartTimerHour*216000)+(!StartTimerMinute*3600)+(!StartTimerSeconds*60)
-		STA !RAMToMeasure
-		LDA.w #(!StartTimerHour*216000)+(!StartTimerMinute*3600)+(!StartTimerSeconds*60)&gt;&gt;16
-		STA !RAMToMeasure+2
-		SEP #$20
-		
-	else
-		REP #$20
-		LDA #$0000
-		STA !RAMToMeasure
-		STA !RAMToMeasure+2
-		SEP #$20
-	endif
-	RTL
-
-	main:
-	.Timer
-	LDA $9D			;\Freeze timer if game is frozen in any way.
-	ORA $13D4|!addr		;|
-	BNE ..StopTimer		;/
-	if !Decrement == 0
-		..Increment
-		REP #$20			;\Increment timer
-		LDA !RAMToMeasure		;|
-		CLC				;|
-		ADC #$0001			;|
-		STA !RAMToMeasure		;|
-		LDA !RAMToMeasure+2		;|
-		ADC #$0000			;|
-		STA !RAMToMeasure+2		;/
-		..Cap
-			LDA !RAMToMeasure
-			SEC
-			SBC.w #!MaxTimer
-			LDA !RAMToMeasure+2
-			SBC.w #!MaxTimer&gt;&gt;16
-			SEP #$20
-			BCC ...NotMaxed
-		
-			...Maxed
-				REP #$20
-				LDA.w #!MaxTimer
-				STA !RAMToMeasure
-				LDA.w #!MaxTimer&gt;&gt;16
-				STA !RAMToMeasure+2
-				SEP #$20
-			...NotMaxed
-	else
-		REP #$20			;\Decrement frame counter
-		LDA !RAMToMeasure		;|Skip if timer is already 0 and triggered a code.
-		ORA !RAMToMeasure+2		;|
-		BEQ ..StopTimer			;/
-		LDA !RAMToMeasure		;\Decrement frame counter to 0.
-		SEC				;|
-		SBC #$0001			;|
-		STA !RAMToMeasure		;|
-		LDA !RAMToMeasure+2		;|
-		SBC #$0000			;|
-		STA !RAMToMeasure+2		;|
-		BCS ..NoUnderflow		;|\Failsafe
-		LDA #$0000			;||
-		STA !RAMToMeasure		;||
-		STA !RAMToMeasure+2		;|/
-		
-		..NoUnderflow			;/
-		
-		LDA !RAMToMeasure		;\Check again, AFTER subtracting by 1, so that the code executes only once.
-		ORA !RAMToMeasure+2		;|
-		BNE ..NotDecrementedToZero	;/
-		SEP #$20
-		JSL TimerZero			;&gt;Code to execute once.
-		..NotDecrementedToZero
-	endif
-	..StopTimer
-	REP #$20			;\Get timer format
-	LDA !RAMToMeasure		;|
-	STA $00				;|
-	LDA !RAMToMeasure+2		;|
-	STA $02				;|
-	SEP #$20			;|
-	JSL HexDec_Frames2Timer		;/
-	;Stripe
-		LDA.b #!Stripe_X_Pos				;\Position
-		STA $00						;|
-		LDA.b #!Stripe_Y_Pos				;|
-		STA $01						;/
-		LDA #$05					;\Layer
-		STA $02						;/
-		STZ $03						;&gt;D and RLE
-		LDA.b #!Timer_NumberOfTilesMinus1		;\Number of tiles -1
-		STA $04						;|
-		STZ $05						;/
-		JSL HexDec_SetupStripe				;&gt;X (16-bit): The index position to write stripe data
-		;Set all tile properties
-			LDA.b #!TileProps
-			STA.l $7F837D+4+(0*2)+1,x	;\Minutes/Hours
-			STA.l $7F837D+4+(1*2)+1,x	;/
-			STA.l $7F837D+4+(2*2)+1,x	;&gt;":"
-			STA.l $7F837D+4+(3*2)+1,x	;\Seconds/Minutes
-			STA.l $7F837D+4+(4*2)+1,x	;/
-			STA.l $7F837D+4+(5*2)+1,x	;&gt;"."/":"
-			STA.l $7F837D+4+(6*2)+1,x	;\Centiseconds/Seconds
-			STA.l $7F837D+4+(7*2)+1,x	;/
-			if !ShowHours != 0
-				STA.l $7F837D+4+(8*2)+1,x	;"."
-				STA.l $7F837D+4+(9*2)+1,x	;\Centiseconds
-				STA.l $7F837D+4+(10*2)+1,x	;/
-			endif
-		
-		PHX						;&gt;Push stripe index into stack
-		SEP #$30
-	if !ShowHours != 0
-		;Hours
-			LDA !Scratchram_Frames2TimeOutput
-			JSL HexDec_EightBitHexDec			;&gt;A = 1s, X = 10s
-			STA $00						;&gt;Store 1s in $00
-			STX $01						;&gt;Store the 10s in $01
-			REP #$30					;\Load the 16-bit stripe index from stack into X
-			LDA $01,s					;|
-			TAX						;/
-			SEP #$20
-			LDA $00						;\1s place
-			STA.l $7F837D+4+(1*2),x				;/
-			LDA $01						;\10s place
-			STA.l $7F837D+4+(0*2),x				;/
-		;Colon symbol
-			LDA #$78
-			STA.l $7F837D+4+(2*2),x
-			SEP #$30
-	endif
-	;Minutes
-		LDA !Scratchram_Frames2TimeOutput+1
-		JSL HexDec_EightBitHexDec			;&gt;A = 1s, X = 10s
-		STA $00						;&gt;Store 1s in $00
-		STX $01						;&gt;Store the 10s in $01
-		REP #$30					;\Load the 16-bit stripe index from stack into X
-		LDA $01,s					;|
-		TAX						;/
-		SEP #$20
-		LDA $00						;\1s place
-		STA.l $7F837D+4+((1+!HourOffset)*2),x		;/
-		LDA $01						;\10s place
-		STA.l $7F837D+4+((0+!HourOffset)*2),x		;/
-	;Colon symbol
-		LDA #$78
-		STA.l $7F837D+4+((2+!HourOffset)*2),x
-		SEP #$30
-	;Seconds
-		LDA !Scratchram_Frames2TimeOutput+2
-		JSL HexDec_EightBitHexDec			;&gt;A = 1s, X = 10s
-		STA $00						;&gt;Store 1s in $00
-		STX $01						;&gt;Store the 10s in $01
-		REP #$10					;\Load the 16-bit stripe index from stack into X
-		LDA $01,s					;|
-		TAX						;/
-		SEP #$20
-		LDA $00						;\1s place
-		STA.l $7F837D+4+((4+!HourOffset)*2),x		;/
-		LDA $01						;\10s place
-		STA.l $7F837D+4+((3+!HourOffset)*2),x		;/
-	;Period symbol
-		LDA #$24
-		STA.l $7F837D+4+((5+!HourOffset)*2),x
-		SEP #$30
-	;Centiseconds
-		LDA !Scratchram_Frames2TimeOutput+3
-		JSL HexDec_EightBitHexDec			;&gt;A = 1s, X = 10s
-		STA $00						;&gt;Store 1s in $00
-		STX $01						;&gt;Store the 10s in $01
-		REP #$10					;\Load the 16-bit stripe index from stack into X
-		LDA $01,s					;|
-		TAX						;/
-		SEP #$20
-		LDA $00						;\1s place
-		STA.l $7F837D+4+((7+!HourOffset)*2),x		;/
-		LDA $01						;\10s place
-		STA.l $7F837D+4+((6+!HourOffset)*2),x		;/
-	;Done
-		PLX
-		SEP #$30
-	RTL
-	
-	if !Decrement != 0
-		TimerZero:
-		LDA #$80	;\Example code: Fling player upwards.
-		STA $7D		;/
-		RTL
-	endif
-</pre></div>
+For a timer display, like the status bar version, is in a seperate ASM file due to having large number of lines and making use of UAT2.0's extra bytes feature.
 <hr>
 <h2 id="OtherNotes"><a href="#OtherNotesBack">^</a>Other notes</h2>
 <ul>
