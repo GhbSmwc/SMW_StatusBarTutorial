@@ -5,6 +5,8 @@
  - Defines update:
  -- Defines for status bar positioning are now XY-based rather than bytes-offset.
  -- Defines regarding an example usage are now separated into a different ASM text file.
+ -- Moved the default RAM "!Scratchram_Frames2TimeOutput" for LoROM due to an update on timer
+    written on a stripe image.
  - Timer display now have a new display mode setting for "!ShowHours": "2 significant units only"
    which is intended to show only the highest 2 units that are nonzero, saving tiles and
    "screen real estate", suitable for countdown timers:
@@ -20,5 +22,3 @@
  - Corrected various incorrect info on the warmup: "$7E0EF9-$7E0F2E" should be "$7E0EF9-$7E0F2F"
    and in "Create an ASM file to run under" stated that the LDA and STA values should be
  - Added info about subroutine "WriteStringDigitsToHUD" in the main HTML file
- - Moved the default RAM "!Scratchram_Frames2TimeOutput" for LoROM due to an update on timer
-   written on a stripe image.
