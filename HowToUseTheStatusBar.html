@@ -77,7 +77,7 @@ on something simple as how to write a value to memory. You should also know abou
 	<li><a href="#OAMHud" id="OAMHudBack">Sprite-based HUD</a></li>
 	<ul>
 		<li><a href="#PixiSprite" id="PixiSpriteBack">Pixi sprites</a></li>
-		<li><a href="#HUDSprites" id="HUDSpritesBack">HUD-like sprites</a></li>
+		<li><a href="#HUDSprites" id="HUDSpritesBack">OAM-Based Sprite HUD</a></li>
 	</ul>
 	<li><a href="#StripeHud" id="StripeHudBack">Stripe-based HUD</a></li>
 	<li><a href="#OtherNotes" id="OtherNotesBack">Other Notes</a></li>
@@ -3078,9 +3078,13 @@ like how the RAM defined in <kbd>!Scratchram_CharacterTileTable</kbd> is being u
 <p>I coded some templates in the <kbd>Pixi_CustomSprite</kbd> folder. To play around with them, insert the sprite (obviously you should insert the routines as well), place it in a level and use the D-pad to test the values.</p>
 <p>For existing custom sprites, you'll have to edit them to display values.</p>
 
-<h3 id="HUDSprites"><a href="#HUDSpritesBack">^</a>HUD-like sprites</h3>
+<h3 id="HUDSprites"><a href="#HUDSpritesBack">^</a>OAM-Based Sprite HUD</h3>
 <p>I provided a <b>patch</b> that merely writes OAM tiles to the screen (does not occupy any types of sprite slots (sprite slots for normal sprites (the ones that take 12/22 slots, by smw's enemies and pixi), cluster, extended, minor extended, bounce sprite, etc.)).
 See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>. To insert, use asar and patch to your game. Settings are in the patch file (defines pertaining the patch itself) and for global, in <kbd>StatusBarRoutinesDefines/Defines.asm</kbd>.</p>
+
+<p>With the help of UberasmTool's version 2.0+ now supporting <kbd>end:</kbd> label, this makes the patch redundant. Just be warned that it's best to run this under <kbd>level end</kbd> instead of <kbd>gamemode14 end</kbd> because both the OAM clear routine (stored in RAM <kbd>$7FA000</kbd>)
+and whatever code runs in uberasm tool's <kbd>level end</kbd> does not execute when the game is paused, while <kbd>gamemode14 end</kbd> always runs even when paused.</p>
+
 <h3>Subroutines in OAMBasedHUD.asm</h3>
 <p>Routines-based inputs is almost the same as the layer 3 status bar, you just have to read the comments and description in the code as well as the info in the subroutines to fully understand how this works and how to use it. I do not want to explain everything
 as it would make this tutorial unnecessarily long.</p>

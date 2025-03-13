@@ -14,11 +14,11 @@
 ;therefore, writing OAM on uberasm tool will get cleared before drawn.
 
 ;To use:
-;-have the shared subroutines patch, and defines ready. I've laid out the instructions here: Readme_Files/GettingSharedSubToWork.html
-;-Have a copy of the defines (both the folders of the status bar routines defines and the shared subroutines) placed at the same locations as this patch.
-;-Insert this patch
-;-Make sure you do not move this patch file and anything in "StatusBarTutorial/StatusBarRoutines" and "StatusBarTutorial/StatusBarRoutinesDefines", since
-; this uses a relative path from this file to the defines and routines file.
+; - have the shared subroutines patch, and defines ready. I've laid out the instructions here: Readme_Files/GettingSharedSubToWork.html
+; - Have a copy of the defines (both the folders of the status bar routines defines and the shared subroutines) placed at the same locations as this patch.
+; - Insert this patch
+; - Make sure you do not move this patch file and anything in "StatusBarTutorial/StatusBarRoutines" and "StatusBarTutorial/StatusBarRoutinesDefines", since
+;   this uses a relative path from this file to the defines and routines file.
 
 ;NOTE: This patch was made before UAT2.0 was released, which includes "end:" that lets you set OAM tiles prior the game displaying it.
 
