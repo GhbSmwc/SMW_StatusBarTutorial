@@ -2812,6 +2812,11 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 ;Code below
 main:
+	if !CPUMode != 0
+		%invoke_sa1(mainSA1)
+		RTL
+		mainSA1:
+	endif
 	;Submit fraction
 		REP #$20
 		LDA !Freeram_ValueDisplay1_2Bytes
@@ -4405,6 +4410,11 @@ main:
 		JSL HexDec_SetupStripe						;&gt;X (16-bit): The index position to write stripe data
 		PHX								;&gt;Push 16-bit stripe index
 		SEP #$30
+		if !CPUMode != 0
+			%invoke_sa1(.mainSA1)
+			JMP .MainSnes
+			.mainSA1:
+		endif
 	;Submit fraction
 		REP #$20
 		LDA !Freeram_ValueDisplay1_2Bytes
@@ -4460,6 +4470,10 @@ main:
 			STZ $02
 			SEP #$20
 		.Normal
+		if !CPUMode != 0
+			RTL
+			.MainSnes:
+		endif
 	;Display the number.
 		if !Default_PercentagePrecision == 0
 			;Since it is very unlikely you display percentage greater than 100 (assuming you set !Default_PercentagePrecision to 0), you mostly

@@ -54,7 +54,7 @@
 	
 	if !CPUMode != 0
 		%invoke_sa1(mainSA1)
-		RTL
+		JMP MainSnes
 		mainSA1:
 	endif
 	
@@ -128,7 +128,7 @@
 			...NotDecrementedToZero
 	
 		..DisplayTimer
-			;Note: I have to write it to a string buffer !Scratchram_Frames2TimeOutput, then write it to a stripe image
+			;Note: I have to write it to a string buffer !Scratchram_CharacterTileTable, then write it to a stripe image
 			;because I don't really like juggling with the X register being used for both EightBitHexDec's 10s place digit (8-bit)
 			;and as a stripe image (16-bit).
 			REP #$20					;
@@ -281,8 +281,8 @@
 					REP #$20
 					LDA.w #11-1				;>"HH:MM:SS.CC" is 11 characters.
 			...TransferStringToStripe
-				PHA						;>Preserve character count
 				STA $04
+				STA $09						;>Save character count for later
 				SEP #$20
 				LDA.b #!Layer3Stripe_TestDisplayElement_PosX
 				STA $00
@@ -291,8 +291,11 @@
 				LDA #$05
 				STA $02
 				STZ $03
+				if !CPUMode != 0
+					RTL
+					MainSnes:
+				endif
 				JSL HexDec_SetupStripe				;X (16-bit): Index of stripe
-				
 				REP #$20			;\$00-$02: Address of of open stripe data (tile data's TTTTTTTT).
 				TXA				;|$03-$05: Address of of open stripe data (tile data's YXPCCCTT).
 				CLC				;|
@@ -307,7 +310,7 @@
 				LDA.b #!StatusBar_TileProp	;\Props (WriteStringDigitsToHUD uses $06 to write)
 				STA $06				;/
 				REP #$20			;\Number of characters
-				PLA				;|
+				LDA $09				;|
 				SEP #$20			;|
 				INC				;|
 				TAX				;/
