@@ -312,6 +312,18 @@ their own table&rdquo; format and the overworld border plus patch, which your ha
 <h2 id="RoutineControl"><a href="#RoutineControlBack">^</a>Adding routine-controlled display to the HUD.</h2>
 <p>Now we are REALLY into using the status bar and ASM.</p>
 
+<p>Notes:
+<ul>
+	<li>
+		The ASM codes here should work with SA-1. However some subroutines utilize the SA-1 math registers (e.g. multiplication registers, such as <kbd>Frames2Timer</kbd> and <kbd>ConvertToPercentage</kbd>), if you have <kbd>!Setting_GraphicalBar_SNESMathOnly</kbd> set to 0.<br><br>
+		<ul><li>Furthermore, when developing your hack or resource, some emulators handles CPU processor's access to registers differently. Accurate Emulators like Mesen does not allow CPU to access registers of a different type (SA-1 processor cannot access SNES registers and
+		vice versa)</li></ul>
+	</li><br>
+	<li>Uberasm tool have a built-in macro <kbd>%invoke_sa1(label)</kbd> that will run stuff under <kbd>label</kbd> under the SA-1 processor. Anything after the macro call will return to the SNES processor (think of it like a JSL/JSR except the processor switches when invoking it).</li><br>
+	<li>Stripe image data remains in WRAM address $7F837B. This means writing to stripe and calling <kbd>SetupStripe</kbd> needs to be handled by the SNES processor.</li><br>
+</ul>
+</p>
+
 <p>This method assumes you are using uberasm tool to test your code to write to the status bar. The first thing you want to do is have all the ASM files, except &ldquo;<kbd>OAMBasedHUD.asm</kbd>&rdquo;, in &ldquo;<kbd>StatusBarRoutines</kbd>&rdquo;
 inserted into uberasm tool's &ldquo;<kbd>library</kbd>&rdquo; folder, and have the entire folder &ldquo;<kbd>StatusBarRoutinesDefines</kbd>&rdquo; be in the same directory as the uberasm tool exe program is at.</p>
 
@@ -3694,8 +3706,8 @@ init:
 	SEP #$30		;&gt;Failsafe
 	RTL
 </pre></div><br><br>
-And the results viewed on the tilemap viewer (the yellow lines represents the tilemap screen border), assuming you are not using any layer 3 backgrounds:<br>
-<img src="Readme_Files/32x32Layer3Tilemap_StripeWraps.png">
+			And the results viewed on the tilemap viewer (the yellow lines represents the tilemap screen border), assuming you are not using any layer 3 backgrounds:<br>
+			<img src="Readme_Files/32x32Layer3Tilemap_StripeWraps.png">
 		</li>
 		<li>It is easier to write too many tiles at once to cause v-blank overflows; black bars flickering at the top of the screen (especially if written
 		every frame). Status bars and overworld border+	patches would transfer RAM to VRAM data via DMA transfer, which reduces the risk of v-blank overflows.<br><br>
@@ -3716,7 +3728,9 @@ And the results viewed on the tilemap viewer (the yellow lines represents the ti
 		;Code to write your stripe tiles here
 		;[...]
 		RTL</pre></div>
-		</li>
+		</li><br><br>
+		<li>Writing stripe data including calling the <kbd>SetupStripe</kbd> subroutine cannot be handled by the SA-1 processor. This is because stripe RAM is handled in bank $7F, which is only accessible to the SNES processor.</li>
+		
 	</ul>
 </div>
 
