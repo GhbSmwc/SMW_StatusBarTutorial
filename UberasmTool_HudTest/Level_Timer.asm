@@ -27,7 +27,8 @@
 ;Don't touch
 	incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
-
+	%require_uber_ver(2, 0)
+	
 	init:
 	;These initializes the timer value
 	LDY #$00							;\EXB 1
