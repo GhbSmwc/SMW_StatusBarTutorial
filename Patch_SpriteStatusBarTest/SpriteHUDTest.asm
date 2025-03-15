@@ -24,6 +24,7 @@
 
 ;Don't touch:
 	incsrc "../StatusBarRoutinesDefines/Defines.asm"
+	incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 ;Defines:
 ;Remove or install?:
@@ -31,16 +32,6 @@
   ;^0 = remove this patch (if not installed in the first place, won't do anything)
   ; 1 = install this patch
 ;Ram:
- !Freeram_SpriteStatusBarPatchTest_ValueToRepresent = $60
-  ;^[2 bytes] for 16-bit numerical digit display
-  ;^[1 byte] for repeated icons display (how many filled)
-  ;^[4 bytes] for timer display
-  ;^[4 bytes] for 32-bit number display
- !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent = $0F3A|!addr
-  ;^[2 bytes] for 16-bit numerical digit display
-  ;^[1 byte] for repeated icons display (how many total icons)
-  ;^Not used when using timer display mode
-  ;^[4 bytes] for 32-bit number display of 2 numbers
 ;Settings
  !SpriteStatusBarPatchTest_Mode = 2
   ;^0 = 16-bit numerical digits display
@@ -85,7 +76,7 @@
    ;A positive number would place each tile from left to right or top to bottom, negative is in reverse,
    ;A value of +/-8 means each tile will be written next to another tile.
    ;This will also alter the "fill direction". For example, an X displacement of $F8 (-8) will cause the
-   ;repeated icons meter to fill from right to left as the value stored in !Freeram_SpriteStatusBarPatchTest_ValueToRepresent increases.
+   ;repeated icons meter to fill from right to left as the value stored in !Freeram_ValueDisplay1_1Byte increases.
     !SpriteStatusBarPatchTest_RepeatIcons_XDisp = $08
     !SpriteStatusBarPatchTest_RepeatIcons_YDisp = $00
    ;Tile number and properties to use:
@@ -171,97 +162,97 @@ if !Setting_RemoveOrInstall != 0
 					...Up
 						if or(or(equal(!SpriteStatusBarPatchTest_Mode, 0), equal(!SpriteStatusBarPatchTest_Mode, 1)), equal(!SpriteStatusBarPatchTest_Mode, 4))
 							REP #$20
-							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							LDA !Freeram_ValueDisplay1_2Bytes
 							CMP #$FFFF
 							BEQ ...Done
 							INC
-							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							STA !Freeram_ValueDisplay1_2Bytes
 							BRA ...Done
 						elseif and(greaterequal(!SpriteStatusBarPatchTest_Mode, 2), lessequal(!SpriteStatusBarPatchTest_Mode, 3))
 							REP #$20
-							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							LDA !Freeram_ValueDisplay1_4Bytes
 							SEC
 							SBC #$FFFF
-							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+							LDA !Freeram_ValueDisplay1_4Bytes+2
 							SBC #$FFFF
 							BCS ...Done
-							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							LDA !Freeram_ValueDisplay1_4Bytes
 							CLC
 							ADC #$0001
-							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
-							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+							STA !Freeram_ValueDisplay1_4Bytes
+							LDA !Freeram_ValueDisplay1_4Bytes+2
 							ADC #$0000
-							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+							STA !Freeram_ValueDisplay1_4Bytes+2
 							BRA ...Done
 						endif
 					...Down
 						if or(or(equal(!SpriteStatusBarPatchTest_Mode, 0), equal(!SpriteStatusBarPatchTest_Mode, 1)), equal(!SpriteStatusBarPatchTest_Mode, 4))
 							REP #$20
-							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							LDA !Freeram_ValueDisplay1_2Bytes
 							BEQ ...Done
 							DEC
-							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							STA !Freeram_ValueDisplay1_2Bytes
 						elseif and(greaterequal(!SpriteStatusBarPatchTest_Mode, 2), lessequal(!SpriteStatusBarPatchTest_Mode, 3))
 							REP #$20
-							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
-							ORA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+							LDA !Freeram_ValueDisplay1_4Bytes
+							ORA !Freeram_ValueDisplay1_4Bytes+2
 							BEQ ...Done
-							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							LDA !Freeram_ValueDisplay1_4Bytes
 							SEC
 							SBC #$0001
-							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
-							LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+							STA !Freeram_ValueDisplay1_4Bytes
+							LDA !Freeram_ValueDisplay1_4Bytes+2
 							SBC #$0000
-							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+							STA !Freeram_ValueDisplay1_4Bytes+2
 						endif
 					if or(or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 3)), equal(!SpriteStatusBarPatchTest_Mode, 4))
 						BRA ...Done
 						...Left
 							if or(or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 3)), equal(!SpriteStatusBarPatchTest_Mode, 4))
 								REP #$20
-								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								LDA !Freeram_ValueDisplay2_2Bytes
 								BEQ ...Done
 								DEC
-								STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								STA !Freeram_ValueDisplay2_2Bytes
 								BRA ...Done
 							elseif !SpriteStatusBarPatchTest_Mode == 3
 								REP #$20
-								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
-								ORA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2
+								LDA !Freeram_ValueDisplay2_4Bytes
+								ORA !Freeram_ValueDisplay2_4Bytes+2
 								BEQ ...Done
-								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								LDA !Freeram_ValueDisplay2_4Bytes
 								SEC
 								SBC #$0001
-								STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
-								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2
+								STA !Freeram_ValueDisplay2_4Bytes
+								LDA !Freeram_ValueDisplay2_4Bytes+2
 								SBC #$0000
-								STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2
+								STA !Freeram_ValueDisplay2_4Bytes+2
 								BRA ...Done
 							endif
 						...Right
 							if or(or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 3)), equal(!SpriteStatusBarPatchTest_Mode, 4))
 								REP #$20
-								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								LDA !Freeram_ValueDisplay2_2Bytes
 								CMP #$FFFF
 								BEQ ...Done
 								INC
-								STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								STA !Freeram_ValueDisplay2_2Bytes
 								BRA ...Done
 							elseif !SpriteStatusBarPatchTest_Mode == 3
 								REP #$20
-								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								LDA !Freeram_ValueDisplay2_4Bytes
 								SEC
 								SBC #$FFFF
-								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2
+								LDA !Freeram_ValueDisplay2_4Bytes+2
 								SBC #$FFFF
 								BCS ...Done
-								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+								LDA !Freeram_ValueDisplay2_4Bytes
 								CLC
 								ADC #$0001
-								STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
-								LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2
+								STA !Freeram_ValueDisplay2_4Bytes
+								LDA !Freeram_ValueDisplay2_4Bytes+2
 								ADC #$0000
-								STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2
+								STA !Freeram_ValueDisplay2_4Bytes+2
 							endif
 					endif
 					...Done
@@ -270,23 +261,23 @@ if !Setting_RemoveOrInstall != 0
 								REP #$20
 								if !SpriteStatusBarPatchTest_Mode != 3
 									;16-bit max value handler
-									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
-									CMP !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+									LDA !Freeram_ValueDisplay2_2Bytes
+									CMP !Freeram_ValueDisplay1_2Bytes
 									BCS ....MaxNotExceed
-									STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+									STA !Freeram_ValueDisplay1_2Bytes
 									....MaxNotExceed
 								else
 									;32-bit max value handler
-									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;\Max - Current: Carry set if no underflow (Max >= Current), otherwise carry clear.
-									SEC								;|
-									SBC !Freeram_SpriteStatusBarPatchTest_ValueToRepresent		;|
-									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2	;|
-									SBC !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2	;/
+									LDA !Freeram_ValueDisplay2_4Bytes	;\Max - Current: Carry set if no underflow (Max >= Current), otherwise carry clear.
+									SEC					;|
+									SBC !Freeram_ValueDisplay1_4Bytes	;|
+									LDA !Freeram_ValueDisplay2_4Bytes+2	;|
+									SBC !Freeram_ValueDisplay1_4Bytes+2	;/
 									BCS ....MaxNotExceed
-									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;\Max exceeded, set current to max.
-									STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent		;|
-									LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2	;|
-									STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2	;/
+									LDA !Freeram_ValueDisplay2_4Bytes	;\Max exceeded, set current to max.
+									STA !Freeram_ValueDisplay1_4Bytes	;|
+									LDA !Freeram_ValueDisplay2_4Bytes+2	;|
+									STA !Freeram_ValueDisplay1_4Bytes+2	;/
 									....MaxNotExceed
 								endif
 							endif
@@ -298,19 +289,19 @@ if !Setting_RemoveOrInstall != 0
 				ORA $13D4|!addr							;|
 				BNE ..Frozen							;/
 				REP #$20							;
-				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent		;\Increment timer
+				LDA !Freeram_ValueDisplay1_4Bytes				;\Increment timer
 				CLC								;|
 				ADC #$0001							;|
-				STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent		;|
-				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2	;|
+				STA !Freeram_ValueDisplay1_4Bytes				;|
+				LDA !Freeram_ValueDisplay1_4Bytes+2				;|
 				ADC #$0000							;|
-				STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2	;/
+				STA !Freeram_ValueDisplay1_4Bytes+2				;/
 				
 				..Cap
-					LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+					LDA !Freeram_ValueDisplay1_4Bytes
 					SEC
 					SBC.w #!MaxTimer
-					LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+					LDA !Freeram_ValueDisplay1_4Bytes+2
 					SBC.w #!MaxTimer>>16
 					SEP #$20
 					BCC ...NotMaxed
@@ -318,9 +309,9 @@ if !Setting_RemoveOrInstall != 0
 					...Maxed
 						REP #$20
 						LDA.w #!MaxTimer
-						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						STA !Freeram_ValueDisplay1_4Bytes
 						LDA.w #!MaxTimer>>16
-						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+						STA !Freeram_ValueDisplay1_4Bytes+2
 						SEP #$20
 					...NotMaxed
 				..Frozen
@@ -339,37 +330,37 @@ if !Setting_RemoveOrInstall != 0
 					BRA ...Done
 					
 					...Up
-						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						LDA !Freeram_ValueDisplay1_1Byte
 						CMP #$0A
 						BEQ ...Done
 						INC
-						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						STA !Freeram_ValueDisplay1_1Byte
 						BRA ...Done
 					...Down
-						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						LDA !Freeram_ValueDisplay1_1Byte
 						BEQ ...Done
 						DEC
-						STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						STA !Freeram_ValueDisplay1_1Byte
 						BRA ...Done
 					...Left
-						LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+						LDA !Freeram_ValueDisplay2_1Byte
 						BEQ ...Done
 						DEC
-						STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+						STA !Freeram_ValueDisplay2_1Byte
 						BRA ...Done
 					...Right
-						LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+						LDA !Freeram_ValueDisplay2_1Byte
 						CMP #$0A
 						BEQ ...Done
 						INC
-						STA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+						STA !Freeram_ValueDisplay2_1Byte
 						BRA ...Done
 					...Done
 						if !TwoNumberCapping != 0
-							LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
-							CMP !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							LDA !Freeram_ValueDisplay2_1Byte
+							CMP !Freeram_ValueDisplay1_1Byte
 							BCS ....MaxNotExceed
-							STA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+							STA !Freeram_ValueDisplay1_1Byte
 							....MaxNotExceed
 						endif
 					
@@ -386,7 +377,7 @@ if !Setting_RemoveOrInstall != 0
 				;First number
 					if !SpriteStatusBarPatchTest_Mode <= 1
 						REP #$20
-						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						LDA !Freeram_ValueDisplay1_2Bytes
 						STA $00
 						SEP #$20
 						JSL SixteenBitHexDecDivision					;>Convert to decimal digits
@@ -394,9 +385,9 @@ if !Setting_RemoveOrInstall != 0
 						JSL SupressLeadingZeros						;>Rid out the leading zeroes (X = number of characters/tiles written)
 					elseif and(greaterequal(!SpriteStatusBarPatchTest_Mode, 2), lessequal(!SpriteStatusBarPatchTest_Mode, 3))
 						REP #$20
-						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+						LDA !Freeram_ValueDisplay1_4Bytes
 						STA $00
-						LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+						LDA !Freeram_ValueDisplay1_4Bytes+2
 						STA $02
 						SEP #$20
 						JSL ThirtyTwoBitHexDecDivision
@@ -410,7 +401,7 @@ if !Setting_RemoveOrInstall != 0
 						INX								;>That (above) counts as a character.
 						PHX								;>Push X because it gets modified by the HexDec routine.
 						REP #$20							;\Convert a given number to decimal digits.
-						LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;|
+						LDA !Freeram_ValueDisplay2_2Bytes				;|
 						STA $00								;|
 						SEP #$20							;|
 						JSL SixteenBitHexDecDivision					;/
@@ -422,9 +413,9 @@ if !Setting_RemoveOrInstall != 0
 						INX								;>That (above) counts as a character.
 						PHX								;>Push X because it gets modified by the HexDec routine.
 						REP #$20							;\Convert a given number to decimal digits.
-						LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;|
+						LDA !Freeram_ValueDisplay2_4Bytes				;|
 						STA $00								;|
-						LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent+2	;|
+						LDA !Freeram_ValueDisplay2_4Bytes+2				;|
 						STA $02								;|
 						SEP #$20							;|
 						JSL ThirtyTwoBitHexDecDivision					;/
@@ -492,9 +483,9 @@ if !Setting_RemoveOrInstall != 0
 				.PercentageDisplay
 				;Display a percentage
 					REP #$20
-					LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+					LDA !Freeram_ValueDisplay1_2Bytes
 					STA !Scratchram_PercentageQuantity
-					LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent
+					LDA !Freeram_ValueDisplay2_2Bytes
 					STA !Scratchram_PercentageMaxQuantity
 					SEP #$20
 					LDA #!SpriteStatusBarPatchTest_PercentagePrecision
@@ -632,9 +623,9 @@ if !Setting_RemoveOrInstall != 0
 					!Timer_XPosition = !SpriteStatusBarPatchTest_DisplayXPos-(($08+!Timer_HourCharacterCount-1)*8)
 				endif
 				REP #$20
-				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent
+				LDA !Freeram_ValueDisplay1_4Bytes
 				STA $00
-				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent+2
+				LDA !Freeram_ValueDisplay1_4Bytes+2
 				STA $02
 				SEP #$20
 				JSL Frames2Timer
@@ -744,8 +735,8 @@ if !Setting_RemoveOrInstall != 0
 					ADC #$FFF8						;|
 					STA $02							;/
 					SEP #$20
-					LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;\Number of icons
-					STA $06								;/
+					LDA !Freeram_ValueDisplay2_1Byte			;\Number of icons
+					STA $06							;/
 					JSL CenterRepeatingIcons_OAMOnly
 				endif
 				LDA #!SpriteStatusBarPatchTest_RepeatIcons_EmptyNumb	;\Tile numbers to use
@@ -756,9 +747,9 @@ if !Setting_RemoveOrInstall != 0
 				STA $08							;|
 				LDA.b #!SpriteStatusBarPatchTest_RepeatIcons_FullProp	;|
 				STA $09							;/
-				LDA !Freeram_SpriteStatusBarPatchTest_ValueToRepresent		;\Number of filled tiles and how many total
+				LDA !Freeram_ValueDisplay1_1Byte				;\Number of filled tiles and how many total
 				STA $0A								;|
-				LDA !Freeram_SpriteStatusBarPatchTest_SecondValueToRepresent	;|
+				LDA !Freeram_ValueDisplay2_1Byte				;|
 				STA $0B								;/
 				JSL WriteRepeatedIconsAsOAM_OAMOnly				;>Write.
 			endif
