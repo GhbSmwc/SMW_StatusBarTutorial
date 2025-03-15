@@ -116,6 +116,16 @@
 			!bank = $000000
 			!sa1 = 1
 		endif
+	;Invoke SA-1
+		macro invoke_sa1(label)
+			LDA.b #<label>
+			STA $3180
+			LDA.b #<label>>>8
+			STA $3181
+			LDA.b #<label>>>16
+			STA $3182
+			JSR $1E80
+		endmacro
 ;Timer max (also don't touch), based on if you want the hours or not
 	!MaxTimer = $00034BBF
 	if !SpriteStatusBarPatchTest_Mode == 6
@@ -139,6 +149,10 @@ if !Setting_RemoveOrInstall != 0
 	DrawHUD:
 		.RestoreOverwrittenCode
 			JSL $028AB1		;>Restore the JSL (we write our own OAM after all sprite OAM of SMW are finished)
+			if !CPUMode != 0
+				%invoke_sa1(.MainCode)
+				JMP .BackToSMW
+			endif
 		.MainCode
 			if !SpriteStatusBarPatchTest_Mode <= 4
 				;Number display:
@@ -756,6 +770,10 @@ if !Setting_RemoveOrInstall != 0
 		.Done		;>We are done here.
 			SEP #$30
 			PLB
+			if !CPUMode != 0
+				RTL
+			endif
+		.BackToSMW
 			JML $00A2EA		;>Continue onwards
 
 
