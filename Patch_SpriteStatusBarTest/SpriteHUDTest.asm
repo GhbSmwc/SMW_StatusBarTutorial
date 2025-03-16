@@ -3,9 +3,9 @@
 ;Note: Don't forget to insert the graphics (ExGFX/ExGFX82_Sprite_SP4.bin)
 
 ;This patch is based on:
-;-The mega man X HP bar by anonimzwx (https://www.smwcentral.net/?p=section&a=details&id=13994 )
-;-The DKR status bar by Ladida, WhiteYoshiEgg, and lx5 (https://www.smwcentral.net/?p=section&a=details&id=24026 )
-;and also the suggestion by lx5: https://discord.com/channels/161245277179609089/161247652946771969/827647409429151816
+; - The mega man X HP bar by anonimzwx (https://www.smwcentral.net/?p=section&a=details&id=13994 )
+; - The DKR status bar by Ladida, WhiteYoshiEgg, and lx5 (https://www.smwcentral.net/?p=section&a=details&id=24026 )
+;   and also the suggestion by lx5: https://discord.com/channels/161245277179609089/161247652946771969/827647409429151816
 
 ;And yes, this may conflict with some sprite HUD patches because $00A2E6 is somewhat a common address to use.
 
@@ -20,7 +20,12 @@
 ; - Make sure you do not move this patch file and anything in "StatusBarTutorial/StatusBarRoutines" and "StatusBarTutorial/StatusBarRoutinesDefines", since
 ;   this uses a relative path from this file to the defines and routines file.
 
-;NOTE: This patch was made before UAT2.0 was released, which includes "end:" that lets you set OAM tiles prior the game displaying it.
+;NOTE: This patch was made before UberASM tool (UAT) version 2.0 was released, which includes "end:" that lets you set OAM tiles prior the game displaying it.
+;You can convert this into UAT by doing all of these:
+; - Remove anything with the "[NotForUberasmTool]" tag, as those are designed for patches only (you can CTRL+F it).
+; - Replacing every instances of JSL <SubroutineName> with JSL <SubroutineFileName>_<SubroutineName>, for example: "JSL SixteenBitHexDecDivision" with
+;   "JSL HexDec_SixteenBitHexDecDivision".
+; - Making sure the end of code ends with RTL instead of "JML $00A2EA" since UAT already have code to return to SMW's code.
 
 ;Don't touch:
 	incsrc "../StatusBarRoutinesDefines/Defines.asm"
@@ -95,7 +100,7 @@
    ; higher.
    
 
-;SA-1 handling (don't touch):
+;SA-1 handling (don't touch) [NotForUberasmTool]:
 	;SA-1
 		!dp = $0000
 		!addr = $0000
@@ -126,26 +131,26 @@
 			STA $3182
 			JSR $1E80
 		endmacro
-;Timer max (also don't touch), based on if you want the hours or not
+;Timer max (also don't touch), based on if you want the hours or not. Include this for uberasm tool
 	!MaxTimer = $00034BBF
 	if !SpriteStatusBarPatchTest_Mode == 6
 		!MaxTimer = $014996FF
 	endif
-
-if !Setting_RemoveOrInstall == 0
-	if read4($00A2E6) != $028AB122			;22 B1 8A 02 -> JSL.L CODE_028AB1
-		autoclean read3($00A2E6+1)
+;Hijacks [NotForUberasmTool]
+	if !Setting_RemoveOrInstall == 0
+		if read4($00A2E6) != $028AB122			;22 B1 8A 02 -> JSL.L CODE_028AB1
+			autoclean read3($00A2E6+1)
+		endif
+		org $00A2E6
+		JSL $028AB1
+	else
+		org $00A2E6				;>$00A2E6 is the code that runs at the end of the frame, after ALL sprite tiles are written.
+		autoclean JML DrawHUD
 	endif
-	org $00A2E6
-	JSL $028AB1
-else
-	org $00A2E6				;>$00A2E6 is the code that runs at the end of the frame, after ALL sprite tiles are written.
-	autoclean JML DrawHUD
-endif
 
 ;Main code:
 if !Setting_RemoveOrInstall != 0
-	freecode
+	freecode	;[NotForUberasmTool] This tells asar that this is freecode. Not needed and should not be used for UAT
 	DrawHUD:
 		.RestoreOverwrittenCode
 			JSL $028AB1		;>Restore the JSL (we write our own OAM after all sprite OAM of SMW are finished)
@@ -773,8 +778,8 @@ if !Setting_RemoveOrInstall != 0
 			if !CPUMode != 0
 				RTL
 			endif
-		.BackToSMW
-			JML $00A2EA		;>Continue onwards
+		.BackToSMW			;\[NotForUberasmTool] For UAT, just end the code here with RTL instead of running this code.
+			JML $00A2EA		;/>Continue onwards
 
 
 	if lessequal(!SpriteStatusBarPatchTest_Mode, 6) ;If !SpriteStatusBarPatchTest_Mode is a number display
@@ -795,6 +800,7 @@ if !Setting_RemoveOrInstall != 0
 			db $8D				;>Index $0D = for the "." graphic
 			db $8E				;>Index $0E = for the ":" graphic
 	endif
+;[NotForUberasmTool] These makes the patch include subroutines. For UAT, this must be excluded.
 	incsrc "../StatusBarRoutines/HexDec.asm"
 	incsrc "../StatusBarRoutines/OAMBasedHUD.asm"
 	incsrc "../StatusBarRoutines/RepeatedSymbols.asm"
