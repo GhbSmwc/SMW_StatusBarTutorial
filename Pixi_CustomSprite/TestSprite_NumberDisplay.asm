@@ -5,32 +5,32 @@
 ;This can consume a lot of OAM tiles, especially the timer with the hours display.
 ;
 ;extra_byte_1: Display type:
-; -$00 = One number ("X")
-; -$01 = Two numbers ("X/Y")
-; -$02 = Percentage ("XXX%", "XXX.X%", or "XXX.XX%")
-; -$03 = Timer (MM:SS.CC (8 tiles on the timer itself))
-; -$04 = Timer (HH:MM:SS.CC (11 tiles on the timer itself)).
+; - $00 = One number ("X")
+; - $01 = Two numbers ("X/Y")
+; - $02 = Percentage ("XXX%", "XXX.X%", or "XXX.XX%")
+; - $03 = Timer (MM:SS.CC (8 tiles on the timer itself))
+; - $04 = Timer (HH:MM:SS.CC (11 tiles on the timer itself)).
 ;extra_byte_2: Percentage precision (if extra_byte_1 is $02):
-; -$00 = whole percentage ("XXX%")
-; -$01 = 1/10th of a percentage ("XXX.X%")
-; -$02 = 1/100th of a percentage ("XXX.XX%")
+; - $00 = whole percentage ("XXX%")
+; - $01 = 1/10th of a percentage ("XXX.X%")
+; - $02 = 1/100th of a percentage ("XXX.XX%")
 ;extra_byte_3: Cap at 100, allow-round-to-zero, allow-round-to-100 flags (if extra_byte_1 is $02):
-; -Bitwise format: %00000HZC
-; --C = Cap to 100 flag. 0 = no, 1 = yes (any value greater than 100% will display 100%).
-; --Z = Allow rounding to 0:
-;    0 = no, The X in the rule of [0 < X < 5*10**(-Precision)] would be replaced with (1*10**(-Precision))
-;     Essentially:
-;      Precision = 0: [0% < X < 0.5%] will display 1%
-;      Precision = 1: [0% < X < 0.05%] will display 0.1%
-;      Precision = 2: [0% < X < 0.005%] will display 0.01%
-;    1 = yes
-; --H = Allow rounding to 100:
-;    0 = no, the X in the rule of [100-(5*10**(-Precision-1)) < X < 100] would be replaced with (100 - (1*10**(-Precision))
-;     Essentially:
-;      Precision = 0 [99.5% <= X < 100%] will display 99%
-;      Precision = 1 [99.95% <= X < 100%] will display 99.9%
-;      Precision = 2 [99.995% <= X < 100%] will display 99.99%
-;    1 = yes.
+; - Bitwise format: %00000HZC
+; -- C = Cap to 100 flag. 0 = no, 1 = yes (any value greater than 100% will display 100%).
+; -- Z = Allow rounding to 0:
+; --- 0 = no, The X in the rule of [0 < X < 5*10**(-Precision)] would be replaced with (1*10**(-Precision))
+;      Essentially:
+;       Precision = 0: [0% < X < 0.5%] will display 1%
+;       Precision = 1: [0% < X < 0.05%] will display 0.1%
+;       Precision = 2: [0% < X < 0.005%] will display 0.01%
+; --- 1 = yes
+; --- H = Allow rounding to 100:
+;     0 = no, the X in the rule of [100-(5*10**(-Precision-1)) < X < 100] would be replaced with (100 - (1*10**(-Precision))
+;      Essentially:
+;       Precision = 0 [99.5% <= X < 100%] will display 99%
+;       Precision = 1 [99.95% <= X < 100%] will display 99.9%
+;       Precision = 2 [99.995% <= X < 100%] will display 99.99%
+;     1 = yes.
 ;extra_byte_4: Capping the actual number (when 2 numbers or percentage are displayed)
 ; Not to be confused with EXB3's capping flag, which only caps the displayed number.
 ;  0 = no

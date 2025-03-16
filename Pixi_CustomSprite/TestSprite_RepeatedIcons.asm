@@ -7,8 +7,8 @@
 ;"No More Sprite Tile limits" or use SA-1.
 ;
 ;Displacement for each icon (8-bit signed), in pixels. Negative is going (filling) left or up, positive is right or down.
-; extra_byte_1: Horizontal displacement
-; extra_byte_2: Vertical displacement
+; - extra_byte_1: Horizontal displacement
+; - extra_byte_2: Vertical displacement
 ;
 
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
