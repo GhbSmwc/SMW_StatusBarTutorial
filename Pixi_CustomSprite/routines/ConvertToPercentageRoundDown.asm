@@ -12,7 +12,7 @@
 				LDA.l ?.PercentageFixedPointScaling,x
 				STA $02
 				SEP #$20
-				JSL %MathMul16_16()	;>$04 to $07 = product
+				%MathMul16_16()		;>$04 to $07 = product
 			;And we divide by maxquantity.
 				REP #$20
 				LDA $04
@@ -22,7 +22,7 @@
 				LDA !Scratchram_PercentageMaxQuantity
 				STA $04
 				SEP #$20
-				JSL %MathDiv32_16()	;>$00-$03 quotient, $04-$05 remainder
+				%MathDiv32_16()	;>$00-$03 quotient, $04-$05 remainder
 			;Check for if rounded to zero despite not being exactly zero
 			?.RoundCheck
 				LDY #$00

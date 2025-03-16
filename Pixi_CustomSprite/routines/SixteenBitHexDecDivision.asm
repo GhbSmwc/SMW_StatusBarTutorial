@@ -55,45 +55,18 @@
 				LDX #$04
 
 				?.Loop
-				REP #$20			;>16-bit XY
-				LDA.w #10			;>Base 10
-				STA $02				;>Divisor (10)
-				SEP #$20			;>8-bit XY
-				JSR ?MathDiv			;>divide
-				LDA $02				;>Remainder (mod 10 to stay within 0-9 per digit)
+				REP #$20				;>16-bit XY
+				LDA.w #10				;>Base 10
+				STA $02					;>Divisor (10)
+				SEP #$20				;>8-bit XY
+				%MathDiv()				;>divide
+				LDA $02					;>Remainder (mod 10 to stay within 0-9 per digit)
 				STA.b !Scratchram_16bitHexDecOutput,x	;>Store tile
 
 				DEX
-				BPL .Loop
+				BPL ?.Loop
 
 				PLY
 				PLX
 				RTL
-				
-				
-				;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-				; unsigned 16bit / 16bit Division
-				;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-				; Arguments
-				; $00-$01 : Dividend
-				; $02-$03 : Divisor
-				; Return values
-				; $00-$01 : Quotient
-				; $02-$03 : Remainder
-				;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-			
-				?MathDiv:	REP #$20
-						ASL $00
-						LDY #$0F
-						LDA.w #$0000
-				?-		ROL A
-						CMP $02
-						BCC ?+
-						SBC $02
-				?+		ROL $00
-						DEY
-						BPL ?-
-						STA $02
-						SEP #$20
-						RTS
 			endif
