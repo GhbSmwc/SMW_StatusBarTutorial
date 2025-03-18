@@ -549,8 +549,8 @@ CheckIf8x8IsOffScreen:
 		SEC
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;Similar to GetStringXPositionCentered, but for 16-bit positioning. Not
-;to be used for OAM-only type sprites.
+;Similar to GetStringXPositionCentered, but for 16-bit positioning.
+;to only be used for OAM-only type sprites, not pixi.
 ;
 ;Main difference is that OffsetToCenter doesn't exist here, because
 ;interactable sprites have a given position that is not necessary.
