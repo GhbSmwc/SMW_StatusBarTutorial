@@ -41,7 +41,10 @@
 		;For [Convert32bitIntegerToDecDigits]
 			!Setting_32bitHexDec_MaxNumberOfDigits = 10
 			;^Number of digits to be stored (fixed) to be allowed to display up to. Use values 1-10
-			; because maximum 32-bit unsigned integer is 4,294,967,295.
+			; because maximum 32-bit unsigned integer is 4,294,967,295. Note that this is the max
+			; digits for your entire game, so for example: If you have 2 counters utilizing
+			; Convert32bitIntegerToDecDigits with one being 5 digits (99,999) and the other being
+			; 6 digits (999,999) then this should be 6.
 		
 			if !sa1 == 0
 				!Scratchram_32bitHexDecOutput = $7F844E
