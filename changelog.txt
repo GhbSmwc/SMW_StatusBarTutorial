@@ -22,3 +22,7 @@
  - Corrected various incorrect info on the warmup: "$7E0EF9-$7E0F2E" should be "$7E0EF9-$7E0F2F"
    and in "Create an ASM file to run under" stated that the LDA and STA values should be
  - Added info about subroutine "WriteStringDigitsToHUD" in the main HTML file
+ - Fixed a bug on SpriteHUDTest.asm when set to display 2 numbers and the player presses right,
+   would increment the high word of the first of the two numbers when it should only increment
+   only the second number, due to a typo on the if statement on determining should the increment
+   be 16-bit or 32-bit.

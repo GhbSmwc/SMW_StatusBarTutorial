@@ -11,7 +11,8 @@
 
 ;You'd think this can be converted to just an uberasm tool code, but this is wrong. Uberasm tool code runs in between after transferring OAM
 ;RAM ($0200-$041F and $0420-$049F) to SNES register (the code at $008449 does this) and before calling $7F8000 (clears OAM slots), so
-;therefore, writing OAM on uberasm tool will get cleared before drawn.
+;therefore, writing OAM on uberasm tool will get cleared before drawn. EDIT: This was before uberasm tool version 2.0, which utilize "end:"
+;that allows writing to OAM after all of SMW's OAM write within a frame loop.
 
 ;To use:
 ; - have the shared subroutines patch, and defines ready. I've laid out the instructions here: Readme_Files/GettingSharedSubToWork.html
@@ -20,18 +21,10 @@
 ; - Make sure you do not move this patch file and anything in "StatusBarTutorial/StatusBarRoutines" and "StatusBarTutorial/StatusBarRoutinesDefines", since
 ;   this uses a relative path from this file to the defines and routines file.
 
-;NOTE: This patch was made before UberASM tool (UAT) version 2.0 was released, which includes "end:" that lets you set OAM tiles prior the game displaying it.
-;You can convert this into UAT by doing all of these:
-; - Remove anything with the "[NotForUberasmTool]" tag, as those are designed for patches only (you can CTRL+F it).
-; - Replacing every instances of JSL <SubroutineName> with JSL <SubroutineFileName>_<SubroutineName>, for example: "JSL SixteenBitHexDecDivision" with
-;   "JSL HexDec_SixteenBitHexDecDivision".
-; - Making sure the end of code ends with RTL instead of "JML $00A2EA" since UAT already have code to return to SMW's code.
-
 ;Don't touch:
 	incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
-;Defines:
 ;Remove or install?:
  !Setting_RemoveOrInstall = 1
   ;^0 = remove this patch (if not installed in the first place, won't do anything)
@@ -39,14 +32,17 @@
 ;Ram:
 ;Settings
  !SpriteStatusBarPatchTest_Mode = 2
-  ;^0 = 16-bit numerical digits display
-  ; 1 = 16-bit displaying 2 numbers ("200/300", for example)
-  ; 2 = 32-bit numerical digits display
-  ; 3 = 32-bit displaying 2 numbers.
-  ; 4 = Percentage. Displays a percentage of ValueToRepresent out of SecondValueToRepresent.
+  ;^0 = 16-bit numerical digits display*
+  ; 1 = 16-bit displaying 2 numbers ("200/300", for example)*
+  ; 2 = 32-bit numerical digits display*
+  ; 3 = 32-bit displaying 2 numbers.*
+  ; 4 = Percentage. Displays a percentage of ValueToRepresent out of SecondValueToRepresent.*
   ; 5 = Timer display (MM:SS.CC), NOTE: This only DISPLAYS the timer, you need to have a code that increment/decrements the value every frame. See readme.
   ; 6 = Timer display (HH:MM:SS.CC), same rule as above.
-  ; 7 = repeated icons display
+  ; 7 = repeated icons display*
+  ;
+  ;*Number can adjust by D-pad inputs.
+  ;
  ;Percentage display settings.
   !SpriteStatusBarPatchTest_PercentagePrecision = 2
    ;^Number of digits after the decimal point when displaying the percentage, Use only values 0-2.
@@ -100,7 +96,7 @@
    ; higher.
    
 
-;SA-1 handling (don't touch) [NotForUberasmTool]:
+;Don't touch these:
 	;SA-1
 		!dp = $0000
 		!addr = $0000
@@ -131,12 +127,26 @@
 			STA $3182
 			JSR $1E80
 		endmacro
-;Timer max (also don't touch), based on if you want the hours or not. Include this for uberasm tool
-	!MaxTimer = $00034BBF
-	if !SpriteStatusBarPatchTest_Mode == 6
-		!MaxTimer = $014996FF
-	endif
-;Hijacks [NotForUberasmTool]
+	;Timer max (also don't touch), based on if you want the hours or not. Include this for uberasm tool
+		!MaxTimer = $00034BBF
+		if !SpriteStatusBarPatchTest_Mode == 6
+			!MaxTimer = $014996FF
+		endif
+	;Determine the size of the number to increase and decrease based on D-pad inputs
+		!DpadControlledNumber_Size = 0
+			;^0 = 8-bit
+			; 1 = 16-bit
+			; 2 = 32-bit
+		if (lessequal(!SpriteStatusBarPatchTest_Mode, 1))
+			!DpadControlledNumber_Size = 1
+		elseif (and(greaterequal(!SpriteStatusBarPatchTest_Mode, 2), lessequal(!SpriteStatusBarPatchTest_Mode, 3)))
+			!DpadControlledNumber_Size = 2
+		elseif equal(!SpriteStatusBarPatchTest_Mode, 4)
+			!DpadControlledNumber_Size = 1
+		elseif equal(!DpadControlledNumber_Size, 7)
+			!DpadControlledNumber_Size = 0
+		endif
+;Hijacks 
 	if !Setting_RemoveOrInstall == 0
 		if read4($00A2E6) != $028AB122			;22 B1 8A 02 -> JSL.L CODE_028AB1
 			autoclean read3($00A2E6+1)
@@ -150,7 +160,7 @@
 
 ;Main code:
 if !Setting_RemoveOrInstall != 0
-	freecode	;[NotForUberasmTool] This tells asar that this is freecode. Not needed and should not be used for UAT
+	freecode	; This tells asar that this is freecode.
 	DrawHUD:
 		.RestoreOverwrittenCode
 			JSL $028AB1		;>Restore the JSL (we write our own OAM after all sprite OAM of SMW are finished)
@@ -177,9 +187,9 @@ if !Setting_RemoveOrInstall != 0
 						BNE ...Right
 					endif
 					BRA ...Done
-					
+
 					...Up
-						if or(or(equal(!SpriteStatusBarPatchTest_Mode, 0), equal(!SpriteStatusBarPatchTest_Mode, 1)), equal(!SpriteStatusBarPatchTest_Mode, 4))
+						if !DpadControlledNumber_Size == 1
 							REP #$20
 							LDA !Freeram_ValueDisplay1_2Bytes
 							CMP #$FFFF
@@ -187,7 +197,7 @@ if !Setting_RemoveOrInstall != 0
 							INC
 							STA !Freeram_ValueDisplay1_2Bytes
 							BRA ...Done
-						elseif and(greaterequal(!SpriteStatusBarPatchTest_Mode, 2), lessequal(!SpriteStatusBarPatchTest_Mode, 3))
+						elseif !DpadControlledNumber_Size = 2
 							REP #$20
 							LDA !Freeram_ValueDisplay1_4Bytes
 							SEC
@@ -205,13 +215,13 @@ if !Setting_RemoveOrInstall != 0
 							BRA ...Done
 						endif
 					...Down
-						if or(or(equal(!SpriteStatusBarPatchTest_Mode, 0), equal(!SpriteStatusBarPatchTest_Mode, 1)), equal(!SpriteStatusBarPatchTest_Mode, 4))
+						if !DpadControlledNumber_Size == 1
 							REP #$20
 							LDA !Freeram_ValueDisplay1_2Bytes
 							BEQ ...Done
 							DEC
 							STA !Freeram_ValueDisplay1_2Bytes
-						elseif and(greaterequal(!SpriteStatusBarPatchTest_Mode, 2), lessequal(!SpriteStatusBarPatchTest_Mode, 3))
+						elseif !DpadControlledNumber_Size == 2
 							REP #$20
 							LDA !Freeram_ValueDisplay1_4Bytes
 							ORA !Freeram_ValueDisplay1_4Bytes+2
@@ -227,14 +237,14 @@ if !Setting_RemoveOrInstall != 0
 					if or(or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 3)), equal(!SpriteStatusBarPatchTest_Mode, 4))
 						BRA ...Done
 						...Left
-							if or(or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 3)), equal(!SpriteStatusBarPatchTest_Mode, 4))
+							if !DpadControlledNumber_Size == 1
 								REP #$20
 								LDA !Freeram_ValueDisplay2_2Bytes
 								BEQ ...Done
 								DEC
 								STA !Freeram_ValueDisplay2_2Bytes
 								BRA ...Done
-							elseif !SpriteStatusBarPatchTest_Mode == 3
+							elseif !DpadControlledNumber_Size == 2
 								REP #$20
 								LDA !Freeram_ValueDisplay2_4Bytes
 								ORA !Freeram_ValueDisplay2_4Bytes+2
@@ -249,7 +259,7 @@ if !Setting_RemoveOrInstall != 0
 								BRA ...Done
 							endif
 						...Right
-							if or(or(equal(!SpriteStatusBarPatchTest_Mode, 1), equal(!SpriteStatusBarPatchTest_Mode, 3)), equal(!SpriteStatusBarPatchTest_Mode, 4))
+							if !DpadControlledNumber_Size == 1
 								REP #$20
 								LDA !Freeram_ValueDisplay2_2Bytes
 								CMP #$FFFF
@@ -257,7 +267,7 @@ if !Setting_RemoveOrInstall != 0
 								INC
 								STA !Freeram_ValueDisplay2_2Bytes
 								BRA ...Done
-							elseif !SpriteStatusBarPatchTest_Mode == 3
+							elseif !DpadControlledNumber_Size == 2
 								REP #$20
 								LDA !Freeram_ValueDisplay2_4Bytes
 								SEC
@@ -778,7 +788,7 @@ if !Setting_RemoveOrInstall != 0
 			if !CPUMode != 0
 				RTL
 			endif
-		.BackToSMW			;\[NotForUberasmTool] For UAT, just end the code here with RTL instead of running this code.
+		.BackToSMW			;\
 			JML $00A2EA		;/>Continue onwards
 
 
@@ -800,7 +810,7 @@ if !Setting_RemoveOrInstall != 0
 			db $8D				;>Index $0D = for the "." graphic
 			db $8E				;>Index $0E = for the ":" graphic
 	endif
-;[NotForUberasmTool] These makes the patch include subroutines. For UAT, this must be excluded.
+;These makes the patch include subroutines.
 	incsrc "../StatusBarRoutines/HexDec.asm"
 	incsrc "../StatusBarRoutines/OAMBasedHUD.asm"
 	incsrc "../StatusBarRoutines/RepeatedSymbols.asm"
