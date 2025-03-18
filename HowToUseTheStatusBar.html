@@ -3112,7 +3112,7 @@ See <kbd>StatusBarTutorial/Patch_SpriteStatusBarTest</kbd>. To insert, use asar 
 
 <p>With the help of UberasmTool's version 2.0+ now supporting <kbd>end:</kbd> label (after SMW processes everything at the end of the frame but before writing to the PPU/OAM registers), this makes the patch redundant (I provided an uberasm tool version: <kbd>Level_SpriteHUDTest.asm</kbd>).
 Just be warned that it's best to run this under <kbd>level end</kbd> instead of <kbd>gamemode14 end</kbd> because both the OAM clear routine (stored in RAM <kbd>$7F8000</kbd>) and whatever code runs in uberasm tool's <kbd>level end</kbd> does not execute when the game is paused, while
-<kbd>gamemode14 end</kbd> always runs even when paused (you don't want to keep writing to OAM and fill up the slots with duplicate tiles when the game isn't clearing OAM tiles).</p>
+<kbd>gamemode14 end</kbd> always runs even when paused (you don't want to keep writing to OAM and filling up the slots (each frame during a puse) with duplicate tiles when the game isn't clearing OAM tiles).</p>
 
 <h3>Subroutines in OAMBasedHUD.asm</h3>
 <p>Routines-based inputs is almost the same as the layer 3 status bar, you just have to read the comments and description in the code as well as the info in the subroutines to fully understand how this works and how to use it. I do not want to explain everything
