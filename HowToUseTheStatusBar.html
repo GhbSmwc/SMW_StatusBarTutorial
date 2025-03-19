@@ -2386,8 +2386,79 @@ Reason this package not including this is because too much information to be had
 <hr>
 <h2 id="OverworldBorder"><a href="#OverworldBorderBack">^</a>Displaying stuff on the overworld border</h2>
 <p>You may be asking, how do I display information on the overworld border? Well, I have good news, because the only thing you have to do is convert the tile numbering for the status bar to
-the tile numbering of the overworld border, if you are dealing with displaying digits. For non-digit based things like the repeated symbols, just use a different tile number. The graphical
-bar to be used on the OWB is already covered in that package. So only the numerical display we'll discuss here.</p>
+the tile numbering of the overworld border, if you are dealing with displaying digits (Like I said, add the value of the digits by <kbd>#$22</kbd> and use page 1). For non-digit based things
+like the repeated symbols, just use a different tile number. The graphical bar to be used on the OWB is already covered in that package. So only the numerical display we'll discuss here.</p>
+
+<p>For the 16-bit and larger hex-dec displays, I provided subroutines that convert level-statusbar Characters into overworld characters:
+	<table>
+		<tr>
+			<th>Subroutine name</th>
+			<th>Input</th>
+			<th>Output</th>
+		</tr>
+		<tr>
+			<td><kbd>SixteenBitHexDecDivisionToOWB</kbd></td>
+			<td>
+				<table>
+					<tr>
+						<td><kbd>!Scratchram_16bitHexDecOutput</kbd> (5 bytes)</td>
+						<td>Status bar digits</td>
+					</tr>
+				</table>
+			</td>
+			<td>
+				<table>
+					<tr>
+						<td><kbd>!Scratchram_16bitHexDecOutput</kbd> (5 bytes)</td>
+						<td>Overworld border digits</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td><kbd>ThirtyTwoBitHexDecDivisionToOWB</kbd></td>
+			<td>
+				<table>
+					<tr>
+						<td><kbd>!Scratchram_32bitHexDecOutput</kbd> (<kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> bytes)</td>
+						<td>Status bar digits</td>
+					</tr>
+				</table>
+			</td>
+			<td>
+				<table>
+					<tr>
+						<td><kbd>!Scratchram_32bitHexDecOutput</kbd> (<kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> bytes)</td>
+						<td>Overworld border digits</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td><kbd>ConvertAlignedDigitToOWB</kbd></td>
+			<td>
+				<table>
+					<tr>
+						<td><kbd>!Scratchram_CharacterTileTable</kbd> (<kbd>MostNumberOfCharUsed</kbd> bytes)</td>
+						<td>Status bar characters</td>
+					</tr>
+					<tr>
+						<td><kbd>X register</kbd> (1 byte, not stored)</td>
+						<td>Number of characters in string.</td>
+					</tr>
+				</table>
+			</td>
+			<td>
+				<table>
+					<tr>
+						<td><kbd>!Scratchram_CharacterTileTable</kbd> (<kbd>MostNumberOfCharUsed</kbd> bytes)</td>
+						<td>Overworld border characters</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+</p>
 
 <p>Please note that for testing some codes below, specifically ones that call subroutines that at least write tile properties into the status bar/OWB+, <b>requires</b> having <kbd>!StatusBar_UsingCustomProperties</kbd>
 set to <kbd>1</kbd> because SMW's OWB and OWB+ patch have a default tile property page number being <kbd>0</kbd>, and by simply writing just the tile number will write garbage numbers on there due to being on the wrong
@@ -3132,7 +3203,7 @@ as it would make this tutorial unnecessarily long.</p>
 				<th>Description</th>
 			</tr>
 			<tr>
-				<td><kbd>!Scratchram_CharacterTileTable</kbd> (<kbd>!NumberOfChar</kbd> bytes)</td>
+				<td><kbd>!Scratchram_CharacterTileTable</kbd> (<kbd>MostNumberOfCharUsed</kbd> bytes)</td>
 				<td>The string (such as numbers)</td>
 			</tr>
 			<tr>
@@ -3200,7 +3271,7 @@ as it would make this tutorial unnecessarily long.</p>
 				<th>Description</th>
 			</tr>
 			<tr>
-				<td><kbd>!Scratchram_CharacterTileTable</kbd> (<kbd>!NumberOfChar</kbd> bytes)</td>
+				<td><kbd>!Scratchram_CharacterTileTable</kbd> (<kbd>MostNumberOfCharUsed</kbd> bytes)</td>
 				<td>String to display</td>
 			</tr>
 			<tr>
