@@ -13,7 +13,7 @@
 ; - RemoveLeadingZeroes32Bit
 ; - RemoveLeadingZeroes16BitLeaveLast2
 ; - RemoveLeadingZeroes16BitLeaveLast3
-;Overworld:
+;Overworld digits:
 ; - SixteenBitHexDecDivisionToOWB
 ; - ThirtyTwoBitHexDecDivisionToOWB
 ;Leading zeroes remover (left or aligned digits):
@@ -458,8 +458,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;Tile $08		Tile $2A		Digit tile ("8")
 ;Tile $09		Tile $2B		Digit tile ("9")
 ;Tile $FC		Tile $1F		Blank tile
-;Tile $29		Tile $91		Slash tile ("/")
+;Tile $29		Tile $91		Slash tile ("/")*
 ;Note that the displaying of symbols are on page 1, not page 0, and the palette of the OWB is palette 6.
+;
+;*Only supported by routine "ConvertAlignedDigitToOWB", since its tile write location is dependent on the number of
+; non-leading-zero digits that come before it, while "SixteenBitHexDecDivisionToOWB" and "ThirtyTwoBitHexDecDivisionToOWB"
+; are fixed so you can simply just write the overworld slash character directly and at a fixed location.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Convert 16-bit number to OWB digits.
@@ -771,6 +775,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;This Works similarly to "SixteenBitHexDecDivisionToOWB" and
 	;"ThirtyTwoBitHexDecDivisionToOWB" but the string to convert is stored in
 	;!Scratchram_CharacterTileTable.
+	;
 	;Input:
 	; - !Scratchram_CharacterTileTable (NumberOfBytes = NumberOfChar): The string
 	;   to convert.
@@ -780,6 +785,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		PHX
 		DEX
 		.Loop
+			;These here checks if a given character is a specific
+			;status bar tile number to convert to.
 			LDA !Scratchram_CharacterTileTable,x
 			CMP #$0A				;\0-9 are digits
 			BCC ..Digits				;/
@@ -791,8 +798,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			BEQ ..Percent
 			CMP #!StatusBarDotTile
 			BEQ ..Dot
+			;You can add more checks here to add more characters to convert to
 			
-			
+			;Stuff below here are the tile numbers to convert to.
 			..Blank
 				LDA #!OverWorldBorderBlankTile
 				BRA ..Write
@@ -806,8 +814,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				LDA #!OverWorldBorderDotTile
 				BRA ..Write
 			..Digits
-				CLC
-				ADC #$22
+				CLC			;\Status bar digits are at tile numbers $00-$09 and Overworld digits are at tile numbers $22-$2B, so we can just add whats in $00-$09 by $22.
+				ADC #$22		;/
 			..Write
 				STA !Scratchram_CharacterTileTable,x
 			..Next
