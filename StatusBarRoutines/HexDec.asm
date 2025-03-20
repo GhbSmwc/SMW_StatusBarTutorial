@@ -467,6 +467,11 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;	JSL SixteenBitHexDecDivision
 	;	JSL RemoveLeadingZeroes16Bit		;>Omit this if you want to display leading zeroes
 	;	JSL SixteenBitHexDecDivisionToOWB
+	;
+	;Input:
+	; - !Scratchram_16bitHexDecOutput (5 bytes): The characters to convert
+	;Output:
+	; - !Scratchram_16bitHexDecOutput (5 bytes): The converted characters.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		SixteenBitHexDecDivisionToOWB:
 		LDX #$04
@@ -482,7 +487,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		BRA ..Write
 		
 		..Blank
-		LDA #$1F
+		LDA #!OverWorldBorderBlankTile
 		
 		..Write
 		STA !Scratchram_16bitHexDecOutput,x
@@ -495,6 +500,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;	JSL SixteenBitHexDecDivision
 	;	JSL RemoveLeadingZeroes32Bit		;>Omit this if you want to display leading zeroes
 	;	JSL SixteenBitHexDecDivisionToOWB
+	;Input:
+	; - !Scratchram_32bitHexDecOutput (NumberOfBytes = !Setting_32bitHexDec_MaxNumberOfDigits): The characters to
+	;   convert.
+	;Output:
+	; - !Scratchram_32bitHexDecOutput (NumberOfBytes = !Setting_32bitHexDec_MaxNumberOfDigits): The converted
+	;   characters.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		ThirtyTwoBitHexDecDivisionToOWB:
 		LDX.b #!Setting_32bitHexDec_MaxNumberOfDigits-1
@@ -510,7 +521,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		BRA ..Write
 		
 		..Blank
-		LDA #$1F
+		LDA #!OverWorldBorderBlankTile
 		
 		..Write
 		STA !Scratchram_32bitHexDecOutput,x
@@ -755,8 +766,14 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Convert string that has its leading zeroes suppressed (also left-aligned)
-	;to OWB digits
+	;to OWB digits.
+	;
+	;This Works similarly to "SixteenBitHexDecDivisionToOWB" and
+	;"ThirtyTwoBitHexDecDivisionToOWB" but the string to convert is stored in
+	;!Scratchram_CharacterTileTable.
 	;Input:
+	; - !Scratchram_CharacterTileTable (NumberOfBytes = NumberOfChar): The string
+	;   to convert.
 	; - X = Number of characters in the string
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	ConvertAlignedDigitToOWB:
