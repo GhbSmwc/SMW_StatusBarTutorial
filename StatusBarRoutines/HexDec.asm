@@ -447,18 +447,21 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;
 ;Converts decimal digits to OW graphic digits:
 ;StatusBar tile numb:	OWB tile numb:		Description:
-;Tile $00		Tile $22		Digit tile ("0")
-;Tile $01		Tile $23		Digit tile ("1")
-;Tile $02		Tile $24		Digit tile ("2")
-;Tile $03		Tile $25		Digit tile ("3")
-;Tile $04		Tile $26		Digit tile ("4")
-;Tile $05		Tile $27		Digit tile ("5")
-;Tile $06		Tile $28		Digit tile ("6")
-;Tile $07		Tile $29		Digit tile ("7")
-;Tile $08		Tile $2A		Digit tile ("8")
-;Tile $09		Tile $2B		Digit tile ("9")
+;$00			$22			Digit tile ("0")
+;$01			$23			Digit tile ("1")
+;$02			$24			Digit tile ("2")
+;$03			$25			Digit tile ("3")
+;$04			$26			Digit tile ("4")
+;$05			$27			Digit tile ("5")
+;$06			$28			Digit tile ("6")
+;$07			$29			Digit tile ("7")
+;$08			$2A			Digit tile ("8")
+;$09			$2B			Digit tile ("9")
+;$24			$93			Decimal separator (".")* (!StatusBarDotTile)
+;$29			$91			Slash tile ("/")* (!StatusBarSlashCharacterTileNumb)
+;$2A			$92			Percent ("%")* (!StatusBarPercentTile)
+;
 ;Tile $FC		Tile $1F		Blank tile
-;Tile $29		Tile $91		Slash tile ("/")*
 ;Note that the displaying of symbols are on page 1, not page 0, and the palette of the OWB is palette 6.
 ;
 ;*Only supported by routine "ConvertAlignedDigitToOWB", since its tile write location is dependent on the number of
