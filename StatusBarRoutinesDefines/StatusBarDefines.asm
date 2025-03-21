@@ -61,6 +61,8 @@ endif
 			!StatusBarBlankTile = $FC			;>Don't change! just in case if you installed a status bar patch that relocated the blank tile.
 			!StatusBarDotTile = $24
 			!StatusBarPercentTile = $2A
+			!StatusBarPlusSymbol = $2B
+			!StatusBarMinusSymbol = $27			;>A symbol used to display negative numbers (signed hexdec).
 			
 			!StatusBar_TileProp = %00111000
 			
@@ -73,6 +75,9 @@ endif
 			!OverWorldBorderBlankTile = $1F
 			!OverWorldBorderDotTile = $93
 			!OverWorldBorderPercentTile = $92
+			!OverWorldBorderPlusSymbol = $15
+			!OverWorldBorderMinusSymbol = $14
+			
 			
 			!OverWorldBorder_TileProp = %00111001
 		;Misc

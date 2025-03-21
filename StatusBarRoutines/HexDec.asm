@@ -257,7 +257,13 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			RTL
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;16-bit hex to 4 (or 5)-digit decimal subroutine (using right-2-left
-	;division).
+	;division). Example: 12345
+	; 12345/10 = Q: 1234 R: 5 \These remainders are decimal digits (holds a value $00-$09; unpacked BCD)
+	; 1234/10  = Q: 123  R: 4 |ordered from least significant digits to most.
+	; 123/10   = Q: 12   R: 3 |
+	; 12/10    = Q: 1    R: 2 |
+	; 1/10     = Q: 0    R: 1 /
+	;
 	;Input:
 	; - $00-$01 = the value you want to display
 	;Output:
