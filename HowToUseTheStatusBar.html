@@ -29,6 +29,15 @@
 			}
 			
 			abbr{cursor: help;}
+			
+			details {
+				border: 1px solid white;
+			}
+			summary {
+				cursor: pointer;
+				background-color: #808080;
+			}
+			
 		</style>
 	</head>
 <body onload="Calculate()" style="max-width: 1000px; margin: auto; padding: 15px">
@@ -385,26 +394,60 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 <h3 id="DisplayNumbers"><a href="#DisplayNumbersBack">^</a>Displaying decimal numbers</h3>
 
-<p>To display a single digit, just store the value directly to the tile RAM. Digits are correctly displayed if the value is 0-9. Any value greater than 9 will display other symbol or graphics besides digits.</p>
+<p>To display a single digit, just store the value directly to the tile RAM. Digits are correctly displayed if the value is 0-9. Any value greater than 9 will display other symbol or graphics besides digits. To display signed integers (<a href="https://en.wikipedia.org/wiki/Two%27s_complement">two's complement</a>), you can just do this:</p>
+<div class="CodeBlock" style="width: 1000px; height: 300px"><pre>incsrc "../StatusBarRoutinesDefines/Defines.asm"
+	!ShowPostiveSign = 0
+	;^0 = Don't display a plus sign when positive
+	; 1 = Display when positive
+	
+	
+	;[...]
+	;A (8-bit): number to check, should range from -9 to 9.
+	BEQ .Zero
+	BMI .Negative
+	
+	.Positive
+		STA !StatusBar_TestDisplayElement_Pos_Tile+!StatusbarFormat ;&gt; "+!StatusbarFormat" basically moves the number to the right by 1 tile
+		if !ShowPostiveSign == 0
+			LDA #!StatusBarBlankTile
+		else
+			LDA #!StatusBarPlusSymbol
+		endif
+		STA !StatusBar_TestDisplayElement_Pos_Tile
+		RTL
+	.negative
+		EOR #$FF
+		INC
+		STA !StatusBar_TestDisplayElement_Pos_Tile+!StatusbarFormat
+		LDA #!StatusBarMinusSymbol
+		STA !StatusBar_TestDisplayElement_Pos_Tile
+		RTL
+	.Zero
+		LDA #$00
+		STA !StatusBar_TestDisplayElement_Pos_Tile+!StatusbarFormat
+		LDA #!StatusBarBlankTile
+		STA !StatusBar_TestDisplayElement_Pos_Tile
+		RTL
+</pre></div>
+
 
 <p>But how do you display multi-digits on the status bar? Well, you need to have a code that obtain decimal digits that wraps at every 10<sup>n</sup> unit.
 (ones place reset every 10s, 10s digit resets every 100th value, and the 1000s digit resets every 10000s, and so on). The routines, <kbd>HexDec</kbd> converts a given number to
 <a href="https://en.wikipedia.org/wiki/Binary-coded_decimal">binary-coded decimal (BCD, unpacked)</a> to write each digit tiles onto the status bar. Thankfully,
 the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have to convert digit numbers to digit graphics.</p>
 
-<p>Note that all of them treats the number as unsigned (negatives don't exists, you'll
-have to &ldquo;negate&rdquo; the number by EOR $FF/$FFFF, then INC it (for 32-bit number do EOR $FFFF twice in 16-bit mode for both low and high words, increment the low word by 1, and if it overflows past $FFFF, carry
-should increment the highword), before calling the routine, and also write the minus sign (tile $27) to represent a negative number. However, this really isn't that necessary, negative numbers are RARELY used in video games).</p>
-
 <p>Another note is that leading zeroes do exist, if there are fewer digits than the maximum number of digits of a given subroutine.</p>
 
 <p>Here is a cheatsheet of all the HexDec routines in <kbd>HexDec.asm</kbd>:
+
+<details>
+<summary>HexDec routines</summary>
 <table>
 	<tr>
 		<th>Subroutine</th><th>Maximum number of digits</th><th>Input</th><th>Output</th>
 	</tr>
 	<tr>
-		<td><kbd>EightBitHexDec</kbd></td>
+		<td><kbd>EightBitHexDec</kbd> and <kbd>EightBitHexDec2DigitsSigned</kbd></td>
 		<td><kbd>2</kbd> (or <kbd>3</kbd> when called again for the hundreds)</td>
 		<td>A (8-bit/1-byte)</td>
 		<td>
@@ -421,11 +464,15 @@ should increment the highword), before calling the routine, and also write the m
 					<td><kbd>X index</kbd> (8-bit)</td>
 					<td>10s place, if the input <kbd>A register</kbd> is &gt;99, will start using values beyond 9, which picks graphics besides numbers.</td>
 				</tr>
+				<tr>
+					<td><kbd>Y index</kbd> (8-bit, only used when using the signed version)</td>
+					<td>Sign: <kbd>$00</kbd> = negative, <kbd>$01</kbd> = zero, <kbd>$02</kbd> = positive</td>
+				</tr>
 			</table>
 		</td>
 	</tr>
 	<tr>
-		<td><kbd>EightBitHexDec3Digits</kbd></td>
+		<td><kbd>EightBitHexDec3Digits</kbd> and <kbd>EightBitHexDec3DigitsSigned</kbd></td>
 		<td><kbd>3</kbd></td>
 		<td>A (8-bit/1-byte)</td>
 		<td>
@@ -446,44 +493,63 @@ should increment the highword), before calling the routine, and also write the m
 					<td><kbd>Y index</kbd> (8-bit)</td>
 					<td>100s place</td>
 				</tr>
+				<tr>
+					<td><kbd>$00</kbd> (1 byte, only used when using the signed version)</td>
+					<td>Sign: <kbd>$00</kbd> = negative, <kbd>$01</kbd> = zero, <kbd>$02</kbd> = positive</td>
+				</tr>
 			</table>
 		</td>
 	</tr>
 	<tr>
-		<td><kbd>SixteenBitHexDecDivision</kbd></td>
+		<td><kbd>SixteenBitHexDecDivision</kbd> and <kbd>SixteenBitHexDecDivisionSigned</kbd></td>
 		<td><kbd>5</kbd></td>
 		<td><kbd>$00</kbd>-<kbd>$01</kbd> (16-bit/2-byte)</td>
 		<td>
 			<table>
-				<tr><th>Relative to RAM being defined</th><th>RAM used in LoROM</th><th>RAM used under SA-1</th><th>Place value</th></tr>
+				<tr><th>RAM used (1 byte each)</th><th>RAM used in LoROM</th><th>RAM used under SA-1</th><th>Place value</th></tr>
 				<tr><td><kbd>!Scratchram_16bitHexDecOutput+0</kbd></td><td><kbd>$02</kbd></td><td><kbd>$04</kbd></td><td>10,000s place</td></tr>
 				<tr><td><kbd>!Scratchram_16bitHexDecOutput+1</kbd></td><td><kbd>$03</kbd></td><td><kbd>$05</kbd></td><td>1,000s place</td></tr>
 				<tr><td><kbd>!Scratchram_16bitHexDecOutput+2</kbd></td><td><kbd>$04</kbd></td><td><kbd>$06</kbd></td><td>100s place</td></tr>
 				<tr><td><kbd>!Scratchram_16bitHexDecOutput+3</kbd></td><td><kbd>$05</kbd></td><td><kbd>$07</kbd></td><td>10s place</td></tr>
 				<tr><td><kbd>!Scratchram_16bitHexDecOutput+4</kbd></td><td><kbd>$06</kbd></td><td><kbd>$08</kbd></td><td>1s place</td></tr>
+				<tr><td colspan="3"><kbd>$00</kbd> (only used when using signed version)</td><td>Sign: <kbd>$00</kbd> = negative, <kbd>$01</kbd> = zero, <kbd>$02</kbd> = positive</td></tr>
 			</table>
 		</td>
 	</tr>
 	<tr>
-		<td><kbd>ThirtyTwoBitHexDecDivision</kbd></td>
+		<td><kbd>ThirtyTwoBitHexDecDivision</kbd> and <kbd>ThirtyTwoBitHexDecDivisionSigned</kbd></td>
 		<td><kbd>1</kbd>-<kbd>10</kbd> digits, defined as <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd></td>
 		<td><kbd>$00</kbd>-<kbd>$03</kbd> (32-bit/4-byte)</td>
 		<td>
-			<kbd>!Scratchram_32bitHexDecOutput</kbd> to <kbd>!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)</kbd>: Contains value 0-9 on every byte,
-			in decreasing significant digits (last byte is always the 1s place). Formula to get what RAM of a given digit:<br><br><kbd>!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(DigitIndex)</kbd><br><br>
-			Where <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> indicates the largest number of digits in your entire hack, up to 10.<br>
-			Where <kbd>DigitIndex</kbd>, ranging from 0 to <kbd>!Setting_32bitHexDec_MaxNumberOfDigits-1</kbd> represent which digit in positional notation:
-			<ul>
-				<li>DigitIndex = 0: 1s</li>
-				<li>DigitIndex = 1: 10s</li>
-				<li>DigitIndex = 2: 100s</li>
-				<li>DigitIndex = 3: 1,000s</li>
-				<li>DigitIndex = 4: 10,000s</li>
-				<li>...</li>
-				<li>DigitIndex = 9: 1,000,000,000s (maximum unsigned 32-bit integer is 4,294,967,295)</li>
-			</ul>
-			
-			Due to the maximum number of digits giving out such a huge combinations, I provided <a href="Readme_Files/JS_32BitHexDecRAMUsage.html" id="32BitHexDec_Back">this JS tool</a> that you can adjust to find out its data layout.
+			<table>
+				<tr>
+					<th>Output</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<td><kbd>!Scratchram_32bitHexDecOutput</kbd> to <kbd>!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)</kbd>, <kbd>BytesUsed = !Setting_32bitHexDec_MaxNumberOfDigits</kbd></td>
+					<td>
+						Contains value 0-9 on each byte, in decreasing significant digits (last byte is always the 1s place). Formula to get what RAM of a given digit:<br><br><kbd>!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(DigitIndex)</kbd><br><br>
+						Where <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> indicates the largest number of digits in your entire hack, up to 10.<br>
+						Where <kbd>DigitIndex</kbd>, ranging from 0 to <kbd>!Setting_32bitHexDec_MaxNumberOfDigits-1</kbd> represent which digit in positional notation:
+						<ul>
+							<li>DigitIndex = 0: 1s</li>
+							<li>DigitIndex = 1: 10s</li>
+							<li>DigitIndex = 2: 100s</li>
+							<li>DigitIndex = 3: 1,000s</li>
+							<li>DigitIndex = 4: 10,000s</li>
+							<li>...</li>
+							<li>DigitIndex = 9: 1,000,000,000s (maximum unsigned 32-bit integer is 4,294,967,295)</li>
+						</ul>
+						
+						Due to the maximum number of digits giving out such a huge combinations, I provided <a href="Readme_Files/JS_32BitHexDecRAMUsage.html" id="32BitHexDec_Back">this JS tool</a> that you can adjust to find out its data layout.
+					</td>
+				</tr>
+				<tr>
+					<td><kbd>$00</kbd> (1 byte, only used when using signed version)</td>
+					<td>Sign: <kbd>$00</kbd> = negative, <kbd>$01</kbd> = zero, <kbd>$02</kbd> = positive</td>
+				</tr>
+			</table>
 		</td>
 	</tr>
 	<tr>
@@ -546,6 +612,7 @@ should increment the highword), before calling the routine, and also write the m
 		</td>
 	</tr>
 </table>
+</details>
 </p>
 <p>Lets start with something very simple with small number of digits.</p>
 <p>Do note that all subroutines here will always have leading zeroes stored (either as in the registers for 2-3 digits or as an array of digits for 4+ digit displays) when there are fewer
@@ -744,7 +811,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			-
 			PHX
 			TYX						;&gt;Sigh, LDA $xxxxxx,y does not exist.
-			LDA (!Scratchram_32bitHexDecOutput)+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
+			LDA !Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
 			PLX
 			STA !StatusBar_TestDisplayElement_Pos_Tile,x
 			DEY
@@ -1147,7 +1214,7 @@ Again, use the debugger if you wanted to test the values using the memory editor
 
 <h4 id="RightAligned"><a href="#RightAlignedBack">^</a>Right aligned display</h3>
 
-<p>But what about right-aligned number display? First things first, if you are displaying a single number, this routine isn't necessary as calling the HexDec routines and replacing leading zeroes with leading spaces
+<p>But what about right-aligned number display? First things first, if you are displaying a single, non-negative number, this routine isn't necessary as calling the HexDec routines and replacing leading zeroes with leading spaces
 is automatically right-aligned, therefore only use these routines (below) if you are displaying X/Y. Here is how you do it: After checking if there are too many characters, you then store the RAM address of the <i>rightmost tile position</i>
 into $00-$02 (little endian), call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedFormat2</kbd> if using the [TTTTTTTT, YXPCCCTT] format), which will modify the position of where to write the digits based
 on how long the string are (loop-writes are based on the starting byte of an array, not the last) by taking the position, subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the
@@ -2646,7 +2713,7 @@ incsrc "../StatusBarRoutinesDefines/Defines.asm"
 		-
 		PHX
 		TYX							;&gt;Sigh, LDA $xxxxxx,y does not exist.
-		LDA (!Scratchram_32bitHexDecOutput)+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
+		LDA !Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
 		PLX
 		STA !OverworldBorder_TestDisplayElement_Pos_Tile,x
 		LDA.b #!OverWorldBorder_TileProp
@@ -4058,7 +4125,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		LDX #(!NumberOfDigitsDisplayed-1)		;&gt;Digits left to write, -1, and 0-based
 		LDY #((!NumberOfDigitsDisplayed-1)*2)		;&gt;Which tile data
 		-
-		LDA (!Scratchram_32bitHexDecOutput)+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
+		LDA !Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
 		STA [$00],y
 		LDA.b #!StatusBar_TileProp
 		INY						;\Next byte over to write properties
@@ -4446,7 +4513,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		..WriteToStripe
 			LDX.w #$0000
 			...Loop
-				LDA (!Scratchram_32bitHexDecOutput)+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
+				LDA !Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(!NumberOfDigitsDisplayed-1),x
 				PHX
 				LDX $00						;&gt;X = current stripe tile index
 				STA.l $7F837D+4,x

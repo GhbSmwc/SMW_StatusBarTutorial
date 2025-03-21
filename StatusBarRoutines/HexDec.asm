@@ -8,6 +8,11 @@
 ; - EightBitHexDec3Digits
 ; - SixteenBitHexDecDivision
 ; - ThirtyTwoBitHexDecDivision
+;Signed HexDec routines
+; - EightBitHexDec2DigitsSigned
+; - EightBitHexDec3DigitsSigned
+; - SixteenBitHexDecDivisionSigned
+; - ThirtyTwoBitHexDecDivisionSigned
 ;Leading zeroes remover (leading spaces):
 ; - RemoveLeadingZeroes16Bit
 ; - RemoveLeadingZeroes32Bit
@@ -184,8 +189,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;
 	;Input: A = 8-bit value (0-255)
 	;Output:
-	; A = 1s place
-	; X = 10s place
+	; - A = 1s place
+	; - X = 10s place
 	;
 	;To display 3-digits (include the 100s place), after getting the ones place
 	;written, use TXA, and then call the routine again. After that, X is the 100s
@@ -228,9 +233,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	
 	;This is a bit faster than calling [EightBitHexDec] twice. Done by subtracting by 100
 	;repeatedly first, then 10s, and after that, the ones are done.
-	; Y = 100s
-	; X = 10s
-	; A = 1s
+	; - Y = 100s
+	; - X = 10s
+	; - A = 1s
 	;
 	;Example: A=$FF (255):
 	; 255 -> 155 -> 55 Subtracted 2 times, so 100s place is 2 (goes into Y).
@@ -277,7 +282,6 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;
 	;!Scratchram_16bitHexDecOutput is address $02 for normal ROM and $04 for SA-1.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-			
 		SixteenBitHexDecDivision:
 			if !CPUMode == 0
 				PHX
@@ -375,6 +379,199 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			BPL .Loop				;/
 			RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Signed HexDec routines (two's complement)
+;To handle negative numbers, it works like this:
+; 1. Invert the number by EOR #((2**8)-1) : INC
+; 2. Call the corresponding HexDec routine to obtain the digits
+; 3. Write the negative sign followed by the digits.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;8-bit signed hexdec 2 digits
+	;Input:
+	; - A = Number to convert (safe range is -99 to 99)
+	;Output
+	; - A = 1s
+	; - X = 10s
+	; - Y = Sign, values are:
+	; -- $00 = Negative
+	; -- $01 = Zero
+	; -- $02 = Positive
+	;   This can be indexed for displaying the sign character
+	;   via a table: db <MinusSymbol>, <Blank>, <PlusSymbol>
+	;   the latter two can just both be blank characters.
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	EightBitHexDec2DigitsSigned:
+		BEQ .Zero
+		BMI .Negative
+		.Positive
+			LDY #$02
+			JSL EightBitHexDec
+			RTL
+		.Negative
+			LDY #$00
+			EOR #$FF			;\Invert number
+			INC				;/
+			JSL EightBitHexDec
+			RTL
+		.Zero
+			LDY #$01
+			LDA #$00
+			LDX #$00
+			RTL
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;8-bit signed hexdec 3 digits
+	;Input:
+	; - A = Number to convert (full range -128 to 127)
+	;Output
+	; - Y = 100s
+	; - X = 10s
+	; - A = 1s
+	; - $00 = Sign, values are:
+	; -- $00 = Negative
+	; -- $01 = Zero
+	; -- $02 = Positive
+	;   This can be indexed for displaying the sign character
+	;   via a table: db <MinusSymbol>, <Blank>, <PlusSymbol>
+	;   the latter two can just both be blank characters.
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	EightBitHexDec3DigitsSigned:
+		BEQ .Zero
+		BMI .Negative
+		.Positive
+			LDX #$02
+			STX $00
+			JSL EightBitHexDec3Digits
+			RTL
+		.Negative
+			LDX #$00
+			STX $00
+			EOR #$FF			;\Invert number
+			INC				;/
+			JSL EightBitHexDec3Digits
+			RTL
+		.Zero
+			LDX #$01
+			STX $00
+			LDA #$00
+			LDX #$00
+			LDY #$00
+			RTL
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;16-bit signed HexDec
+	;
+	;Input:
+	; - $00-$01 = the value you want to display
+	;Output:
+	; - Y = Sign, values are:
+	; -- $00 = Negative
+	; -- $01 = Zero
+	; -- $02 = Positive
+	; - !Scratchram_16bitHexDecOutput to !Scratchram_16bitHexDecOutput+4 = a digit 0-9 per byte table
+	;   (used for 1-digit per 8x8 tile):
+	; -- !Scratchram_16bitHexDecOutput+$00 = ten thousands
+	; -- !Scratchram_16bitHexDecOutput+$01 = thousands
+	; -- !Scratchram_16bitHexDecOutput+$02 = hundreds
+	; -- !Scratchram_16bitHexDecOutput+$03 = tens
+	; -- !Scratchram_16bitHexDecOutput+$04 = ones
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	SixteenBitHexDecDivisionSigned:
+		REP #$20
+		LDA $00
+		BEQ .Zero
+		BMI .Negative
+		.Positive
+			SEP #$20
+			JSL SixteenBitHexDecDivision
+			LDY #$02
+			RTL
+		.Negative
+			EOR #$FFFF
+			INC A
+			STA $00
+			SEP #$20
+			JSL SixteenBitHexDecDivision
+			LDY #$00
+			RTL
+		.Zero
+			SEP #$20
+			LDX #$04
+			LDA #$00
+			..Loop
+				STA !Scratchram_16bitHexDecOutput,x
+				DEX
+				BPL ..Loop
+			LDY #$01
+			RTL
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;32-bit signed HexDec
+	;input:
+	; - $00-$03 = the 32-bit number, in little endian, example:
+	;   $11223344 ([$44,$33,$22,$11]) should output 287454020.
+	;   Maximum value is 4,294,967,295.
+	;output:
+	; - [!Scratchram_32bitHexDecOutput] to [!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)]:
+	;   Contains value 0-9 on every byte, in decreasing significant digits (last byte is always
+	;   the 1s place). Formula to get what RAM of a given digit:
+	; 
+ 	;   !Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)-(DigitIndex)
+	; 
+ 	;   Where DigitIndex is an integer ranging from 0 to !Setting_32bitHexDec_MaxNumberOfDigits-1, representing what digit with 0
+	;   being the ones, 2 being 10s, and so on:
+	;   DigitValue = 0: 1s place (ex. w/ 6 digits: $7F8453)
+	;   DigitValue = 1: 10s place (ex. w/ 6 digits: $7F8452)
+	;   DigitValue = 2: 100s place (ex. w/ 6 digits: $7F8451)
+	;   DigitValue = 3: 1000s place (ex. w/ 6 digits: $7F8450)
+	;   [...]
+	;   DigitValue = 5: 100000s place (ex. w/ 6 digits: $7F844E)
+	; - Y = Sign, values are:
+	; -- $00 = Negative
+	; -- $01 = Zero
+	; -- $02 = Positive
+	;
+	;Overwritten
+	; - $04 to $05: because remainder of the division.
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	ThirtyTwoBitHexDecDivisionSigned:
+	LDA $03			;>High byte contains the sign bit (in 32-bit context, that would be bit number 31)
+	BMI .Negative
+	REP #$20
+	LDA $00
+	ORA $02
+	SEP #$20
+	BEQ .Zero		;>If all bits zero, then its zero
+	
+	.Positive
+		JSL ThirtyTwoBitHexDecDivision
+		LDY #$02
+		RTL
+	.Negative
+		REP #$20
+		LDA $00				;\Flip all 32 bits...
+		EOR #$FFFF			;|
+		STA $00				;|
+		LDA $02				;|
+		EOR #$FFFF			;|
+		STA $02				;/
+		LDA $00				;\...Add by 1
+		CLC				;|(as always the carry bit is involved here, performing ADC #$0000+Carry
+		ADC #$0001			;|where Carry is 1 if ADC #$0001 causes an overflow in 16-bit and 0 otherwise.)
+		STA $00				;|
+		LDA $02				;|
+		ADC #$0000			;|
+		STA $02				;/Number is now inverted
+		SEP #$20
+		JSL ThirtyTwoBitHexDecDivision
+		LDY #$00
+		RTL
+	.Zero
+		LDX.b #!Scratchram_32bitHexDecOutput-1
+		..Loop
+			STA !Scratchram_32bitHexDecOutput,x
+			DEX
+			BPL ..Loop
+		LDY #$01
+		RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Leading zeroes remover.
 ;Writes $FC on all leading zeroes (except the 1s place),
 ;Therefore, numbers will have leading spaces instead.
@@ -451,7 +648,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Overworld digit converter.
 ;
-;Converts decimal digits to OW graphic digits:
+;Converts decimal digits to OW graphic digits (including but not limited to):
 ;StatusBar tile numb:	OWB tile numb:		Description:
 ;$00			$22			Digit tile ("0")
 ;$01			$23			Digit tile ("1")
