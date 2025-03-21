@@ -30,12 +30,12 @@
 			
 			abbr{cursor: help;}
 			
-			details {
+			div.RoutinesTable {
+				overflow: auto;
+				width: 1000px;
+				height: 1000px;
 				border: 1px solid white;
-			}
-			summary {
-				cursor: pointer;
-				background-color: #808080;
+				resize: both;
 			}
 			
 		</style>
@@ -440,8 +440,7 @@ the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have t
 
 <p>Here is a cheatsheet of all the HexDec routines in <kbd>HexDec.asm</kbd>:
 
-<details>
-<summary>HexDec routines</summary>
+<div class="RoutinesTable">
 <table>
 	<tr>
 		<th>Subroutine</th><th>Maximum number of digits</th><th>Input</th><th>Output</th>
@@ -612,7 +611,7 @@ the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have t
 		</td>
 	</tr>
 </table>
-</details>
+</div>
 </p>
 <p>Lets start with something very simple with small number of digits.</p>
 <p>Do note that all subroutines here will always have leading zeroes stored (either as in the registers for 2-3 digits or as an array of digits for 4+ digit displays) when there are fewer
