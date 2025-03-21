@@ -252,7 +252,7 @@ main:
 					else
 						JSL HexDec_WriteStringDigitsToHUDFormat2
 					endif
-					.TooMuchChar
+				.TooMuchChar
 			endif
 		endif
 	endif
