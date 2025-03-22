@@ -1,4 +1,5 @@
 ;This is the patch version that draws a OAM-based status bar.
+;This does not occupy any sprite slots (e.g 12 (22 if SA-1) main sprites).
 
 ;Note: Don't forget to insert the graphics (ExGFX/ExGFX82_Sprite_SP4.bin)
 

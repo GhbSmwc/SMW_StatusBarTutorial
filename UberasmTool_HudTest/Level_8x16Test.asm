@@ -1,4 +1,20 @@
 ;This ASM code demonstrates the function of 8x16 number graphic. This graphic is used by the bonus stars counter.
+;Note that because each character occupies 2 8x8 tiles instead of 1 8x8, 2 lines are needed, and that is where
+;!Scratchram_CharacterTileTable_Line2 is involved here to handle a second line. This only supports 1 or 2 16-bit
+;numbers. W wouldn't want to include every variations of this else it would be too much.
+
+;Notes:
+; - In this ASM resource's default state, it only supports level layer 3 tiles. Sprite OAM tiles can only be 8x8
+;   or 16x16. Technically the SNES does allow other dimensions, but will apply to all 128 slots rather than per
+;   slot.
+; -- Another problem with OAM is that if you're going for 16x16 pixel tiles to fit 8x16 pixel  characters, you
+;    end up wasting tiles as the top-right and bottom-right of the 2x2 square cannot be used (else you have
+;    garbage to the right of every character).
+; -- If you are going for just 8x8 tiles with each character occupying 2 OAM slots placed vertically, well, its
+;    roughly double the amount of OAM tiles (some of the top and bottom half of the number reuses previous
+;    graphics, such as the top-half of "2" and "3" and the bottom half of "0" and "6") used and the tiles on the
+;    8x8 editor compared to a single line of characters being 8x8s.
+;
 
 ;Don't touch
 	incsrc "../StatusBarRoutinesDefines/Defines.asm"

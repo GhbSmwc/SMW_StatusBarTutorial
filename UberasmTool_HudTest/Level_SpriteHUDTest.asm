@@ -1,6 +1,6 @@
 ;To be used as "Level" for uberasm tool 2.0+.
 ;Note: Don't forget to insert the graphics (ExGFX/ExGFX82_Sprite_SP4.bin)
-;This test various subroutines to display things on the sprite OAM.
+;This demonstrates various subroutines to display things on the sprite OAM. This does not occupy any sprite slots (e.g 12 (22 if SA-1) main sprites).
 
 ;Don't touch:
 	incsrc "../StatusBarRoutinesDefines/Defines.asm"
