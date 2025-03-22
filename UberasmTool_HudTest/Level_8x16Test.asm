@@ -1,4 +1,4 @@
-;This ASM code tests the creation of the 8x16 number graphic. This graphic is used by the bonus stars counter.
+;This ASM code demonstrates the function of 8x16 number graphic. This graphic is used by the bonus stars counter.
 
 ;Don't touch
 	incsrc "../StatusBarRoutinesDefines/Defines.asm"
