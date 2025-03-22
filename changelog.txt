@@ -32,3 +32,4 @@
    $1F, the routines "SixteenBitHexDecDivisionToOWB" and "ThirtyTwoBitHexDecDivisionToOWB"
    wouldn't update to that because I forgot to make it use such a define.
  - Added signed HexDec routines. These handles a two's complement values.
+ - Added 16x8 ("bonus stars" number) support.

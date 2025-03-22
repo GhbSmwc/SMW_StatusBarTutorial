@@ -77,7 +77,7 @@
 		; This then can get transferred to the status bar/stripe/sprite tile via calling
 		; - WriteStringDigitsToHUD (including the Format2 variant)
 		; - WriteStringAsSpriteOAM (including the OAMOnly variant)
-		!Scratchram_CharacterTileTable_Line2 = !Scratchram_CharacterTileTable+10
+		!Scratchram_CharacterTileTable_Line2 = !Scratchram_CharacterTileTable+11
 		;^[X bytes] Same as !Scratchram_CharacterTileTable, however only used when using 2-tiles tall
 		; symbols like SMW's bonus star counter.
 		

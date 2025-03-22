@@ -1,18 +1,28 @@
+;This ASM code tests the creation of the 8x16 number graphic. This graphic is used by the bonus stars counter.
+
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
+!DisplayTwoNumbers = 0
+ ;^0 = 1 number
+ ; 1 = 2 numbers
 !NumberOfDigitsDisplayed = 5							;>How many digits, enter 1-5 (pointless if you enter less than 3).
 
-;Don't touch
+;Don't touch unless you know what you're doing
 	!StatusBar_TestDisplayElement_Pos_Tile_BottomLine = !StatusBar_TestDisplayElement_Pos_Tile+(32*!StatusbarFormat)
 	!StatusBar_TestDisplayElement_Pos_Prop_BottomLine = !StatusBar_TestDisplayElement_Pos_Prop+(32*!StatusbarFormat)
+	
+	!StringLength = !NumberOfDigitsDisplayed
+	if !DisplayTwoNumbers != 0
+		!StringLength = (!NumberOfDigitsDisplayed*2)+1
+	endif
 
 	main:
 	.NumberDisplayTest
 	;Clear the tiles. To prevent leftover "ghost" tiles that should've
 	;disappear when the number of digits decreases (so when "10" becomes "9",
 	;won't display "90"). Also setup tile properties when enabled.
-		LDX.b #(!NumberOfDigitsDisplayed-1)*!StatusbarFormat
+		LDX.b #(!StringLength-1)*!StatusbarFormat
 		-
 		LDA #!StatusBarBlankTile
 		STA !StatusBar_TestDisplayElement_Pos_Tile,x
@@ -25,18 +35,32 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		DEX #!StatusbarFormat
 		BPL -
 	;Number to string.
-		;Process HexDec
+		;First number
 			REP #$20						;\Convert a given number to decimal digits.
 			LDA !Freeram_ValueDisplay1_2Bytes			;|
 			STA $00							;|
 			SEP #$20						;|
 			JSL HexDec_SixteenBitHexDecDivision			;/
-		;Remove leading zeroes and have it as a character table
 			LDX #$00					;>Start at character position 0.
 			JSL HexDec_SupressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
-		;Prevent writing too much characters.
-			CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
-			BCS ..TooMuchDigits				;/not being cleared from the previous code.
+			if !DisplayTwoNumbers != 0
+				;slash
+					LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
+					STA !Scratchram_CharacterTileTable,x		;/
+					INX						;>Next character position.
+				
+				;Second number
+					PHX							;>Push X because it gets modified by the HexDec routine.
+					REP #$20						;\Convert a given number to decimal digits.
+					LDA !Freeram_ValueDisplay2_2Bytes			;|
+					STA $00							;|
+					SEP #$20						;|
+					JSL HexDec_SixteenBitHexDecDivision			;/
+					PLX							;>Restore.
+					JSL HexDec_SupressLeadingZeros				;>Write the digits (without leading zeroes) starting at after the slash symbol.
+			endif
+			CPX.b #!StringLength+1							;\Failsafe to avoid writing more characters than intended would write onto tiles
+			BCS ..TooMuchDigits							;/not being cleared from the previous code.
 		;Convert to 8x16 digits
 			JSL HexDec_StringTo8x16Char
 			
