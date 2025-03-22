@@ -1,26 +1,29 @@
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
-incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
-
+;This ASM file demonstrates the display of two's complement signed numbers.
 ;Note: This does not support leading spaces between the sign and the non-leading zero digit, edit yourself if you somehow want this.
 
-!NumberOfDigitsDisplayed_SixteenBit = 5
-!NumberOfDigitsDisplayed_ThirtyTwoBit = 10
+;Don't touch these unless you know what you're doing
+	incsrc "../StatusBarRoutinesDefines/Defines.asm"
+	incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
-!SuppressLeadingZeroes = 2
- ;^This only applies to 16-bit numbers or more:
- ; 0 = No, keep leading zeroes
- ; 1 = Yes, and left-aligned
- ; 2 = Yes, and right-aligned
+;You can modify these
+	!NumberOfDigitsDisplayed_SixteenBit = 5
+	!NumberOfDigitsDisplayed_ThirtyTwoBit = 10
 
-!ShowPostiveSign = 0
- ;^0 = Don't display a plus sign when positive
- ; 1 = Display when positive
+	!SuppressLeadingZeroes = 2
+		;^This only applies to 16-bit numbers or more:
+		; 0 = No, keep leading zeroes
+		; 1 = Yes, and left-aligned
+		; 2 = Yes, and right-aligned
 
-!NumberDisplayType = 3
- ;^0 = 8-bit 2-digit
- ; 1 = 8-bit 3-digit
- ; 2 = 16-bit, Number of digits = !NumberOfDigitsDisplayed_SixteenBit
- ; 3 = 32-bit, Number of digits = !NumberOfDigitsDisplayed_ThirtyTwoBit
+	!ShowPostiveSign = 0
+		;^0 = Don't display a plus sign when positive
+		; 1 = Display when positive
+
+	!NumberDisplayType = 3
+		;^0 = 8-bit 2-digit
+		; 1 = 8-bit 3-digit
+		; 2 = 16-bit, Number of digits = !NumberOfDigitsDisplayed_SixteenBit
+		; 3 = 32-bit, Number of digits = !NumberOfDigitsDisplayed_ThirtyTwoBit
 
 ;Don't touch these
 	!NumberOfTilesUsed = 3 ;A signed character and 2 digits

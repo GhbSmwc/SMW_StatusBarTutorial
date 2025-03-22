@@ -26,75 +26,75 @@
 	incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 ;Remove or install?:
- !Setting_RemoveOrInstall = 1
-  ;^0 = remove this patch (if not installed in the first place, won't do anything)
-  ; 1 = install this patch
+	!Setting_RemoveOrInstall = 1
+		;^0 = remove this patch (if not installed in the first place, won't do anything)
+		; 1 = install this patch
 ;Ram:
 ;Settings
- !SpriteStatusBarPatchTest_Mode = 2
-  ;^0 = 16-bit numerical digits display*
-  ; 1 = 16-bit displaying 2 numbers ("200/300", for example)*
-  ; 2 = 32-bit numerical digits display*
-  ; 3 = 32-bit displaying 2 numbers.*
-  ; 4 = Percentage. Displays a percentage of ValueToRepresent out of SecondValueToRepresent.*
-  ; 5 = Timer display (MM:SS.CC), NOTE: This only DISPLAYS the timer, you need to have a code that increment/decrements the value every frame. See readme.
-  ; 6 = Timer display (HH:MM:SS.CC), same rule as above.
-  ; 7 = repeated icons display*
-  ;
-  ;*Number can adjust by D-pad inputs.
-  ;
- ;Percentage display settings.
-  !SpriteStatusBarPatchTest_PercentagePrecision = 2
-   ;^Number of digits after the decimal point when displaying the percentage, Use only values 0-2.
-  !SpriteStatusBarPatchTest_PercentageDisplayCap = 1
-   ;^0 = Allow displaying numbers greater than 100%.
-   ; 1 = If a percentage is exceeding 100%, then display 100%
- ;Number display settings (1, 2-number display, and percentage).
-  !SpriteStatusBarPatchTest_NumberDisplayProperties = %00110101
-   ;^Properties (YXPPCCCT). Note: Will apply to all characters in the string.
- ;Positions settings
-  !SpriteStatusBarPatchTest_PositionMode = 1
-   ;^0 = Fixed on-screen, left-aligned
-   ; 1 = Fixed on-screen, right-aligned
-   ; 2 = Relative to Mario (centered)
-  ;Positions, relative to top-left of screen. Note: when using repeated icons display, it is the first tile drawn in the
-  ;direction of the X and Y displacement. Meaning if you have a displacement of ($F8,$F8), it would be the
-  ;bottom-rightmost of the line of icons.
-   if !SpriteStatusBarPatchTest_PositionMode == 0
-    ;Position for left-aligned
-     !SpriteStatusBarPatchTest_DisplayXPos = $0000
-     !SpriteStatusBarPatchTest_DisplayYPos = $FFFF		;>Please note that Y position will appear 1px lower than this value.
-   elseif !SpriteStatusBarPatchTest_PositionMode == 1
-    ;Position for right-aligned
-     !SpriteStatusBarPatchTest_DisplayXPos = $00F8
-     !SpriteStatusBarPatchTest_DisplayYPos = $FFFF		;>Please note that Y position will appear 1px lower than this value.
-   endif
-  ;Same as above but for relative to Mario when !SpriteStatusBarPatchTest_PositionMode == 2
-   !SpriteStatusBarPatchTest_DisplayXPosPlayer = $0000		;>This will be the center position.
-   !SpriteStatusBarPatchTest_DisplayYPosPlayer = $FFFF		;>Please note that Y position will appear 1px lower than this value.
-  ;Repeated icons settings
-   ;Displacement between each icons. These are 8-bit signed.
-   ;A positive number would place each tile from left to right or top to bottom, negative is in reverse,
-   ;A value of +/-8 means each tile will be written next to another tile.
-   ;This will also alter the "fill direction". For example, an X displacement of $F8 (-8) will cause the
-   ;repeated icons meter to fill from right to left as the value stored in !Freeram_ValueDisplay1_1Byte increases.
-    !SpriteStatusBarPatchTest_RepeatIcons_XDisp = $08
-    !SpriteStatusBarPatchTest_RepeatIcons_YDisp = $00
-   ;Tile number and properties to use:
-    !SpriteStatusBarPatchTest_RepeatIcons_EmptyNumb = $90
-    !SpriteStatusBarPatchTest_RepeatIcons_EmptyProp = %00110001 ;YXPPCCCT.
-    !SpriteStatusBarPatchTest_RepeatIcons_FullNumb = $91
-    !SpriteStatusBarPatchTest_RepeatIcons_FullProp = %00110001
- ;Misc
-  !TwoNumberCapping = 0
-   ;^When displaying 2 numbers or percentage:
-   ; 0 = Allow first number to be greater than second number.
-   ; 1 = First number cannot be greater than second number.
-   ; Not to be confused with !SpriteStatusBarPatchTest_PercentageDisplayCap
-   ; and the repeated icons' not displaying values greater than max, since
-   ; those are only the display is capped while the actual number may be
-   ; higher.
-   
+	!SpriteStatusBarPatchTest_Mode = 2
+		;^0 = 16-bit numerical digits display*
+		; 1 = 16-bit displaying 2 numbers ("200/300", for example)*
+		; 2 = 32-bit numerical digits display*
+		; 3 = 32-bit displaying 2 numbers.*
+		; 4 = Percentage. Displays a percentage of ValueToRepresent out of SecondValueToRepresent.*
+		; 5 = Timer display (MM:SS.CC), NOTE: This only DISPLAYS the timer, you need to have a code that increment/decrements the value every frame. See readme.
+		; 6 = Timer display (HH:MM:SS.CC), same rule as above.
+		; 7 = repeated icons display*
+		;
+		;*Number can adjust by D-pad inputs.
+		;
+	;Percentage display settings.
+		!SpriteStatusBarPatchTest_PercentagePrecision = 2
+			;^Number of digits after the decimal point when displaying the percentage, Use only values 0-2.
+		!SpriteStatusBarPatchTest_PercentageDisplayCap = 1
+			;^0 = Allow displaying numbers greater than 100%.
+			; 1 = If a percentage is exceeding 100%, then display 100%
+	;Number display settings (1, 2-number display, and percentage).
+		!SpriteStatusBarPatchTest_NumberDisplayProperties = %00110101
+			;^Properties (YXPPCCCT). Note: Will apply to all characters in the string.
+	;Positions settings
+		!SpriteStatusBarPatchTest_PositionMode = 1
+			;^0 = Fixed on-screen, left-aligned
+			; 1 = Fixed on-screen, right-aligned
+			; 2 = Relative to Mario (centered)
+		;Positions, relative to top-left of screen. Note: when using repeated icons display, it is the first tile drawn in the
+		;direction of the X and Y displacement. Meaning if you have a displacement of ($F8,$F8), it would be the
+		;bottom-rightmost of the line of icons.
+			if !SpriteStatusBarPatchTest_PositionMode == 0
+				;Position for left-aligned
+					!SpriteStatusBarPatchTest_DisplayXPos = $0000
+					!SpriteStatusBarPatchTest_DisplayYPos = $FFFF		;>Please note that Y position will appear 1px lower than this value.
+			elseif !SpriteStatusBarPatchTest_PositionMode == 1
+				;Position for right-aligned
+					!SpriteStatusBarPatchTest_DisplayXPos = $00F8
+					!SpriteStatusBarPatchTest_DisplayYPos = $FFFF		;>Please note that Y position will appear 1px lower than this value.
+			endif
+		;Same as above but for relative to Mario when !SpriteStatusBarPatchTest_PositionMode == 2
+			!SpriteStatusBarPatchTest_DisplayXPosPlayer = $0000		;>This will be the center position.
+			!SpriteStatusBarPatchTest_DisplayYPosPlayer = $FFFF		;>Please note that Y position will appear 1px lower than this value.
+		;Repeated icons settings
+			;Displacement between each icons. These are 8-bit signed.
+			;A positive number would place each tile from left to right or top to bottom, negative is in reverse,
+			;A value of +/-8 means each tile will be written next to another tile.
+			;This will also alter the "fill direction". For example, an X displacement of $F8 (-8) will cause the
+			;repeated icons meter to fill from right to left as the value stored in !Freeram_ValueDisplay1_1Byte increases.
+				!SpriteStatusBarPatchTest_RepeatIcons_XDisp = $08
+				!SpriteStatusBarPatchTest_RepeatIcons_YDisp = $00
+			;Tile number and properties to use:
+				!SpriteStatusBarPatchTest_RepeatIcons_EmptyNumb = $90
+				!SpriteStatusBarPatchTest_RepeatIcons_EmptyProp = %00110001 ;YXPPCCCT.
+				!SpriteStatusBarPatchTest_RepeatIcons_FullNumb = $91
+				!SpriteStatusBarPatchTest_RepeatIcons_FullProp = %00110001
+	;Misc
+		!TwoNumberCapping = 0
+			;^When displaying 2 numbers or percentage:
+			; 0 = Allow first number to be greater than second number.
+			; 1 = First number cannot be greater than second number.
+			; Not to be confused with !SpriteStatusBarPatchTest_PercentageDisplayCap
+			; and the repeated icons' not displaying values greater than max, since
+			; those are only the display is capped while the actual number may be
+			; higher.
+			
 
 ;Don't touch these:
 	;SA-1

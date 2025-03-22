@@ -1,12 +1,13 @@
 ;This ASM code tests the creation of the 8x16 number graphic. This graphic is used by the bonus stars counter.
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
-incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
-
-!DisplayTwoNumbers = 0
- ;^0 = 1 number
- ; 1 = 2 numbers
-!NumberOfDigitsDisplayed = 5							;>How many digits, enter 1-5 (pointless if you enter less than 3).
+;Don't touch
+	incsrc "../StatusBarRoutinesDefines/Defines.asm"
+	incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+;Settings you can modify
+	!DisplayTwoNumbers = 0
+		;^0 = 1 number
+		; 1 = 2 numbers
+	!NumberOfDigitsDisplayed = 5							;>How many digits, enter 1-5 (pointless if you enter less than 3).
 
 ;Don't touch unless you know what you're doing
 	!StatusBar_TestDisplayElement_Pos_Tile_BottomLine = !StatusBar_TestDisplayElement_Pos_Tile+(32*!StatusbarFormat)
