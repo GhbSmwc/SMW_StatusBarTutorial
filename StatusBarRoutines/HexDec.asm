@@ -18,6 +18,8 @@
 ; - RemoveLeadingZeroes32Bit
 ; - RemoveLeadingZeroes16BitLeaveLast2
 ; - RemoveLeadingZeroes16BitLeaveLast3
+;8x16 string converter
+; - StringTo8x16Char
 ;Overworld digits:
 ; - SixteenBitHexDecDivisionToOWB
 ; - ThirtyTwoBitHexDecDivisionToOWB
@@ -598,6 +600,21 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		
 		.NonZero
 		RTL
+	;32-bit version, use after [ThirtyTwoBitHexDecDivision]
+		RemoveLeadingZeroes32Bit:
+		LDX #$00				;>Start at the leftmost digit
+		
+		.Loop
+		LDA !Scratchram_32bitHexDecOutput,x			;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
+		BNE .NonZero						;/
+		LDA #!StatusBarBlankTile				;\blank tile to replace leading zero
+		STA !Scratchram_32bitHexDecOutput,x			;/
+		INX							;>next digit
+		CPX.b #!Setting_32bitHexDec_MaxNumberOfDigits-1		;>last digit to check. So that it can display a single 0.
+		BCC .Loop						;>if not done yet, continue looping.
+		
+		.NonZero
+		RTL
 	;16-bit version, use after [SixteenBitHexDecDivision]. This one leaves out the last two digits, this is so that
 	;for displaying fixed-point numbers, will not wipe out the ones and tenths place for displaying a percentage of
 	;XXX.X%.
@@ -630,20 +647,57 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		
 		.NonZero
 		RTL
-	;32-bit version, use after [ThirtyTwoBitHexDecDivision]
-		RemoveLeadingZeroes32Bit:
-		LDX #$00				;>Start at the leftmost digit
-		
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;8x16 string converter
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;Convert string to 8x16 characters (numbers and some symbols). Note that this only works with level layer 3 status bar
+	;with LG2 set to $29. You can edit this to support overworld and have LG2 use custom graphics including the 8x16 digits.
+	;
+	;Input:
+	; - !Scratchram_CharacterTileTable (BytesUsed = NumberOfChar): The string to convert
+	; - X register (8-bit): Number of characters
+	;Output:
+	; - !Scratchram_CharacterTileTable (BytesUsed = NumberOfChar): The converted string (top half)
+	; - !Scratchram_CharacterTileTable_Line2 (BytesUsed = NumberOfChar): Same as above but bottom half
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	StringTo8x16Char:
+		PHX
+		DEX
 		.Loop
-		LDA !Scratchram_32bitHexDecOutput,x			;\if current digit non-zero, don't omit trailing zeros for the rest of the number string.
-		BNE .NonZero						;/
-		LDA #!StatusBarBlankTile				;\blank tile to replace leading zero
-		STA !Scratchram_32bitHexDecOutput,x			;/
-		INX							;>next digit
-		CPX.b #!Setting_32bitHexDec_MaxNumberOfDigits-1		;>last digit to check. So that it can display a single 0.
-		BCC .Loop						;>if not done yet, continue looping.
-		
-		.NonZero
+			LDA !Scratchram_CharacterTileTable,x
+			CMP #$0A				;\0-9 are digits
+			BCC ..Digits				;/
+			CMP #!StatusBarSlashCharacterTileNumb
+			BEQ ..Slash
+			
+			;Other characters remain unconverted with $FC for Line2.
+			LDA #$FC
+			STA !Scratchram_CharacterTileTable_Line2,x
+			BRA ..Next
+			
+			..Slash
+				LDA.b #!StatusBar8x16TopSlash
+				STA !Scratchram_CharacterTileTable,x
+				LDA.b #!StatusBar8x16BottomSlash
+				STA !Scratchram_CharacterTileTable_Line2,x
+				BRA ..Next
+			..Digits
+				ASL						;\Index = Digit0To9*2
+				TAY						;/
+				PHB						;>Save current bank
+				LDA #$00|!bank8					;\Set bank to $00 so that LDA $xxxx,y uses a table at bank $00
+				PHA						;|We want to get the digit tables at $008E06
+				PLB						;/
+				LDA.w $008E06,y					;\Convert digits to corresponding 8x16 digit graphics
+				STA !Scratchram_CharacterTileTable,x		;|($008E06-$008E19 contains 8x16 digit graphics, each digit is 2 bytes, top then bottom half)
+				LDA.w $008E07,y					;|
+				STA !Scratchram_CharacterTileTable_Line2,x	;/
+				PLB						;>Restore bank
+			..Next
+				DEX
+				BPL .Loop
+		PLX
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Overworld digit converter.

@@ -63,6 +63,9 @@ endif
 			!StatusBarPercentTile = $2A
 			!StatusBarPlusSymbol = $2B
 			!StatusBarMinusSymbol = $27			;>A symbol used to display negative numbers (signed hexdec).
+			;8x16 characters
+				!StatusBar8x16TopSlash = $2C
+				!StatusBar8x16BottomSlash = $2D
 			
 			!StatusBar_TileProp = %00111000
 			

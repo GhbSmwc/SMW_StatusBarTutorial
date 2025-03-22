@@ -74,6 +74,13 @@
 		; - For 32-bit hexdec:
 		; -- For displaying a left-aligned number will be !Setting_32bitHexDec_MaxNumberOfDigits
 		; -- For X/Y display: (!Setting_32bitHexDec_MaxNumberOfDigits*2)+1
+		; This then can get transferred to the status bar/stripe/sprite tile via calling
+		; - WriteStringDigitsToHUD (including the Format2 variant)
+		; - WriteStringAsSpriteOAM (including the OAMOnly variant)
+		!Scratchram_CharacterTileTable_Line2 = !Scratchram_CharacterTileTable+10
+		;^[X bytes] Same as !Scratchram_CharacterTileTable, however only used when using 2-tiles tall
+		; symbols like SMW's bonus star counter.
+		
 	;For 32-bit timer frame to Hours:Minutes:Seconds:Centiseconds format.
 		if !sa1 == 0
 			!Scratchram_Frames2TimeOutput = $7F846C
