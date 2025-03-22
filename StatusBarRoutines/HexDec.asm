@@ -1004,6 +1004,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			BEQ ..Percent
 			CMP #!StatusBarDotTile
 			BEQ ..Dot
+			CMP #!StatusBarMinusSymbol
+			BEQ ..Minus
+			CMP #!StatusBarPlusSymbol
+			BEQ ..Plus
 			;You can add more checks here to add more characters to convert to
 			
 			;Stuff below here are the tile numbers to convert to.
@@ -1019,6 +1023,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			..Dot
 				LDA #!OverWorldBorderDotTile
 				BRA ..Write
+			..Minus
+				LDA #!OverWorldBorderMinusSymbol
+				BRA ..Write
+			..Plus
+				LDA #!OverWorldBorderPlusSymbol
+				BRa ..Write
 			..Digits
 				CLC			;\Status bar digits are at tile numbers $00-$09 and Overworld digits are at tile numbers $22-$2B, so we can just add whats in $00-$09 by $22.
 				ADC #$22		;/
