@@ -4,6 +4,9 @@
 ;numbers. W wouldn't want to include every variations of this else it would be too much.
 
 ;Notes:
+; - This ONLY supports non-vanilla status bar patches, unless you edit "Get second row of tiles to edit", but
+;   even then, SMW status bar is EXTREMELY limited, as it only have exactly 2 lines, and such a big number
+;   display can easily take out that space.
 ; - In this ASM resource's default state, it only supports level layer 3 tiles. Sprite OAM tiles can only be 8x8
 ;   or 16x16. Technically the SNES does allow other dimensions, but will apply to all 128 slots rather than per
 ;   slot.
@@ -26,8 +29,9 @@
 	!NumberOfDigitsDisplayed = 5							;>How many digits, enter 1-5 (pointless if you enter less than 3).
 
 ;Don't touch unless you know what you're doing
-	!StatusBar_TestDisplayElement_Pos_Tile_BottomLine = !StatusBar_TestDisplayElement_Pos_Tile+(32*!StatusbarFormat)
-	!StatusBar_TestDisplayElement_Pos_Prop_BottomLine = !StatusBar_TestDisplayElement_Pos_Prop+(32*!StatusbarFormat)
+	;Get second row of tiles to edit
+		!StatusBar_TestDisplayElement_Pos_Tile_BottomLine = !StatusBar_TestDisplayElement_Pos_Tile+(32*!StatusbarFormat)
+		!StatusBar_TestDisplayElement_Pos_Prop_BottomLine = !StatusBar_TestDisplayElement_Pos_Prop+(32*!StatusbarFormat)
 	
 	!StringLength = !NumberOfDigitsDisplayed
 	if !DisplayTwoNumbers != 0
