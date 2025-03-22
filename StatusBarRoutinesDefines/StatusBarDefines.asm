@@ -63,6 +63,7 @@ endif
 			!StatusBarPercentTile = $2A
 			!StatusBarPlusSymbol = $2B
 			!StatusBarMinusSymbol = $27			;>A symbol used to display negative numbers (signed hexdec).
+			!StatusBarColon = $78				;>Used by course clear and this ASM resource's timer
 			;8x16 characters
 				!StatusBar8x16TopSlash = $2C
 				!StatusBar8x16BottomSlash = $2D

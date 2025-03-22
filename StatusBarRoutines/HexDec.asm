@@ -670,9 +670,17 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			BCC ..Digits				;/
 			CMP #!StatusBarSlashCharacterTileNumb
 			BEQ ..Slash
+			CMP #!StatusBarDotTile
+			BEQ ..Dot
+			CMP #!StatusBarMinusSymbol
+			BEQ ..Minus
+			CMP #!StatusBarPlusSymbol
+			BEQ ..Plus
+			CMP #!StatusBarColon
+			BEQ ..Colon
 			
 			;Other characters remain unconverted with $FC for Line2.
-			LDA #$FC
+			LDA #!StatusBarBlankTile
 			STA !Scratchram_CharacterTileTable_Line2,x
 			BRA ..Next
 			
@@ -680,6 +688,19 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				LDA.b #!StatusBar8x16TopSlash
 				STA !Scratchram_CharacterTileTable,x
 				LDA.b #!StatusBar8x16BottomSlash
+				STA !Scratchram_CharacterTileTable_Line2,x
+				BRA ..Next
+			..Dot
+			..Minus
+			..Plus
+				LDA !Scratchram_CharacterTileTable,x		;\Move the character to the bottom line
+				STA !Scratchram_CharacterTileTable_Line2,x	;|
+				LDA #!StatusBarBlankTile			;|
+				STA !Scratchram_CharacterTileTable,x		;/
+				BRA ..Next
+			..Colon
+				LDA #!StatusBarDotTile
+				STA !Scratchram_CharacterTileTable,x
 				STA !Scratchram_CharacterTileTable_Line2,x
 				BRA ..Next
 			..Digits

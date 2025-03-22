@@ -157,7 +157,7 @@
 			JMP ...HoursMinutesSecondsCentiseconds
 			+
 			...TwoSignificantUnitsOnly
-				LDA #$78								;\Colon (overwritten to be a period if less than a minute)
+				LDA #!StatusBarColon							;\Colon (overwritten to be a period if less than a minute)
 				STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)		;/
 			
 				LDA !Scratchram_Frames2TimeOutput+0					;\If hours nonzero, show HH:MM
@@ -172,7 +172,7 @@
 					TXA
 					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
 					
-					LDA #$24
+					LDA #!StatusBarDotTile
 					STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)
 					
 					LDA !Scratchram_Frames2TimeOutput+3
@@ -215,7 +215,7 @@
 					TXA
 					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
 				;Colon symbol
-					LDA #$78
+					LDA #!StatusBarColon
 					STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)
 				;Seconds
 					LDA !Scratchram_Frames2TimeOutput+2
@@ -224,7 +224,7 @@
 					TXA
 					STA !StatusBar_TestDisplayElement_Pos_Tile+(3*!StatusbarFormat)
 				;Period symbol
-					LDA #$24
+					LDA #!StatusBarDotTile
 					STA !StatusBar_TestDisplayElement_Pos_Tile+(5*!StatusbarFormat)
 				;Centiseconds
 					LDA !Scratchram_Frames2TimeOutput+3
@@ -241,7 +241,7 @@
 					TXA
 					STA !StatusBar_TestDisplayElement_Pos_Tile+(0*!StatusbarFormat)
 				;Colon symbol
-					LDA #$78
+					LDA #!StatusBarColon
 					STA !StatusBar_TestDisplayElement_Pos_Tile+(2*!StatusbarFormat)
 				;Minutes
 					LDA !Scratchram_Frames2TimeOutput+1
@@ -250,7 +250,7 @@
 					TXA
 					STA !StatusBar_TestDisplayElement_Pos_Tile+(3*!StatusbarFormat)
 				;Colon symbol
-					LDA #$78
+					LDA #!StatusBarColon
 					STA !StatusBar_TestDisplayElement_Pos_Tile+(5*!StatusbarFormat)
 				;Seconds
 					LDA !Scratchram_Frames2TimeOutput+2
@@ -259,7 +259,7 @@
 					TXA
 					STA !StatusBar_TestDisplayElement_Pos_Tile+(6*!StatusbarFormat)
 				;Period symbol
-					LDA #$24
+					LDA #!StatusBarDotTile
 					STA !StatusBar_TestDisplayElement_Pos_Tile+(8*!StatusbarFormat)
 				;Centiseconds
 					LDA !Scratchram_Frames2TimeOutput+3

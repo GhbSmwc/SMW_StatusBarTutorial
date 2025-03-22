@@ -161,7 +161,7 @@
 			JMP ...HoursMinutesSecondsCentiseconds						;|
 			+										;/
 			...TwoSignificantUnitsOnly							;>"XX:XX" or "XX.XX". Always 5 characters long ($04-$05: #$0004)
-				LDA #$78								;\Colon (overwritten to be a period if less than a minute)
+				LDA #!StatusBarColon							;\Colon (overwritten to be a period if less than a minute)
 				STA !Scratchram_CharacterTileTable+2					;/
 			
 				LDA !Scratchram_Frames2TimeOutput+0					;\If hours nonzero, show HH:MM
@@ -176,7 +176,7 @@
 					TXA
 					STA !Scratchram_CharacterTileTable+0
 					
-					LDA #$24							;\Decimal point
+					LDA #!StatusBarDotTile						;\Decimal point
 					STA !Scratchram_CharacterTileTable+2				;/
 					
 					LDA !Scratchram_Frames2TimeOutput+3
@@ -225,7 +225,7 @@
 					TXA
 					STA !Scratchram_CharacterTileTable+0
 				;Colon symbol
-					LDA #$78
+					LDA #!StatusBarColon
 					STA !Scratchram_CharacterTileTable+2
 				;Seconds
 					LDA !Scratchram_Frames2TimeOutput+2
@@ -234,7 +234,7 @@
 					TXA
 					STA !Scratchram_CharacterTileTable+3
 				;Period symbol
-					LDA #$24
+					LDA #!StatusBarDotTile
 					STA !Scratchram_CharacterTileTable+5
 				;Centiseconds
 					LDA !Scratchram_Frames2TimeOutput+3
@@ -253,7 +253,7 @@
 					TXA
 					STA !Scratchram_CharacterTileTable+0
 				;Colon symbol
-					LDA #$78
+					LDA #!StatusBarColon
 					STA !Scratchram_CharacterTileTable+2
 				;Minutes
 					LDA !Scratchram_Frames2TimeOutput+1
@@ -262,7 +262,7 @@
 					TXA
 					STA !Scratchram_CharacterTileTable+3
 				;Colon symbol
-					LDA #$78
+					LDA #!StatusBarColon
 					STA !Scratchram_CharacterTileTable+5
 				;Seconds
 					LDA !Scratchram_Frames2TimeOutput+2
@@ -271,7 +271,7 @@
 					TXA
 					STA !Scratchram_CharacterTileTable+6
 				;Period symbol
-					LDA #$24
+					LDA #!StatusBarDotTile
 					STA !Scratchram_CharacterTileTable+8
 				;Centiseconds
 					LDA !Scratchram_Frames2TimeOutput+3
