@@ -652,7 +652,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Convert string to 8x16 characters (numbers and some symbols). Note that this only works with level layer 3 status bar
-	;with LG2 set to $29. You can edit this to support overworld and have LG2 use custom graphics including the 8x16 digits.
+	;or stripe with LG2 set to $29. You can edit this to support overworld and have LG2 use custom graphics including the
+	;8x16 digits.
 	;
 	;Input:
 	; - !Scratchram_CharacterTileTable (BytesUsed = NumberOfChar): The string to convert
@@ -678,6 +679,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			BEQ ..Plus
 			CMP #!StatusBarColon
 			BEQ ..Colon
+			;Like "ConvertAlignedDigitToOWB", you can add more characters here to convert.
+			;The only difference is you have to write to BOTH !Scratchram_CharacterTileTable,x
+			;and !Scratchram_CharacterTileTable_Line2,x due to characters now have 2 tiles
+			;instead of 1.
 			
 			;Other characters remain unconverted with $FC for Line2.
 			LDA #!StatusBarBlankTile
@@ -693,15 +698,15 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			..Dot
 			..Minus
 			..Plus
-				LDA !Scratchram_CharacterTileTable,x		;\Move the character to the bottom line
+				LDA !Scratchram_CharacterTileTable,x		;\Move the character to the bottom line (reuses the 8x8 symbols)
 				STA !Scratchram_CharacterTileTable_Line2,x	;|
 				LDA #!StatusBarBlankTile			;|
 				STA !Scratchram_CharacterTileTable,x		;/
 				BRA ..Next
 			..Colon
-				LDA #!StatusBarDotTile
-				STA !Scratchram_CharacterTileTable,x
-				STA !Scratchram_CharacterTileTable_Line2,x
+				LDA #!StatusBarDotTile				;\Yeah, reusing the period symbol, but 2 placed on top of another.
+				STA !Scratchram_CharacterTileTable,x		;|
+				STA !Scratchram_CharacterTileTable_Line2,x	;/
 				BRA ..Next
 			..Digits
 				ASL						;\Index = Digit0To9*2
