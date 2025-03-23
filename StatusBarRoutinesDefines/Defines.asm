@@ -61,10 +61,10 @@
 		else
 			!Scratchram_CharacterTileTable = $40414A
 		endif
-		;^[X bytes] A table containing strings of "characters"
-		; (often digits). The number of bytes used is the highest
-		; number of characters you would write in your entire
-		; game.
+		;^[X bytes] A string buffer, each byte here is a character
+		; (often digits used by left or right aligned number display).
+		; The number of bytes used is the most number of characters
+		; you would write in your entire game.
 		; For example:
 		; - If you want to display a 5-digit 16-bit number 65535,
 		;   that will be 5 bytes.
@@ -79,7 +79,11 @@
 		; - WriteStringAsSpriteOAM (including the OAMOnly variant)
 		!Scratchram_CharacterTileTable_Line2 = !Scratchram_CharacterTileTable+11
 		;^[X bytes] Same as !Scratchram_CharacterTileTable, however only used when using 2-tiles tall
-		; symbols like SMW's bonus star counter.
+		; (8x16 pixels) symbols like SMW's bonus star counter.
+		;
+		; It must be !Scratchram_CharacterTileTable+X, the same X as the number of
+		; bytes from !Scratchram_CharacterTileTable. It cannot be shorter or else
+		; tile glitches can occur.
 		
 	;For 32-bit timer frame to Hours:Minutes:Seconds:Centiseconds format.
 		if !sa1 == 0
@@ -92,6 +96,10 @@
 		; - !Scratchram_Frames2TimeOutput+1 = minutes
 		; - !Scratchram_Frames2TimeOutput+2 = seconds
 		; - !Scratchram_Frames2TimeOutput+3 = centiseconds (display 00-99)
+		;
+		; NOTE: When using the stripe-based timer, this cannot overlap
+		; with !Scratchram_CharacterTileTable, as the string system is
+		; needed due to X indexes used by hexdec and also stripe.
 	;For percentage converter and displays
 		if !sa1 == 0
 			!Scratchram_PercentageQuantity = $7F846D

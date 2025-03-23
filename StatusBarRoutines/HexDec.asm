@@ -1009,6 +1009,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	; - This routine is meant to be used when displaying 2 numbers (For example: 123/456). Since
 	;   when displaying a single number, using HexDec and removing leading zeroes (turns them
 	;   into leading spaces) is automatically right-aligned, using this routine is pointless.
+	; - X register is not modified here at all.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	ConvertToRightAligned:
 		TXA					;>Transfer X (number of tiles) to A
@@ -1128,6 +1129,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	; - X = The number of characters to write, ("123" would have X = 3)
 	; - !Scratchram_CharacterTileTable-(!Scratchram_CharacterTileTable+N-1)
 	;   the string to write to the status bar.
+	;Overwritten:
+	; - X = Will be $FF as it uses a countdown loop.
 	;
 	;Note:
 	; - WriteStringDigitsToHUD is designed for [TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]
