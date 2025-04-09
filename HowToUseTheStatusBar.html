@@ -30,10 +30,10 @@
 			
 			abbr{cursor: help;}
 			
-			div.RoutinesTable {
+			div.BigHTMLTable {
 				overflow: auto;
 				width: 1000px;
-				height: 1000px;
+				height: 500px;
 				border: 1px solid white;
 				resize: both;
 			}
@@ -166,7 +166,7 @@ memory viewer window, go to &ldquo;Search&rdquo; &rightarrow; &ldquo;Go to Addre
 </ul>
 
 Now, for the RAM address, each byte is each 8x8 tile, meaning each time you go to the next address, its the next 8x8 tile number:<br><br>
-<table id="SMWStatusBarTable"></table><br>
+<div class="BigHTMLTable"><table id="SMWStatusBarTable"></table></div><br>
 All of these bytes stored in RAM <kbd>$7E0EF9-$7E0F2F</kbd> are <kbd>TTTTTTTT</kbd>, which means you can only modify the tile number through RAM in-game. You may be wondering, if I wanted to edit the tiles here,
 what value should I put? Well, <kbd>TTTTTTTT</kbd> is actually <i>what tile number to use</i>, from the tile data. When viewing the tile data stored in <kbd>GFX28.bin</kbd> file via <a href="https://www.smwcentral.net/?p=section&a=details&id=15671">YY-CHR</a>,
 you can find what tile graphic to use by hovering your mouse over the 8x8 tile you want to use. After this, you should see on the bottom bar of the window showing what tile number that is:<br>
@@ -440,7 +440,7 @@ the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have t
 
 <p>Here is a cheatsheet of all the HexDec routines in <kbd>HexDec.asm</kbd>:
 
-<div class="RoutinesTable">
+<div class="BigHTMLTable">
 <table>
 	<tr>
 		<th>Subroutine</th><th>Maximum number of digits</th><th>Input</th><th>Output</th>
@@ -931,7 +931,7 @@ When written to the status bar:<br>
 				</tr>
 				<tr>
 					<td><kbd>X register</kbd> (1 byte, not stored)</td>
-					<td>Number of character to write.</td>
+					<td>Number of characters to write.</td>
 				</tr>
 			</table>
 		</td>
