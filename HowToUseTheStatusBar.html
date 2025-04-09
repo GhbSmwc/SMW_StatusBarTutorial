@@ -214,7 +214,7 @@ and then you can use that coordinate and CTRL+F here on this HTML file to locate
 <p>As explained earlier about the palette issue, and that each 8x8 tile possess 2 bytes, I'll give you a summary of the entire tile data:
 <ul>
 	<li>
-		<kbd>TTTTTTTT</kbd> is the tile number (previously explained already), refers to what tile to use from the tile stored in VRAM. Note that this alone is the tile number within a page.
+		<kbd>TTTTTTTT</kbd> is the tile number (previously explained already), refers to what tile to use from the tile stored in VRAM (the tile set, seen in LM's 8x8 editor/selector). Note that this alone is the tile number within a page.
 	</li>
 	<li>
 		<kbd>YXPCCCTT</kbd> is the tile properties:
@@ -336,7 +336,7 @@ their own table&rdquo; format and the overworld border plus patch, which your ha
 <ul>
 	<li>
 		The ASM codes here should work with SA-1. However some subroutines utilize the SA-1 math registers (e.g. multiplication registers, such as <kbd>Frames2Timer</kbd> and <kbd>ConvertToPercentage</kbd>), if you have <kbd>!Setting_GraphicalBar_SNESMathOnly</kbd> set to 0.<br><br>
-		<ul><li>Furthermore, when developing your hack or resource, some emulators handles CPU processor's access to registers differently. Accurate Emulators like Mesen does not allow CPU to access registers of a different type (SA-1 processor cannot access SNES registers and
+		<ul><li>Furthermore, when developing your hack or resource, some emulators handles CPU processor's access to registers differently. Accurate emulators like Mesen does not allow CPU to access registers of a different type (SA-1 processor cannot access SNES registers and
 		vice versa)</li></ul>
 	</li><br>
 	<li>Uberasm tool have a built-in macro <kbd>%invoke_sa1(label)</kbd> that will run stuff under <kbd>label</kbd> under the SA-1 processor. Anything after the macro call will return to the SNES processor (think of it like a JSL/JSR except the processor switches when invoking it).</li><br>

@@ -11,8 +11,8 @@
 ;   or 16x16. Technically the SNES does allow other dimensions, but will apply to all 128 slots rather than per
 ;   slot.
 ; -- Another problem with OAM is that if you're going for 16x16 pixel tiles to fit 8x16 pixel characters, you
-;    end up wasting tiles (on the tileset, the set seen on the 8x8 editor) as the top-right and bottom-right
-;    of the 2x2 8x8 squares cannot be used (else you have garbage to the right of every character).
+;    end up wasting tiles (on the tile set, the set seen on the 8x8 editor/selector) as the top-right and
+;    bottom-right of the 2x2 8x8 squares cannot be used (else you have garbage to the right of every character).
 ; -- If you are going for just 8x8 tiles with each character occupying 2 OAM slots placed vertically, well, its
 ;    roughly double the amount of OAM tiles (some of the top and bottom half of the number reuses previous
 ;    graphics, such as the top-half of "2" and "3" and the bottom half of "0" and "6") used and the tiles on the
