@@ -179,7 +179,7 @@ item box corner tile on the left of the top row, then it is tile number <kbd>$3A
 
 <p>Please note that graphic files in these <kbd>.bin</kbd> covers half a page, and are always displayed at the top-half of that page on YY-CHR (assuming you have the &ldquo;Use Joined GFX files&rdquo; in the &ldquo;ROM Editing Options&rdquo; unchecked). And YY-CHR
 always have the tile numbering start at <kbd>$00</kbd> on the top left of that page, even when that graphic file is used on the page's bottom half when used in the game. If that's the case, you can convert the YY-CHR's top-half-only numbering to bottom-half by
-simply adding its tile number shown by the program by <kbd>$80</kbd>. For example, The big zero (used by the bonus stars counter) top-half is tile <kbd>$37</kbd> in <kbd>GFX2A.bin</kbd> in YY-CHR, but when loaded into the game, it is <kbd>$37 + $80 = $B7</kbd>.</p>
+simply adding its tile number shown by the program by <kbd>$80</kbd>. For example, The big zero (used by the bonus stars counter) top-half is tile <kbd>$37</kbd> in <kbd>GFX29.bin</kbd> in YY-CHR, but when loaded into the game, it is <kbd>$37 + $80 = $B7</kbd>.</p>
 
 <p>Now hold up, when you play around with the tiles, many tiles will use the wrong palette, well, this is part of the tile properties (in binary, its <kbd>%YXPCCCTT</kbd>) that's hard-coded, that's right, there are actually 2 bytes of information
 for each 8x8 tile with the tile numbers being in ROM and RAM and the properties all being hardcoded. When the level loads, the status bar routine will first transfer default tile number and properties from ROM addresses <kbd>$008C81-$008CFE</kbd>,

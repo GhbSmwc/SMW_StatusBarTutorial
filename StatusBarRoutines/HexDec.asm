@@ -383,7 +383,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Signed HexDec routines (two's complement)
 ;To handle negative numbers, it works like this:
-; 1. Invert the number by EOR #((2**8)-1) : INC
+; 1. Invert the number by EOR #((2**NumberOfBits)-1) : INC
 ; 2. Call the corresponding HexDec routine to obtain the digits
 ; 3. Write the negative sign followed by the digits.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
