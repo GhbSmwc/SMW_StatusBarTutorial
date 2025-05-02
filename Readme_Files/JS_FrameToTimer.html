@@ -21,7 +21,7 @@
 			abbr{cursor: help;}
 		</style>
 	</head>
-	<body onload="Reset()">
+	<body onload="Reset()" style="max-width: 1000px; margin: auto; padding: 15px">
 <a href="../HowToUseTheStatusBar.html#QuickJSTools_JS_FrameToTimer">Back</a><br>
 <a href="../HowToUseTheStatusBar.html#DebugTimerValue">Return to where I mentioned about debugging</a>
 <center><h1>Frames to and from timer converter</h1></center>
@@ -46,6 +46,7 @@ Frames within seconds: <input type="number" value="00" min="0" max="59" id="Time
 <button onclick="Reset()">Reset</button><br><br>
 <hr>
 <h3>Extra bytes value:</h3>
+<p>Note that this is for the uberasm tool version 2.0+</p>
 <div>Count direction:
 	<div>
 		<div><label><input type="radio" onchange="CalculateListFileExtraBytes()" name="UATList_LevelTimer_CountDirection" id="UATList_LevelTimer_CountDirection_Up">Count up</label></div>

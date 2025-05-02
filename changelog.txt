@@ -33,3 +33,8 @@
    wouldn't update to that because I forgot to make it use such a define.
  - Added signed HexDec routines. These handles a two's complement values.
  - Added 16x8 ("bonus stars" number) support.
+05-02-2025 v3.2.1
+ - Fixed an oversight that I forgot to update the HTML formatting (content centered rather than
+   on the left edge of the viewport) for other HTML files.
+ - Updated the link to a youtube video "Binary to decimal can’t be that hard, right?" to point to
+   a more appropriate video time.
