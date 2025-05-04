@@ -613,6 +613,79 @@ the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have t
 </table>
 </div>
 </p>
+Miscellaneous routines:
+<table>
+	<tr>
+		<th>Subroutine name</th>
+		<th>Input</th>
+		<th>Output</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>
+			<kbd>StringTo8x16Char</kbd>
+		</td>
+		<td>
+			<table>
+				<tr>
+					<td><kbd>!Scratchram_CharacterTileTable</kbd> (<kbd>MostNumberOfCharUsed</kbd> bytes)</td>
+					<td>Tile numbers representing 8x8 graphics to convert to 8x16 character graphic. Feel free to edit the routine to allow more characters to convert.</td>
+				</tr>
+				<tr>
+					<td><kbd>X register</kbd> (1 byte, not stored)</td>
+					<td>Number of characters in string.</td>
+				</tr>
+			</table>
+		</td>
+		<td>
+			<table>
+				<tr>
+					<td><kbd>!Scratchram_CharacterTileTable</kbd> (<kbd>MostNumberOfCharUsed</kbd> bytes)</td>
+					<td>The converted string (top half)</td>
+				</tr>
+				<tr>
+					<td><kbd>!Scratchram_CharacterTileTable_Line2</kbd> (<kbd>MostNumberOfCharUsed</kbd> bytes)</td>
+					<td>The converted string (bottom half)</td>
+				</tr>
+			</table>
+		</td>
+		<td>
+			Converts a given tile number to the equivalent 8x16 graphic used by the bonus stars. Note that 8x16 graphics is only used in levels,
+		</td>
+	</tr>
+	<tr>
+		<td><kbd>CountingAnimation16Bit</kbd></td>
+		<td>
+			<Table>
+				<tr>
+					<td><kbd>$04-$06</kbd> (3 bytes)</td>
+					<td>RAM address that is the &ldquo;actual&rdquo; amount (to compare)</td>
+				</tr>
+				<tr>
+					<td><kbd>$07-$09</kbd> (3 bytes)</td>
+					<td>RAM address that is the value that &ldquo;gradually&rdquo; increases or decreases across frames (to be displayed on the HUD)</td>
+				</tr>
+				<tr>
+					<td><kbd>$0A</kbd> (1 byte)</td>
+					<td>The change &ldquo;rate&rdquo; per execution of this routine (preferably each frame), higher value set here = slower.</td>
+				</tr>
+			</Table>
+		</td>
+		<td>
+			<table>
+				<tr>
+					<td><kbd>RAM_stored_In_07</kbd> (2 bytes)</td>
+					<td>The updated value that gradually changes (referring to a RAM address itself stored in <kbd>$07-$09</kbd>).</td>
+				</tr>
+			</table>
+		</td>
+		<td>
+			Gradually increases or decreases a RAM value whose address is stored in <kbd>$07-$09</kbd> towards a value stored in another RAM address in which that address is in <kbd>$04-$06</kbd>. Calculated as <kbd>floor((Actual - Gradual)/Rate) + 1</kbd>
+			each time this subroutine is called (preferably once a frame).
+		</td>
+	</tr>
+</table>
+
 <p>Lets start with something very simple with small number of digits.</p>
 <p>Do note that all subroutines here will always have leading zeroes stored (either as in the registers for 2-3 digits or as an array of digits for 4+ digit displays) when there are fewer
 digits than the maximum by default. If you wanted to remove leading zeroes, I will explain that in the next section.</p>
@@ -2532,7 +2605,7 @@ like the repeated symbols, just use a different tile number. The graphical bar t
 				</table>
 			</td>
 			<td>
-				Supports digits 0-9, space, and the slach character. Feel free to edit the routine to include more characters.
+				Supports digits 0-9, space, slach character and more (see the routine's comments). Feel free to edit the routine to include more characters.
 			</td>
 		</tr>
 	</table>

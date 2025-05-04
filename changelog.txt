@@ -38,3 +38,8 @@
    on the left edge of the viewport) for other HTML files.
  - Updated the link to a youtube video "Binary to decimal can’t be that hard, right?" to point to
    a more appropriate video time.
+05-04-2025 v3.2.1 some more description updates
+ - Fixed an error on "CountingAnimation16Bit" that when "Gradual" is greater than "Actual", it is
+   supposed to decrease Gradual towards actual and therefore "-=" is a more appropriate than "+="
+ - Mentioned 2 miscellaneous subroutines with a table: StringTo8x16Char and
+   CountingAnimation16Bit.

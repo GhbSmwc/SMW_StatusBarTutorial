@@ -1456,7 +1456,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ; To Increment (When Gradual is less than Actual):
 ;  Gradual += floor((Actual - Gradual)/Rate) + 1
 ; To decrement (when Gradual is greater than actual):
-;  Gradual += floor((Gradual - Actual)/Rate) + 1
+;  Gradual -= floor((Gradual - Actual)/Rate) + 1
 ;
 ;Input:
 ; - $04-$06 (3 bytes): RAM address of the 16-bit number that is the "Actual"
