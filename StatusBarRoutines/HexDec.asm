@@ -1209,7 +1209,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	; - $00 to $03: the frame value (little endian!).
 	;Output:
 	; - !Scratchram_Frames2TimeOutput (4 bytes): timer in real world units format:
-	; -- !Scratchram_Frames2TimeOutput+0 = hour
+	; -- !Scratchram_Frames2TimeOutput+0 = hour (0-255 (#$00-#$FF) are safe to display; $034BBFFF is the maximum frame value that is safe to display)
 	; -- !Scratchram_Frames2TimeOutput+1 = minutes (value ranges from 0-59 (#$00-#$3B))
 	; -- !Scratchram_Frames2TimeOutput+2 = seconds (value ranges from 0-59 (#$00-#$3B))
 	; -- !Scratchram_Frames2TimeOutput+3 = centiseconds (display 00 to 99 (actually 00-98 because 59/60 = 0.98[3], (#$00-#$62)))
