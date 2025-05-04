@@ -919,7 +919,7 @@ When written to the status bar:<br>
 			<table>
 				<tr>
 					<td><kbd>$00</kbd> to <kbd>$02</kbd> (3 bytes)</td>
-					<td>24-bit address location to write tile numbere here and tiles after</td>
+					<td>24-bit address location to write tile number here and tiles after</td>
 				</tr>
 				<tr>
 					<td><kbd>$03</kbd> to <kbd>$05</kbd> (3 bytes, used when <kbd>!StatusBar_UsingCustomProperties != 0</kbd>)</td>
@@ -1218,9 +1218,10 @@ Again, use the debugger if you wanted to test the values using the memory editor
 <h4 id="RightAligned"><a href="#RightAlignedBack">^</a>Right aligned display</h3>
 
 <p>But what about right-aligned number display? First things first, if you are displaying a single, non-negative number, this routine isn't necessary as calling the HexDec routines and replacing leading zeroes with leading spaces
-is automatically right-aligned, therefore only use these routines (below) if you are displaying X/Y. Here is how you do it: After checking if there are too many characters, you then store the RAM address of the <i>rightmost tile position</i>
-into $00-$02 (little endian), call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedFormat2</kbd> if using the [TTTTTTTT, YXPCCCTT] format), which will modify the position of where to write the digits based
-on how long the string are (loop-writes are based on the starting byte of an array, not the last) by taking the position, subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the
+is automatically right-aligned, therefore only use these routines (below) if you are displaying X/Y. The only exception to this that you do need a right-aligned is when writing to sprite OAM. Here is how you do it: After checking
+if there are too many characters, you then store the RAM address of the <i>rightmost tile position</i> into $00-$02 (little endian), call <kbd>HexDec_ConvertToRightAligned</kbd> (<kbd>HexDec_ConvertToRightAlignedFormat2</kbd> if
+using the [TTTTTTTT, YXPCCCTT] format), which will modify the position of where to write the digits based on how long the string are (loop-writes are based on the starting byte of an array, not the last) by taking the position,
+subtract by the number of characters minus 1 tile, then that is the leftmost tile position, then call the
 routine to write to the HUD.<br><br>
 
 16-bit:
