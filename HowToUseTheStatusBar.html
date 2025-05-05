@@ -614,11 +614,13 @@ the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have t
 </div>
 </p>
 Miscellaneous routines:
+<div class="BigHTMLTable">
 <table>
 	<tr>
 		<th>Subroutine name</th>
 		<th>Input</th>
 		<th>Output</th>
+		<th>Destroyed</th>
 		<th>Description</th>
 	</tr>
 	<tr>
@@ -649,6 +651,7 @@ Miscellaneous routines:
 				</tr>
 			</table>
 		</td>
+		<td style="text-align: center">None</td>
 		<td>
 			Converts a given tile number to the equivalent 8x16 graphic used by the bonus stars. Note that 8x16 graphics is only used in levels,
 		</td>
@@ -680,11 +683,20 @@ Miscellaneous routines:
 			</table>
 		</td>
 		<td>
+			<table>
+				<tr>
+					<td><kbd>$00-$03</kbd> (4 bytes)</td>
+					<td>Used for the division routine.</td>
+				</tr>
+			</table>
+		</td>
+		<td>
 			Gradually increases or decreases a RAM value whose address is stored in <kbd>$07-$09</kbd> towards a value stored in another RAM address in which that address is in <kbd>$04-$06</kbd>. Calculated as <kbd>floor((Actual - Gradual)/Rate) + 1</kbd>
 			each time this subroutine is called (preferably once a frame).
 		</td>
 	</tr>
 </table>
+</div>
 
 <p>Lets start with something very simple with small number of digits.</p>
 <p>Do note that all subroutines here will always have leading zeroes stored (either as in the registers for 2-3 digits or as an array of digits for 4+ digit displays) when there are fewer
