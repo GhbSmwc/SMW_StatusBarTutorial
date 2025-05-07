@@ -30,6 +30,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;   repeated tiles in question.
 ; - RAM_In_Addr09 to [RAM_In_Addr09 + ((ValueIn01-1) * !StatusbarFormat)] The
 ;   repeated tile properties in question.
+;
+;Note:
+; - These routines can be used on stripe image for both horizontal and vertical.
+;   Left-to-right becomes top-to-bottom and vice-versa.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WriteRepeatedSymbols:
 	LDY #$00
@@ -195,7 +199,8 @@ WriteRepeatedSymbolsLeftwardsFormat2:
 ; - $09-$0B (2 bytes): Same as above.
 ;
 ;NOTE: this only works with status bars having a row of 32 8x8 tiles, rows are lined up vertically,
-;and each row being contiguous to each other. Else your tiles won't line up vertically.
+;and each row being contiguous to each other. Else your tiles won't line up vertically. Don't use this
+;for stripe.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WriteRepeatedSymbolsWriteVertically:
 	.Loop

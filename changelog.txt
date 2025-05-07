@@ -46,3 +46,4 @@
  - Mentioned on Frames2Timer that hours' maximum that it can safely represent is 255, and thus
    the maximum timer value is $034BBFFF, which is 255 hours, 59 minutes, 59 seconds, and 59
    frames (about 98 centiseconds).
+ - Added notice in the comments about repeated symbols routine.
