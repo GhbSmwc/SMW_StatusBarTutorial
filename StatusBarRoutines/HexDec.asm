@@ -681,7 +681,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			BEQ ..Colon
 			;Like "ConvertAlignedDigitToOWB", you can add more characters here to convert.
 			;The only difference is you have to write to BOTH !Scratchram_CharacterTileTable,x
-			;and !Scratchram_CharacterTileTable_Line2,x due to characters now have 2 tiles
+			;and !Scratchram_CharacterTileTable_Line2,x due to each character having 2 tiles
 			;instead of 1.
 			
 			;Other characters remain unconverted with $FC for Line2.
