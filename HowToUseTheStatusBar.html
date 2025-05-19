@@ -3959,7 +3959,7 @@ init:
 		every frame). Status bars and overworld border+	patches would transfer RAM to VRAM data via DMA transfer, which reduces the risk of v-blank overflows.<br><br>
 		
 		One way to avoid this is only write when a tile change is needed. For example: If you have a symbol indicating something like a coin symbol before the number,
-		then only the number can be written every frame while the two symbols before it only needs to be written once.</li><br>
+		then only the number can be written every frame while the symbol before it only needs to be written once.</li><br>
 		
 		<li>Be careful not to write stripe data during a &ldquo;COURSE CLEAR!&rdquo; text is on screen when the player completes the level, as vanilla SMW writes the
 		message at a <b>fixed location</b> in the stripe data (see code at <kbd>$05CCCB</kbd>). You can check RAM <kbd>$1493</kbd> and <kbd>%1426</kbd> (latter is for message box,
