@@ -3962,7 +3962,7 @@ init:
 		then only the number can be written every frame while the symbol before it only needs to be written once.</li><br>
 		
 		<li>Be careful not to write stripe data during a &ldquo;COURSE CLEAR!&rdquo; text is on screen when the player completes the level, as vanilla SMW writes the
-		message at a <b>fixed location</b> in the stripe data (see code at <kbd>$05CCCB</kbd>). You can check RAM <kbd>$1493</kbd> and <kbd>%1426</kbd> (latter is for message box,
+		message at a <b>fixed location</b> in the stripe data (see code at <kbd>$05CCCB</kbd>). You can check RAM <kbd>$1493</kbd> and <kbd>$1426</kbd> (latter is for message box,
 		as a failsafe just in case that also is placed in a fixed location):
 <div class="CodeBlock" style="height: 180px"><pre>	LDA $1493|!addr		;&gt;Goal timer
 	ORA $1426|!addr		;&gt;Message box (to me, I did experienced screen went black except for the layer 3, I kept this here anyways just in case)
