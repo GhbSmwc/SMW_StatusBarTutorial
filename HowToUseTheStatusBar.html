@@ -771,7 +771,7 @@ When handling the 100s digit, you basically divided the value by 10 again, which
 resulting A now being the 10s place wrapping every 100 and X increasing every 100. Because the maximum value stored in an 8-bit byte is 255, there is no way the hundreds place digit
 will be able to glitch out at 1000. For more information how base conversion works, I found a wikipedia article on positional notation <a href="https://en.wikipedia.org/wiki/Positional_notation#Base_conversion">on converting radixes</a>.</p>
 
-<p>For displaying negative values via signed HexDec routines, they simply invert the number (flips all the bits of the input value, then add 1), and then perform the aforementioned steps above, and also output the sign value.</p>
+<p>For displaying negative values via signed HexDec routines, they simply invert the number (<a href="https://en.wikipedia.org/wiki/Two%27s_complement#Most_negative_number">flip all the bits of the input value, then add 1</a>), and then perform the aforementioned steps above, and also output the sign value.</p>
 
 <p id="Left2RightHexDec">Do note that this method have a cost: The higher the number to convert to BCD, the more subtractions by 10<sup>1 &rightarrow; (NumberOfDigits-1)</sup> it would take to get all the
 digits outputted, not really harsh since this is 8-bit, so up to 25 iterations for a 2-digit (plus up to 2 more for 10s and 100s by calling the HexDec routine again). However, if you
