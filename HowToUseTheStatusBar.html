@@ -37,7 +37,9 @@
 				border: 1px solid white;
 				resize: both;
 			}
-			
+			kbd.MathFormula {
+				white-space: pre;
+			}
 		</style>
 	</head>
 <body onload="Calculate()" style="max-width: 1000px; margin: auto; padding: 15px">
@@ -691,8 +693,9 @@ Miscellaneous routines:
 			</table>
 		</td>
 		<td>
-			Gradually increases or decreases a RAM value whose address is stored in <kbd>$07-$09</kbd> towards a value stored in another RAM address in which that address is in <kbd>$04-$06</kbd>. Calculated as <kbd>floor((Actual - Gradual)/Rate) + 1</kbd>
-			each time this subroutine is called (preferably once a frame).
+			Gradually increases or decreases a RAM value whose address is stored in <kbd>$07-$09</kbd> (this can be displayed for animation) towards a value stored in another RAM address (the true value stored internally) in which that address is in <kbd>$04-$06</kbd>. Calculated as <kbd class="MathFormula">Gradual <abbr title="Addition assignment, adds the operands before and after, and then sets the left operand to the total.">+=</abbr> floor((Actual - Gradual)/Rate) + 1</kbd> to increase
+			and <kbd class="MathFormula">Gradual <abbr title="Subtraction assignment, subtract the left operand by the right operand, and then sets the left operand to the difference.">-=</abbr> floor((Gradual - Actual)/Rate) + 1</kbd> to decrease. This is useful to display counting animation whose speed is proportional to the difference without the animation being lengthy.
+			Preferably this subroutine should be called no more than once per frame for each counter.
 		</td>
 	</tr>
 </table>
