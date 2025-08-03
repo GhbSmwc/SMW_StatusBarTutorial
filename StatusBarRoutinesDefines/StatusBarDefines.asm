@@ -253,7 +253,7 @@ endif
 			!RAM_0EF9 = $400EF9
 		endif
 	;Frames2Timer (this converts multiple units of time into total number of frames).
-		function FramesToTimer(Hours, Minutes, Seconds, Frames) = (Hours*216000)+(Minutes*3600)+(Seconds*60)+Frames
+		function TimerToFrames(Hours, Minutes, Seconds, Frames) = (Hours*216000)+(Minutes*3600)+(Seconds*60)+Frames
 	!StatusBar_TestDisplayElement_Pos_Tile = VanillaStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !RAM_0EF9)
 	if !UsingCustomStatusBar != 0
 		!StatusBar_TestDisplayElement_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
