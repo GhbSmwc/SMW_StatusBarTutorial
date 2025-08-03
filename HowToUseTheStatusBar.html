@@ -338,8 +338,12 @@ their own table&rdquo; format and the overworld border plus patch, which your ha
 <ul>
 	<li>
 		The ASM codes here should work with SA-1. However some subroutines utilize the SA-1 math registers (e.g. multiplication registers, such as <kbd>Frames2Timer</kbd> and <kbd>ConvertToPercentage</kbd>), if you have <kbd>!Setting_GraphicalBar_SNESMathOnly</kbd> set to 0.<br><br>
-		<ul><li>Furthermore, when developing your hack or resource, some emulators handles CPU processor's access to registers differently. Accurate emulators like Mesen does not allow CPU to access registers of a different type (SA-1 processor cannot access SNES registers and
-		vice versa)</li></ul>
+		<ul>
+			<li>Furthermore, when developing your hack or resource, some emulators handles CPU processor's access to registers differently. Accurate emulators like Mesen does not allow CPU to access registers of a different type (SA-1 processor cannot access SNES registers and
+			vice versa)</li><br>
+			<li>Subroutines involving writing a 3-byte address into RAM may break if you have RAM-based defines to use 2-or-less byte addressing in them. For example, the sample usage of <kbd>CountingAnimation16Bit</kbd> need to have defines <kbd>!Freeram_ValueDisplay1_2Bytes</kbd> and
+			<kbd>!Freeram_ValueDisplay2_2Bytes</kbd> to use <kbd>$<u>30</u>XX</kbd> when using 1-byte long scratch RAM <kbd>$XX</kbd>. An easy fix is to just change <kbd>$60</kbd> into <kbd>$60|!dp</kbd> and <kbd>$62</kbd> into <kbd>$62|!dp</kbd>.</li>
+		</ul>
 	</li><br>
 	<li>Uberasm tool have a built-in macro <kbd>%invoke_sa1(label)</kbd> that will run stuff under <kbd>label</kbd> under the SA-1 processor. Anything after the macro call will return to the SNES processor (think of it like a JSL/JSR except the processor switches when invoking it).</li><br>
 	<li>Stripe image data remains in WRAM address $7F837B. This means writing to stripe and calling <kbd>SetupStripe</kbd> needs to be handled by the SNES processor.</li><br>
@@ -1752,12 +1756,64 @@ the display value for you:
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
-!NumberOfDigitsDisplayed = 5						;&gt;Number of digits shown.
-!ChangeDivisorRate = 60							;&gt;Scaling of increment/decrement rate. Higher number = slower.
+;!!Important!! When using this on SA-1 hack, make sure you have !Freeram_ValueDisplay1_2Bytes and !Freeram_ValueDisplay2_2Bytes to be
+;using absolute address ($XX -&gt; $30XX or $0030XX) in "StatusBarDefines.asm". This is because "CountingAnimation16Bit" uses Direct Indirect
+;Long ("[$xx]"), which means $xx would be interpreted incorrectly as $0000XX and causing the animation to not work.
 
-incsrc "../StatusBarRoutinesDefines/Defines.asm"
+!NumberOfDigitsDisplayed = 5
+	;^Number of digits shown.
+
+!ChangeDivisorRate = 60
+	;^Scaling of increment/decrement rate. Higher number = slower. When the number changes, the displayed value "Gradual"
+	; will increment/decrement by X per step (step is a frame, or when the frame counter is a multiple of 2**N if absolute
+	; difference is less than a certain threshold). Where X is equal to:
+	; - If Gradual is less than actual: X = floor((Actual - Gradual)/Rate) + 1
+	; - If Gradual is greater than actual: X = floor((Gradual - Actual)/Rate) + 1
+
+!Freezeable = 0
+	;^0 = count during pause/$9D being set, 1 = freeze counter as well. Please note that the status bar is written every frame
+	; even if the game is paused or $9D is being set. The same isn't true for writing OAM tiles by sprite codes and the OAM clear
+	; of $7F8000.
+
+!ExtraSlowCountThreshold = 30
+	;^If absolute difference between actual and gradual is below this value, gradual will change every 2**N frames.
+	; useful if you want small differences (increment/decrement by 1 every certain number of frames) to count very slow as not to
+	; take a fraction of a second so the player can easily see the change of the number. Set to 0 to disable and it will always
+	; change on each frame. Best to have this value be less than !ChangeDivisorRate else you end up with values not changing on
+	; some adjacent frames while others will increment/decrement by 2+, resulting in a "choppy"/skippy number change.
+
+!ExtraSlowFrameDelay = 2
+	;^The N of 2**N frame delay when absolute difference between actual and gradual is below the above define value. Larger =
+	; slower (twice as long). Valid values are integers 2-8.
 
 	main:
+	.FreezeCheck
+		if !Freezeable != 0
+			LDA $9D
+			ORA $13D4|!addr
+			BNE .DisplayStatusBar			;&gt;If game frozen, skip increment/decrement effect and just write to status bar.
+		endif
+	.SmallDifferenceCheck
+		if !ExtraSlowCountThreshold != 0
+			REP #$20
+			LDA !Freeram_ValueDisplay1_2Bytes
+			SEC
+			SBC !Freeram_ValueDisplay2_2Bytes
+			BPL ..Positive
+			..Negative
+				EOR #$FFFF			;\Invert the negative value to a positive (absolute value)
+				INC				;/
+			..Positive
+			CMP.w #!ExtraSlowCountThreshold		;\If absolute difference is bigger than or equal to a threshold to change each frame, skip the frame counter check
+			SEP #$20				;|
+			BCS ..RunEveryFrame			;/
+			..RunOnPowOf2Frames
+				LDA.b $13+!Freezeable			;\If the frame counter (one byte, runs 0-255) isn't a multiple of 2**N, skip the increment/decrement effect.
+				AND.b #(2**!ExtraSlowFrameDelay)-1	;|(as a side note, if you are checking $14, you absolutely must check $9D and $13D4|!addr or else pausing/freezing when
+				BNE .DisplayStatusBar			;/$14 is a multiple of 2**N causes increment/decrement each frame instead of pausing, similar to yoshi's swallow timer and the invincibility star timer).
+			
+			..RunEveryFrame
+		endif
 	.ChangeAnimation
 		LDA.b #!Freeram_ValueDisplay1_2Bytes		;\$04-$06: A RAM address containing the Actual number
 		STA $04						;|

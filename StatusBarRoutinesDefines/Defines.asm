@@ -1,3 +1,5 @@
+;These are defines for various routines, mainly for scratch RAM and such.
+;For HUD-specific defines, see "StatusBarDefines.asm" instead
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Defines to setup for SA-1 hybrid support.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

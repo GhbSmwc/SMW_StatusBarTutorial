@@ -38,7 +38,7 @@
    on the left edge of the viewport) for other HTML files.
  - Updated the link to a youtube video "Binary to decimal can’t be that hard, right?" to point to
    a more appropriate video time.
-08-03-2025 v3.2.1 some more description updates
+08-03-2025 v3.2.1 some more description and sample updates
  - Fixed an error on "CountingAnimation16Bit" that when "Gradual" is greater than "Actual", it is
    supposed to decrease Gradual towards actual and therefore "-=" is a more appropriate than "+="
  - Mentioned 2 miscellaneous subroutines with a table: StringTo8x16Char and
@@ -49,3 +49,6 @@
  - Added notice in the comments about repeated symbols routine.
  - Renamed "FramesToTimer" to "TimerToFrames" to avoid misleading name.
  - Fixed grammar issue with the readme explaining the 8x16 graphic.
+ - Added note about Direct Indirect Long and SA-1 that writing a 1 or 2 bytes address may break.
+ - Added even slower counting animation for sample use of "CountingAnimation16Bit" by only
+   counting by 1 on certain frames if the Gradual value and actual value difference is low enough.

@@ -2,6 +2,9 @@ includeonce
  ;^Prevent redefinition errors (this define file you're reading right now contains a function and asar cannot allow that to be redefined)
  ; This happens because the patch in "Patch_SpriteStatusBarTest/SpriteHUDTest.asm" includes this define file as well as sububroutines file
  ; which they themselves also include this define file, causing redefinition issues if "includeonce" is not being used.
+ 
+;This define file is for HUD-related content. Things like where on the HUD to be written, sample RAM to display, and tiles to use.
+;For routine-specific settings like what RAM to use for routine input/output values, see "Defines.asm" instead.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;SA-1 handling (don't touch here)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -216,6 +219,13 @@ endif
 	;FreeRAM to display its amount, for both all meters on status bar, overworld borders, stripes, and sprites. The
 	;number of bytes used on each of these are obvious. Also obvious to avoid running multiple ASM files for a level
 	;using the same RAM at the same time.
+	;
+	;NOTE: If using SA-1, routines that involve writing a 3-byte address itself into scratch RAM for Direct Indirect
+	;Long (instructions with"[$xx]") using 2 or fewer bytes (such as $60 instead of $7E0060) may not work.
+	; - An example was "CountingAnimation16Bit". In this case, you should use "$60|!dp" and "$62|!dp" for
+	;   !Freeram_ValueDisplay1_2Bytes and !Freeram_ValueDisplay2_2Bytes instead of "$60" and "$62". What's happening
+	;   here is that SA-1 maps $60 to $003060 and $62 to $003062. Not having the "|$xx!dp" causes asar to interpret
+	;   that as $60 to be $000060 and $62 to be $000062, which are incorrect.
 		;For 8-bit counters (including repeated symbols)
 			!Freeram_ValueDisplay1_1Byte = $60
 			!Freeram_ValueDisplay2_1Byte = $61
