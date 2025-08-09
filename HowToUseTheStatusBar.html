@@ -558,11 +558,11 @@ the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have t
 		</td>
 	</tr>
 	<tr>
-		<td><kbd>SupressLeadingZeros</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast2</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast3</kbd>, and <kbd>SupressLeadingZeros32Bit</kbd></td>
+		<td><kbd>SuppressLeadingZeros</kbd>, <kbd>SuppressLeadingZerosPercentageLeaveLast2</kbd>, <kbd>SuppressLeadingZerosPercentageLeaveLast3</kbd>, and <kbd>SuppressLeadingZeros32Bit</kbd></td>
 		<td>
 			<ul>
-			<li>5 digits for <kbd>SupressLeadingZeros</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast2</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast3</kbd></li><br>
-			<li>N digits, with N equal to <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> for <kbd>SupressLeadingZeros32Bit</kbd></li>
+			<li>5 digits for <kbd>SuppressLeadingZeros</kbd>, <kbd>SuppressLeadingZerosPercentageLeaveLast2</kbd>, <kbd>SuppressLeadingZerosPercentageLeaveLast3</kbd></li><br>
+			<li>N digits, with N equal to <kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> for <kbd>SuppressLeadingZeros32Bit</kbd></li>
 			</ul>
 		</td>
 		<td>
@@ -574,10 +574,10 @@ the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have t
 				<tr>
 					<td>
 						<ul>
-							<li>For <kbd>SupressLeadingZeros</kbd>, <kbd>SupressLeadingZerosPercentageLeaveLast2</kbd>, and <kbd>SupressLeadingZerosPercentageLeaveLast3</kbd>:
+							<li>For <kbd>SuppressLeadingZeros</kbd>, <kbd>SuppressLeadingZerosPercentageLeaveLast2</kbd>, and <kbd>SuppressLeadingZerosPercentageLeaveLast3</kbd>:
 							<kbd>!Scratchram_16bitHexDecOutput</kbd> to <kbd>!Scratchram_16bitHexDecOutput+4</kbd> (5 bytes)
 							</li><br>
-							<li>For <kbd>SupressLeadingZeros32Bit</kbd>:
+							<li>For <kbd>SuppressLeadingZeros32Bit</kbd>:
 							<kbd>!Scratchram_32bitHexDecOutput</kbd> to <kbd>!Scratchram_32bitHexDecOutput+(!Setting_32bitHexDec_MaxNumberOfDigits-1)</kbd> (<kbd>!Setting_32bitHexDec_MaxNumberOfDigits</kbd> bytes)
 							</li>
 						</ul>
@@ -590,7 +590,7 @@ the status bar graphic tiles on GFX28 starts with digits 0-9 so you don't have t
 				</tr>
 				<tr>
 					<td><kbd>$09</kbd> (1 byte)</td>
-					<td>For only <kbd>SupressLeadingZerosPercentageLeaveLast2</kbd> and <kbd>SupressLeadingZerosPercentageLeaveLast3</kbd>, Character number for decimal point. By default status bar, it must be <kbd>#$24</kbd> to represent the decimal point, for sprite OAM, it must be <kbd>#$0D</kbd>.</td>
+					<td>For only <kbd>SuppressLeadingZerosPercentageLeaveLast2</kbd> and <kbd>SuppressLeadingZerosPercentageLeaveLast3</kbd>, Character number for decimal point. By default status bar, it must be <kbd>#$24</kbd> to represent the decimal point, for sprite OAM, it must be <kbd>#$0D</kbd>.</td>
 				</tr>
 			</table>
 			
@@ -994,7 +994,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 with an icon (or a &ldquo;label&rdquo;) to the left of the number when the number have a small number of digits, you'll have a space in between the icon and the digits, which looks ugly, especially if the number
 have a huge number of digits it can display up to. Or, if you wanted the number display to look more compact. For example, a 5-digit, 16-bit number:<br>
 <img src="Readme_Files/LeadingSpaces.png"><br><br>
-The first routine, <kbd>SupressLeadingZeros</kbd> works like this: Search all the digits in <kbd>!Scratchram_16bitHexDecOutput</kbd> from left-to-right, and copy all the non-leading zero digits
+The first routine, <kbd>SuppressLeadingZeros</kbd> works like this: Search all the digits in <kbd>!Scratchram_16bitHexDecOutput</kbd> from left-to-right, and copy all the non-leading zero digits
 on and after the first (leftmost) digit and paste them into <kbd>!Scratchram_CharacterTileTable</kbd>. You've now have a &ldquo;compressed string&rdquo; table stored. After this routine, The X register now contains a number incremented for every character being written.
 See picture below:<br>
 <img src="Readme_Files/NoLeadingZeroesLeftAligned.png"><br>
@@ -1068,7 +1068,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_SixteenBitHexDecDivision			;/
 		;Remove leading zeroes and have it as a character table
 			LDX #$00					;&gt;Start at character position 0.
-			JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+			JSL HexDec_SuppressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
 		;Prevent writing too much characters.
 			CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
@@ -1123,7 +1123,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_ThirtyTwoBitHexDecDivision				;/
 		;Remove leading zeroes and have it as a character table
 			LDX #$00					;&gt;Start at character position 0.
-			JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+			JSL HexDec_SuppressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
 		;Prevent writing too much characters.
 			CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits				;/not being cleared from the previous code.
@@ -1197,7 +1197,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_SixteenBitHexDecDivision			;/
 		;Remove leading zeroes and have it as a character table
 			LDX #$00						;&gt;Start at character position 0.
-			JSL HexDec_SupressLeadingZeros				;&gt;Write the digits (without leading zeroes) starting at position 0.
+			JSL HexDec_SuppressLeadingZeros				;&gt;Write the digits (without leading zeroes) starting at position 0.
 	;"/" symbol
 			LDA #!StatusBarSlashCharacterTileNumb			;\Slash symbol.
 			STA !Scratchram_CharacterTileTable,x			;/
@@ -1212,7 +1212,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_SixteenBitHexDecDivision			;/
 			PLX							;&gt;Restore.
 		;Remove leading zeroes and have it as a character table
-			JSL HexDec_SupressLeadingZeros				;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
+			JSL HexDec_SuppressLeadingZeros				;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 		;Prevent writing too much characters.
 			CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)		;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits					;/not being cleared from the previous code.
@@ -1268,7 +1268,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_ThirtyTwoBitHexDecDivision				;/
 		;Remove leading zeroes and have it as a character table
 			LDX #$00							;&gt;Start at character position 0.
-			JSL HexDec_SupressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at position 0.
+			JSL HexDec_SuppressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at position 0.
 	;"/" symbol
 			LDA #!StatusBarSlashCharacterTileNumb				;\Slash symbol.
 			STA !Scratchram_CharacterTileTable,x				;/
@@ -1285,7 +1285,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_ThirtyTwoBitHexDecDivision				;/
 			PLX								;&gt;Restore.
 		;Remove leading zeroes and have it as a character table
-			JSL HexDec_SupressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
+			JSL HexDec_SuppressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 		;Prevent writing too much characters.
 			CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)			;\Failsafe to avoid writing more characters than intended would write onto tiles
 			BCS ..TooMuchDigits						;/not being cleared from the previous code.
@@ -1345,7 +1345,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_SixteenBitHexDecDivision					;/
 		;Remove leading zeroes and have it as a character table
 			LDX #$00								;&gt;Start at character position 0.
-			JSL HexDec_SupressLeadingZeros						;&gt;Write the digits (without leading zeroes) starting at position 0.
+			JSL HexDec_SuppressLeadingZeros						;&gt;Write the digits (without leading zeroes) starting at position 0.
 	;"/" symbol
 			LDA #!StatusBarSlashCharacterTileNumb					;\Slash symbol.
 			STA !Scratchram_CharacterTileTable,x					;/
@@ -1360,7 +1360,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_SixteenBitHexDecDivision					;/
 			PLX									;&gt;Restore.
 		;Remove leading zeroes and have it as a character table
-			JSL HexDec_SupressLeadingZeros						;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
+			JSL HexDec_SuppressLeadingZeros						;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 	;Prevent writing too much characters.
 		CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)					;\Failsafe to avoid writing more characters than intended would write onto tiles
 		BCS ..TooMuchDigits								;/not being cleared from the previous code.
@@ -1419,7 +1419,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_ThirtyTwoBitHexDecDivision				;/
 		;Remove leading zeroes and have it as a character table
 			LDX #$00							;&gt;Start at character position 0.
-			JSL HexDec_SupressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at position 0.
+			JSL HexDec_SuppressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at position 0.
 	;"/" symbol
 			LDA #!StatusBarSlashCharacterTileNumb				;\Slash symbol.
 			STA !Scratchram_CharacterTileTable,x				;/
@@ -1436,7 +1436,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			JSL HexDec_ThirtyTwoBitHexDecDivision				;/
 			PLX								;&gt;Restore.
 		;Remove leading zeroes and have it as a character table
-			JSL HexDec_SupressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
+			JSL HexDec_SuppressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 	;Prevent writing too much characters.
 		CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)				;\Failsafe to avoid writing more characters than intended would write onto tiles
 		BCS ..TooMuchDigits							;/not being cleared from the previous code.
@@ -2172,7 +2172,7 @@ main:
 				.StatusBarString
 				;Remove leading zeroes and have it as a character table
 					LDX #$00					;&gt;Start at character position 0.
-					JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+					JSL HexDec_SuppressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
 				;Prevent writing too much characters.
 					CPX.b #4+1					;\Failsafe to avoid writing more characters than intended would write onto tiles
 					BCS ..TooMuchDigits				;/not being cleared from the previous code.
@@ -2268,11 +2268,11 @@ main:
 				if !Default_PercentagePrecision == 1
 					LDA #$24		;\Decimal point
 					STA $09			;/
-					JSL HexDec_SupressLeadingZerosPercentageLeaveLast2
+					JSL HexDec_SuppressLeadingZerosPercentageLeaveLast2
 				elseif !Default_PercentagePrecision == 2
 					LDA #$24		;\Decimal point
 					STA $09			;/
-					JSL HexDec_SupressLeadingZerosPercentageLeaveLast3
+					JSL HexDec_SuppressLeadingZerosPercentageLeaveLast3
 				endif
 				LDA #!StatusBarPercentTile			;\Write percent symbol
 				STA !Scratchram_CharacterTileTable,x		;/
@@ -2932,7 +2932,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				JSL HexDec_SixteenBitHexDecDivision			;/
 			;Remove leading zeroes and have it as a character table
 				LDX #$00					;&gt;Start at character position 0.
-				JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+				JSL HexDec_SuppressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
 			;Prevent writing too much characters.
 				CPX.b #!NumberOfDigitsDisplayed+1		;\Failsafe to avoid writing more characters than intended would write onto tiles
 				BCS ..TooMuchDigits				;/not being cleared from the previous code.
@@ -2948,7 +2948,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				JSL HexDec_SixteenBitHexDecDivision			;/
 			;Remove leading zeroes and have it as a character table
 				LDX #$00					;&gt;Start at character position 0.
-				JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+				JSL HexDec_SuppressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
 		;"/" symbol
 				LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
 				STA !Scratchram_CharacterTileTable,x		;/
@@ -2963,7 +2963,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				JSL HexDec_SixteenBitHexDecDivision			;/
 				PLX							;&gt;Restore.
 			;Remove leading zeroes and have it as a character table
-				JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
+				JSL HexDec_SuppressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 			;Prevent writing too much characters.
 				CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)	;\Failsafe to avoid writing more characters than intended would write onto tiles
 				BCS ..TooMuchDigits				;/not being cleared from the previous code.
@@ -3042,7 +3042,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				JSL HexDec_ThirtyTwoBitHexDecDivision				;/
 			;Remove leading zeroes and have it as a character table
 				LDX #$00							;&gt;Start at character position 0.
-				JSL HexDec_SupressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at position 0.
+				JSL HexDec_SuppressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at position 0.
 			;Prevent writing too many characters
 				CPX.b #!NumberOfDigitsDisplayed+1				;\Failsafe to avoid writing more characters than intended would write onto tiles
 				BCS ..TooMuchDigits						;/not being cleared from the previous code.
@@ -3060,7 +3060,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				JSL HexDec_ThirtyTwoBitHexDecDivision				;/
 			;Remove leading zeroes and have it as a character table
 				LDX #$00							;&gt;Start at character position 0.
-				JSL HexDec_SupressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
+				JSL HexDec_SuppressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at after the slash symbol.
 		;"/" symbol
 				LDA #!StatusBarSlashCharacterTileNumb				;\Slash symbol.
 				STA !Scratchram_CharacterTileTable,x				;/
@@ -3077,7 +3077,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				JSL HexDec_ThirtyTwoBitHexDecDivision				;/
 				PLX								;&gt;Restore.
 			;Remove leading zeroes and have it as a character table
-				JSL HexDec_SupressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at position 0.
+				JSL HexDec_SuppressLeadingZeros32Bit				;&gt;Write the digits (without leading zeroes) starting at position 0.
 			;Prevent writing too much characters.
 				CPX.b #(((!NumberOfDigitsDisplayed*2)+1)+1)			;\Failsafe to avoid writing more characters than intended would write onto tiles
 				BCS ..TooMuchDigits						;/not being cleared from the previous code.
@@ -3254,7 +3254,7 @@ main:
 				.StatusBarString
 				;Remove leading zeroes and have it as a character table
 					LDX #$00					;&gt;Start at character position 0.
-					JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+					JSL HexDec_SuppressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
 				;Prevent writing too much characters.
 					CPX.b #4+1					;\Failsafe to avoid writing more characters than intended would write onto tiles
 					BCS ..TooMuchDigits				;/not being cleared from the previous code.
@@ -3328,11 +3328,11 @@ main:
 				if !Default_PercentagePrecision == 1
 					LDA #!StatusBarDotTile					;\Decimal point
 					STA $09							;/
-					JSL HexDec_SupressLeadingZerosPercentageLeaveLast2
+					JSL HexDec_SuppressLeadingZerosPercentageLeaveLast2
 				elseif !Default_PercentagePrecision == 2
 					LDA #!StatusBarDotTile					;\Decimal point
 					STA $09							;/
-					JSL HexDec_SupressLeadingZerosPercentageLeaveLast3
+					JSL HexDec_SuppressLeadingZerosPercentageLeaveLast3
 				endif
 				LDA #!StatusBarPercentTile			;\Write percent symbol
 				STA !Scratchram_CharacterTileTable,x		;/
@@ -3392,8 +3392,8 @@ before transfered into the PPU. SMW reserves the later half (OAM slots 64-127) f
 <h3>Notes</h3>
 <ul>
 <li>Due to sprites can display &ldquo;no tile&rdquo; by placing them offscreen (<kbd>OAM Y position = $F0</kbd> rather than a tile number, such as status bar tile <kbd>$FC</kbd>), writing digits using the following routines will always require a string-styled system
-like how the RAM defined in <kbd>!Scratchram_CharacterTileTable</kbd> is being used by <kbd>SupressLeadingZeros</kbd>. Almost everything is performed similarly to the layer 3 status bar, up until you are done writing to <kbd>!Scratchram_CharacterTileTable</kbd>
-(after the last time you call <kbd>SupressLeadingZeros</kbd>) is then you are dealing with OAM-related routines.</li>
+like how the RAM defined in <kbd>!Scratchram_CharacterTileTable</kbd> is being used by <kbd>SuppressLeadingZeros</kbd>. Almost everything is performed similarly to the layer 3 status bar, up until you are done writing to <kbd>!Scratchram_CharacterTileTable</kbd>
+(after the last time you call <kbd>SuppressLeadingZeros</kbd>) is then you are dealing with OAM-related routines.</li>
 
 <li>For repeating icon routines, they write to OAM directly without conversions, it does merely a loop of writing a given tile numbers and properties.</li>
 </ul>
@@ -3524,7 +3524,7 @@ as it would make this tutorial unnecessarily long.</p>
 		<kbd>Y index</kbd> (8-bit, pixi sprites only): The OAM index after writing the last tile character. Does not output anything for OAM-only.
 	</td>
 	<td>
-		Writes 8x8 tiles (often for numbers) into OAM in the form of text-style (1 line only). Can be used after calling Hexdec routines or after <kbd>SupressLeadingZeros</kbd>.
+		Writes 8x8 tiles (often for numbers) into OAM in the form of text-style (1 line only). Can be used after calling Hexdec routines or after <kbd>SuppressLeadingZeros</kbd>.
 	</td>
 </tr>
 <tr>
@@ -4330,7 +4330,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 					JSL HexDec_SixteenBitHexDecDivision		;/
 				;Remove leading zeroes and have it as a character table
 					LDX #$00					;&gt;Start at character position 0.
-					JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+					JSL HexDec_SuppressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
 		else
 			;First number
 				;Process HexDec
@@ -4341,7 +4341,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 					JSL HexDec_SixteenBitHexDecDivision		;/
 				;Remove leading zeroes and have it as a character table
 					LDX #$00					;&gt;Start at character position 0.
-					JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+					JSL HexDec_SuppressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
 			;"/" symbol
 					LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
 					STA !Scratchram_CharacterTileTable,x		;/
@@ -4356,7 +4356,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 					JSL HexDec_SixteenBitHexDecDivision		;/
 					PLX						;&gt;Restore.
 				;Remove leading zeroes and have it as a character table
-					JSL HexDec_SupressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
+					JSL HexDec_SuppressLeadingZeros			;&gt;Write the digits (without leading zeroes) starting at position 0.
 		endif
 		;Write to stripe
 			PHX						;&gt;push number of characters
@@ -4528,7 +4528,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 					JSL HexDec_ThirtyTwoBitHexDecDivision		;/
 				;Remove leading zeroes and have it as a character table
 					LDX #$00					;&gt;Start at character position 0.
-					JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+					JSL HexDec_SuppressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
 		else
 			;First number
 				;Process HexDec
@@ -4541,7 +4541,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 					JSL HexDec_ThirtyTwoBitHexDecDivision		;/
 				;Remove leading zeroes and have it as a character table
 					LDX #$00					;&gt;Start at character position 0.
-					JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+					JSL HexDec_SuppressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
 			;"/" symbol
 					LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
 					STA !Scratchram_CharacterTileTable,x		;/
@@ -4558,7 +4558,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 					JSL HexDec_ThirtyTwoBitHexDecDivision		;/
 					PLX						;&gt;Restore.
 				;Remove leading zeroes and have it as a character table
-					JSL HexDec_SupressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
+					JSL HexDec_SuppressLeadingZeros32Bit		;&gt;Write the digits (without leading zeroes) starting at position 0.
 		endif
 		;Write to stripe
 			PHX						;&gt;push number of characters
@@ -4868,7 +4868,7 @@ main:
 				.StatusBarString
 				;Remove leading zeroes and have it as a character table
 					LDX #$00					;&gt;Start at character position 0.
-					JSL HexDec_SupressLeadingZeros			;&gt;Digits at !Scratchram_CharacterTileTable
+					JSL HexDec_SuppressLeadingZeros			;&gt;Digits at !Scratchram_CharacterTileTable
 				;Write percent symbol after the number
 					LDA #!StatusBarPercentTile			;\Write percent symbol
 					STA !Scratchram_CharacterTileTable,x		;/
@@ -4983,11 +4983,11 @@ main:
 				if !Default_PercentagePrecision == 1
 					LDA #$24						;\Decimal point
 					STA $09							;/
-					JSL HexDec_SupressLeadingZerosPercentageLeaveLast2	;&gt;Characters are now in !Scratchram_CharacterTileTable
+					JSL HexDec_SuppressLeadingZerosPercentageLeaveLast2	;&gt;Characters are now in !Scratchram_CharacterTileTable
 				elseif !Default_PercentagePrecision == 2
 					LDA #$24						;\Decimal point
 					STA $09							;/
-					JSL HexDec_SupressLeadingZerosPercentageLeaveLast3	;&gt;Characters are now in !Scratchram_CharacterTileTable
+					JSL HexDec_SuppressLeadingZerosPercentageLeaveLast3	;&gt;Characters are now in !Scratchram_CharacterTileTable
 				endif
 				LDA #!StatusBarPercentTile			;\Write percent symbol
 				STA !Scratchram_CharacterTileTable,x		;/

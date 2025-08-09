@@ -6,7 +6,7 @@
 	;   must be #$24 for sprite OAM prior calling WriteStringAsSpriteOAM, it
 	;   must be #$0D.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	?SupressLeadingZerosPercentageLeaveLast2:
+	?SuppressLeadingZerosPercentageLeaveLast2:
 		;XXX.X% (XXXX.X%)
 		LDY #$00
 		?.Loop

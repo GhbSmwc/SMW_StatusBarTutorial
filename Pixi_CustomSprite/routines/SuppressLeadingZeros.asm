@@ -32,7 +32,7 @@
 	;    for indicating the last digit (or any tile) number for how many tiles to be written to the status
 	;    bar, overworld border, etc.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	?SupressLeadingZeros:
+	?SuppressLeadingZeros:
 		LDY #$00				;>Start looking at the leftmost (highest) digit
 		LDA #$00				;\When the value is 0, display it as single digit as zero
 		STA !Scratchram_CharacterTileTable,x	;/(gets overwritten should nonzero input exist)

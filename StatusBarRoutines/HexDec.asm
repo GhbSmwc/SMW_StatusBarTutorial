@@ -24,10 +24,10 @@
 ; - SixteenBitHexDecDivisionToOWB
 ; - ThirtyTwoBitHexDecDivisionToOWB
 ;Leading zeroes remover (left or aligned digits):
-; - SupressLeadingZeros
-; - SupressLeadingZerosPercentageLeaveLast2
-; - SupressLeadingZerosPercentageLeaveLast3
-; - SupressLeadingZeros32Bit
+; - SuppressLeadingZeros
+; - SuppressLeadingZerosPercentageLeaveLast2
+; - SuppressLeadingZerosPercentageLeaveLast3
+; - SuppressLeadingZeros32Bit
 ; - ConvertToRightAligned
 ; - ConvertToRightAlignedFormat2
 ;Aligned digit to OWB digits:
@@ -859,7 +859,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;    for indicating the last digit (or any tile) number for how many tiles to be written to the status
 	;    bar, overworld border, etc.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	SupressLeadingZeros:
+	SuppressLeadingZeros:
 		LDY #$00				;>Start looking at the leftmost (highest) digit
 		LDA #$00				;\When the value is 0, display it as single digit as zero
 		STA !Scratchram_CharacterTileTable,x	;/(gets overwritten should nonzero input exist)
@@ -890,7 +890,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;   must be #$24 for sprite OAM prior calling WriteStringAsSpriteOAM, it
 	;   must be #$0D.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	SupressLeadingZerosPercentageLeaveLast2:
+	SuppressLeadingZerosPercentageLeaveLast2:
 		;XXX.X% (XXXX.X%)
 		LDY #$00
 		.Loop
@@ -920,7 +920,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				BCC .Loop		;/
 				INX			;>Next item in table
 				RTL
-	SupressLeadingZerosPercentageLeaveLast3:
+	SuppressLeadingZerosPercentageLeaveLast3:
 		;XXX.XX%
 		LDY #$00
 		
@@ -954,7 +954,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				BCC .Loop		;/
 				INX			;>Next item in table
 				RTL
-	SupressLeadingZeros32Bit:
+	SuppressLeadingZeros32Bit:
 		LDY #$00				;>Start looking at the leftmost (highest) digit
 		LDA #$00				;\When the value is 0, display it as single digit as zero
 		STA !Scratchram_CharacterTileTable,x	;/(gets overwritten should nonzero input exist)
@@ -988,7 +988,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Convert left-aligned to right-aligned.
 	;
-	;Use this routine after calling SupressLeadingZeros and before calling
+	;Use this routine after calling SuppressLeadingZeros and before calling
 	;WriteStringDigitsToHUD. Note: Be aware that the math of handling the address
 	;does NOT account to changing the bank byte (address $XX****), so be aware of
 	;having status bar tables that crosses bank borders ($7EFFFF, then $7F0000,

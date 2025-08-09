@@ -147,7 +147,7 @@
 				SEP #$20						;|
 				JSL HexDec_SixteenBitHexDecDivision			;/
 				LDX #$00					;>Start at character position 0.
-				JSL HexDec_SupressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
+				JSL HexDec_SuppressLeadingZeros			;>Write the digits (without leading zeroes) starting at position 0.
 				if !DisplayTwoNumbers != 0
 					;slash
 						LDA #!StatusBarSlashCharacterTileNumb		;\Slash symbol.
@@ -162,7 +162,7 @@
 						SEP #$20						;|
 						JSL HexDec_SixteenBitHexDecDivision			;/
 						PLX							;>Restore.
-						JSL HexDec_SupressLeadingZeros				;>Write the digits (without leading zeroes) starting at after the slash symbol.
+						JSL HexDec_SuppressLeadingZeros				;>Write the digits (without leading zeroes) starting at after the slash symbol.
 				endif
 				CPX.b #!StringLength+1							;\Failsafe to avoid writing more characters than intended would write onto tiles
 				BCS ..TooMuchDigits							;/not being cleared from the previous code.

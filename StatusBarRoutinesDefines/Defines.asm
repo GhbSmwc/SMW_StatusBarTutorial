@@ -19,7 +19,7 @@
 	;For these routines:
 	; - SixteenBitHexDecDivision
 	; - RemoveLeadingZeroes16Bit
-	; - SupressLeadingZeros
+	; - SuppressLeadingZeros
 	;This is due to the fact that the digit table
 	;position varies as the 16-bit HexDec routine
 	;uses the SNES registers for non SA-1, or

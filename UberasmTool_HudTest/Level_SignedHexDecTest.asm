@@ -139,7 +139,7 @@ main:
 						STA !Scratchram_CharacterTileTable,x		;|
 						INX						;/
 						..NoSign
-						JSL HexDec_SupressLeadingZeros
+						JSL HexDec_SuppressLeadingZeros
 						CPX.b #!NumberOfTilesUsed+1			;\Failsafe to avoid writing more characters than intended would write onto tiles
 						BCS .TooMuchChar				;/not being cleared from the previous code.
 						if !SuppressLeadingZeroes == 1
@@ -219,7 +219,7 @@ main:
 					STA !Scratchram_CharacterTileTable,x		;|
 					INX						;/
 					..NoSign
-					JSL HexDec_SupressLeadingZeros32Bit
+					JSL HexDec_SuppressLeadingZeros32Bit
 					CPX.b #!NumberOfTilesUsed+1			;\Failsafe to avoid writing more characters than intended would write onto tiles
 					BCS .TooMuchChar				;/not being cleared from the previous code.
 					if !SuppressLeadingZeroes == 1

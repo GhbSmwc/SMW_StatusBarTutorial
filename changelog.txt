@@ -52,3 +52,4 @@
  - Added note about Direct Indirect Long and SA-1 that writing a 1 or 2 bytes address may break.
  - Added even slower counting animation for sample use of "CountingAnimation16Bit" by only
    counting by 1 on certain frames if the Gradual value and actual value difference is low enough.
+ - Corrected "Supress" to "Suppress".

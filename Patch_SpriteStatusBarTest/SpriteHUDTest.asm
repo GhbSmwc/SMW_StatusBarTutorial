@@ -412,7 +412,7 @@ if !Setting_RemoveOrInstall != 0
 						SEP #$20
 						JSL SixteenBitHexDecDivision					;>Convert to decimal digits
 						LDX #$00							;>Start the string position
-						JSL SupressLeadingZeros						;>Rid out the leading zeroes (X = number of characters/tiles written)
+						JSL SuppressLeadingZeros						;>Rid out the leading zeroes (X = number of characters/tiles written)
 					elseif and(greaterequal(!SpriteStatusBarPatchTest_Mode, 2), lessequal(!SpriteStatusBarPatchTest_Mode, 3))
 						REP #$20
 						LDA !Freeram_ValueDisplay1_4Bytes
@@ -422,7 +422,7 @@ if !Setting_RemoveOrInstall != 0
 						SEP #$20
 						JSL ThirtyTwoBitHexDecDivision
 						LDX #$00
-						JSL SupressLeadingZeros32Bit
+						JSL SuppressLeadingZeros32Bit
 					endif
 				;Second number
 					if !SpriteStatusBarPatchTest_Mode == 1
@@ -436,7 +436,7 @@ if !Setting_RemoveOrInstall != 0
 						SEP #$20							;|
 						JSL SixteenBitHexDecDivision					;/
 						PLX								;>Restore.
-						JSL SupressLeadingZeros						;>Remove leading zeroes of the second number.
+						JSL SuppressLeadingZeros						;>Remove leading zeroes of the second number.
 					elseif !SpriteStatusBarPatchTest_Mode == 3
 						LDA #$0A							;\#$0A will be converted to the "/" graphic in the digit table
 						STA !Scratchram_CharacterTileTable,x				;/
@@ -450,7 +450,7 @@ if !Setting_RemoveOrInstall != 0
 						SEP #$20							;|
 						JSL ThirtyTwoBitHexDecDivision					;/
 						PLX								;>Restore.
-						JSL SupressLeadingZeros32Bit					;>Remove leading zeroes of the second number.
+						JSL SuppressLeadingZeros32Bit					;>Remove leading zeroes of the second number.
 					endif
 				;OAM setup
 					LDA.b #DigitTable			;\Supply the table
@@ -567,15 +567,15 @@ if !Setting_RemoveOrInstall != 0
 					;we don't need to clear a space since it is already done.
 					LDX #$00
 					if !SpriteStatusBarPatchTest_PercentagePrecision == 0
-						JSL SupressLeadingZeros
+						JSL SuppressLeadingZeros
 					elseif !SpriteStatusBarPatchTest_PercentagePrecision == 1
 						LDA #$0D						;\Decimal symbol
 						STA $09							;/
-						JSL SupressLeadingZerosPercentageLeaveLast2
+						JSL SuppressLeadingZerosPercentageLeaveLast2
 					elseif !SpriteStatusBarPatchTest_PercentagePrecision == 2
 						LDA #$0D						;\Decimal symbol
 						STA $09							;/
-						JSL SupressLeadingZerosPercentageLeaveLast3
+						JSL SuppressLeadingZerosPercentageLeaveLast3
 					endif
 					;X = number of characters
 					LDA #$0B					;\Percent symbol

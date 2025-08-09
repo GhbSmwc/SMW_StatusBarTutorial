@@ -242,7 +242,7 @@ Graphics:
 		SEP #$20			;/
 		%SixteenBitHexDecDivision()	
 		LDX #$00			;>Start the string at position 0 for suppressing leading zeroes in string
-		%SupressLeadingZeros()	;We have the string at !Scratchram_CharacterTileTable and we have X acting as how many characters/sprite tiles so far written.
+		%SuppressLeadingZeros()	;We have the string at !Scratchram_CharacterTileTable and we have X acting as how many characters/sprite tiles so far written.
 		PHX
 		LDX $15E9|!addr
 		LDA !extra_byte_1,x
@@ -264,7 +264,7 @@ Graphics:
 				SEP #$20
 				%SixteenBitHexDecDivision()
 				PLX					;>Restore string character position
-				%SupressLeadingZeros()
+				%SuppressLeadingZeros()
 		..SkipSecondNumber
 		PLA				;\Restore XY position
 		STA $01				;|
@@ -380,17 +380,17 @@ Graphics:
 			BEQ ..DisplayOneHundredths
 			
 			..DisplayWhole100
-				%SupressLeadingZeros()
+				%SuppressLeadingZeros()
 				BRA +
 			..DisplayOneTenths
 				LDA #$0D
 				STA $09
-				%SupressLeadingZerosPercentageLeaveLast2()
+				%SuppressLeadingZerosPercentageLeaveLast2()
 				BRA +
 			..DisplayOneHundredths
 				LDA #$0D
 				STA $09
-				%SupressLeadingZerosPercentageLeaveLast3()
+				%SuppressLeadingZerosPercentageLeaveLast3()
 			+
 			;X = number of characters
 			LDA #$0B					;\Percent symbol

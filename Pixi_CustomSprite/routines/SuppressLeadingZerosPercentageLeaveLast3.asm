@@ -1,5 +1,5 @@
 	incsrc "../StatusBarRoutinesDefines/Defines.asm"
-	?SupressLeadingZerosPercentageLeaveLast3:
+	?SuppressLeadingZerosPercentageLeaveLast3:
 		;XXX.XX%
 		LDY #$00
 		

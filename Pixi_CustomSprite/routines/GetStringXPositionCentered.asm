@@ -21,7 +21,7 @@
 ;   8 pixels, which is halfway between X=0 and X=16.
 ; - NumbOfChar = X index
 ;
-;To be called after "SupressLeadingZeros" subroutine (or its variants).
+;To be called after "SuppressLeadingZeros" subroutine (or its variants).
 ;
 ;Input:
 ; - X index: How many characters.
