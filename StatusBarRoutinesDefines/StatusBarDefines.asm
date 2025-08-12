@@ -242,26 +242,31 @@ endif
 ;Don't edit unless you know what you're doing
 ;Feel free to use these.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;Patched status bar.
-		function PatchedStatusBarXYToAddress(x, y, StatusBarTileDataBaseAddr, format) = StatusBarTileDataBaseAddr+(x*format)+(y*32*format)
-		;You don't have to do STA $7FA000+StatusBarXYToByteOffset(0, 0, $02) when you can do STA PatchedStatusBarXYToAddress(0, 0, $7FA000, $02)
+	if not(defined("FunctionGuard_StatusBarFunctionDefined"))
+		;^This if statement prevents an issue where "includeonce" is "ignored" if two ASMs files
+		; incsrcs to the same ASM file with a different path due to asar not being able to tell
+		; if the incsrc'ed file is the same file: https://github.com/RPGHacker/asar/issues/287
+		;Patched status bar.
+			function PatchedStatusBarXYToAddress(x, y, StatusBarTileDataBaseAddr, format) = StatusBarTileDataBaseAddr+(x*format)+(y*32*format)
+			;You don't have to do STA $7FA000+StatusBarXYToByteOffset(0, 0, $02) when you can do STA PatchedStatusBarXYToAddress(0, 0, $7FA000, $02)
+			
+			macro CheckValidPatchedStatusBarPos(x,y)
+				assert and(greaterequal(<x>, 0), lessequal(<x>, 31)), "Invalid position on the patched status bar"
+			endmacro
 		
-		macro CheckValidPatchedStatusBarPos(x,y)
-			assert and(greaterequal(<x>, 0), lessequal(<x>, 31)), "Invalid position on the patched status bar"
-		endmacro
-	
-	;Vanilla SMW status bar.
-		function VanillaStatusBarXYToAddress(x,y, SMWStatusBar0EF9) = (select(equal(y,2), SMWStatusBar0EF9+(x-2), SMWStatusBar0EF9+$1C+(x-3)))
-		
-		macro CheckValidVanillaStatusBarPos(x,y)
-			assert or(and(equal(<y>, 2), and(greaterequal(<x>, 2), lessequal(<x>, 29))), and(equal(<y>, 3), and(greaterequal(<x>, 3), lessequal(<x>, 29)))), "Invalid position on the vanilla status bar"
-		endmacro
-		
-		if !sa1 == 0
-			!RAM_0EF9 = $0EF9
-		else
-			!RAM_0EF9 = $400EF9
-		endif
+		;Vanilla SMW status bar.
+			function VanillaStatusBarXYToAddress(x,y, SMWStatusBar0EF9) = (select(equal(y,2), SMWStatusBar0EF9+(x-2), SMWStatusBar0EF9+$1C+(x-3)))
+			
+			macro CheckValidVanillaStatusBarPos(x,y)
+				assert or(and(equal(<y>, 2), and(greaterequal(<x>, 2), lessequal(<x>, 29))), and(equal(<y>, 3), and(greaterequal(<x>, 3), lessequal(<x>, 29)))), "Invalid position on the vanilla status bar"
+			endmacro
+			
+			if !sa1 == 0
+				!RAM_0EF9 = $0EF9
+			else
+				!RAM_0EF9 = $400EF9
+			endif
+	endif
 	;Frames2Timer (this converts multiple units of time into total number of frames).
 		function TimerToFrames(Hours, Minutes, Seconds, Frames) = (Hours*216000)+(Minutes*3600)+(Seconds*60)+Frames
 	!StatusBar_TestDisplayElement_Pos_Tile = VanillaStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !RAM_0EF9)
