@@ -246,6 +246,7 @@ endif
 		;^This if statement prevents an issue where "includeonce" is "ignored" if two ASMs files
 		; incsrcs to the same ASM file with a different path due to asar not being able to tell
 		; if the incsrc'ed file is the same file: https://github.com/RPGHacker/asar/issues/287
+		
 		;Patched status bar.
 			function PatchedStatusBarXYToAddress(x, y, StatusBarTileDataBaseAddr, format) = StatusBarTileDataBaseAddr+(x*format)+(y*32*format)
 			;You don't have to do STA $7FA000+StatusBarXYToByteOffset(0, 0, $02) when you can do STA PatchedStatusBarXYToAddress(0, 0, $7FA000, $02)
