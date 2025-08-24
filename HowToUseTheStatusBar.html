@@ -814,7 +814,8 @@ the digits of 4660 are stored. Note that this is ordered in decreasing significa
 As a side note, all &ldquo;bigger number&rdquo; (handles more bytes to handle larger values) hexdec subroutines can work with &ldquo;smaller numbers&rdquo; (less bytes) hexdec subroutines by masking out
 the higher byte(s). For example: using a 16-bit hexdec, an 8-bit number #$FF, when supplied into the input, you then zero out the high byte (<kbd>STZ $01</kbd>) so that it treats the value as <kbd>#$00FF</kbd>. However,
 if the number is signed, then the high byte(s) must be <kbd>$FF</kbd> if the input number is negative. For the same example, if the 8-bit number is within <kbd>$80-$FF</kbd>, then the high byte needs to be <kbd>$FF</kbd>
-e.g. <kbd>$80 &rightarrow; $FF80</kbd>, otherwise <kbd>$7F &rightarrow; $007F</kbd>.
+e.g. <kbd>$80 &rightarrow; $FF80</kbd>, otherwise <kbd>$7F &rightarrow; $007F</kbd>. As a side note, this technique is called <a href="https://en.wikipedia.org/wiki/Two%27s_complement#Sign_extension">signed-bit extension</a>,
+when having the same value but a larger number of bits, you take the sign bit of the lower-number-of-bit value and duplicate it on the left side of the number.
 
 Here is the code in question for you to test:</p>
 <div class="CodeBlock"><pre>
