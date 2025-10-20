@@ -267,6 +267,8 @@ endif
 			else
 				!RAM_0EF9 = $400EF9
 			endif
+		;Mark that the macros and functions are now defined
+			!FunctionGuard_StatusBarFunctionDefined = 1
 	endif
 	;Frames2Timer (this converts multiple units of time into total number of frames).
 		function TimerToFrames(Hours, Minutes, Seconds, Frames) = (Hours*216000)+(Minutes*3600)+(Seconds*60)+Frames
