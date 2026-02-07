@@ -135,7 +135,10 @@ number), and <kbd>$7E0420-$7E049F</kbd> (each byte is an OAM slot, formatted as 
 You really don't have to worry about the high bit X position since after finishing your OAM write and calling <kbd>%FinishOAMWrite()</kbd> (or <kbd>JSL $01B7B3</kbd>) will automatically handle the high bit X position for you.
 However, we still need to worry about the size bit as previously mentioned.
 
-<table id="Output"></table>
+<div style="overflow: auto; resize: both; border: 1px solid white; width: 1000px; height: 500px">
+	<table id="Output"></table>
+</div>
+<div style="height: 250px;"></div>
 
 <script>
 	function GenerateOAMTable() {
