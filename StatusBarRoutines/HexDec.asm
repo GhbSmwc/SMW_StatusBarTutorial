@@ -1181,29 +1181,42 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;
 	; Note: This assumes that the frame counter increments every 1/60th of a second.
 	; The routine functions like this:
-	; 1. FrameWithinSeconds = 32BitFrame MOD 60 ;>This will get a number 0-59 within a second (aka. jiffysecond)
-	; 2. Seconds = Floor(32BitFrame/60) MOD 60 ;>This will get a number 0-59 within a minute.
-	; 3. Minute = Floor(Seconds/60) MOD 60 ;>This will get a number 0-59 within an hour
-	; 4. Hour = Floor(Minute/60) ;>This will get a number 0-255 for the hour
-	; 5. To convert FrameWithinSeconds to CentiSeconds (uses cross-multiply):
 	;
-	;  CentiSeconds = RoundHalfUp(FrameWithinSeconds * 100/60)
+	; 1. Perform division: 32BitFrame / 60. Quotient (rounded down) is TotalSeconds, and Remainder is 32BitFrame_Wrapped
+	; 2. Same as before: TotalSeconds / 60. Quotient: TotalMinutes. Remainder: Seconds_Wrapped
+	; 3. Again: TotalMinutes / 60. Quotient: TotalHours. Remainder: Minutes_Wrapped.
+	; 4. Convert 32BitFrame_Wrapped, which is a fraction of 60 of a second, to a fraction of 100:
+	;    CentiSeconds = RoundHalfUp(32BitFrame_Wrapped * 100/60)
+	;
+	; Now use the values of CentiSeconds, Seconds_Wrapped, Minutes_Wrapped, and (optionally) TotalHours.
 	;
 	; This is different from imamelia's timer, as each byte stored is in each unit and are
 	; incremented individually (if frames hits 60, INC the seconds, if seconds hit 60, increment minute and so on).
 	; Which that makes it hard if you want to have things that affect the timer like adding and subtracting.
 	;
 	; Template for making a user-friendly countdown timer:
+	;
+	; function TimeToFrames(Hours, Minutes, Seconds, Frame) = (Hours*216000)+(Minutes*3600)+(Seconds*60)+Frame
+	;    ;^NOTE: Due to a bug on how Asar handles "includeonce", includeonce does not reconize the same ASM file
+	;    ; when 2 or more other ASM files includes (incsrc <path_to_includeonce_ASM_File>) using different paths:
+	;    ;  https://github.com/RPGHacker/asar/issues/287
+	;    ; thus causes a depreciation or an error that a function is redefined. Use guard statement to prevent
+	;    ; this (Open "StatusBarDefines.asm" and CTRL+F "FunctionGuard_StatusBarFunctionDefined" and you'll see
+	;    ; an if statement to prevent this).
+	;
 	;	!StartTimerHour = 0
 	;	!StartTimerMinute = 3
 	;	!StartTimerSeconds = 30
 	;
+	;	!TotalFrames = TimeToFrames(!StartTimerHour, !StartTimerMinute, !StartTimerSeconds, 0)
+	;
 	;	REP #$20
-	;	LDA.w #(!StartTimerHour*216000)+(!StartTimerMinute*3600)+(!StartTimerSeconds*60)
+	;	LDA.w #!TotalFrames
 	;	STA !RAMToMeasure
-	;	LDA.w #(!StartTimerHour*216000)+(!StartTimerMinute*3600)+(!StartTimerSeconds*60)>>16
+	;	LDA.w #!TotalFrames>>16
 	;	STA !RAMToMeasure+2
 	;	SEP #$20
+	;
 	;
 	;Input:
 	; - $00 to $03: the frame value (little endian!).
@@ -1235,7 +1248,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		STA !Scratchram_Frames2TimeOutput		;/after dividing, it writes the remainder first, then take the quotient for the next loop of the next unit.
 		
 		.NonHours
-		LDA $04						;\store looped value (frames, seconds and minutes loop 00-59)
+		LDA $04						;\store looped/remainder value (frames, seconds and minutes loop 00-59)
 		STA !Scratchram_Frames2TimeOutput,x		;/
 		
 		..Next

@@ -25,7 +25,7 @@
 				background-color: #101010;
 			}
 			pre {
-				margin-top: 0px;
+				margin: 0px;
 			}
 			
 			abbr{cursor: help;}
@@ -1903,9 +1903,12 @@ Perhaps, if you wanted to display a timer on the HUD in HH:MM:SS.CC (or MM:SS.CC
 </table>
 </p>
 <p>This works by taking a 32-bit frame counter (it must increment by 1 every 1/60th of a second, which is the NTSC SNES's game loop speed) and doing repeated divisions by 60:
-<div class="CodeBlock" style="width: 1000px; height: 60px"><pre>Frames / 60 = Q: Seconds R: Frames		;&gt;We have seconds (not wrapped 0-59 yet), and frames (wrapped 0-59, then displayed as 0-<abbr title="Actually 98, due to 59/60 = 0.98[3]">99</abbr>)
-Seconds / 60 = Q: Minutes R: Seconds		;&gt;We have minutes (not wrapped 0-59 yet), and seconds (wrapped 0-59)
-Minutes / 60 = Q: Hours R: Minutes		;&gt;We have hours (not wrapped 0-59), and minutes (wrapped 0-59)</pre></div>
+<div class="CodeBlock" style="width: 526px; height: 98px;"><pre>TotalFrames / 60: Quotient: TotalSeconds, Remainder: Frames_Wrapped
+TotalSeconds / 60: Quotient: TotalMinutes, Remainder: Seconds_Wrapped
+TotalMinutes / 60: Quotient: TotalHours, Remainder: Minutes_Wrapped
+CentiSeconds: RoundHalfUp(Frames_Wrapped * 100 / 60)
+
+Format: TotalHours:Minutes_Wrapped:Seconds_Wrapped:CentiSeconds</pre></div>
 
 
 This is an entirely different format from <a href="https://www.smwcentral.net/?p=section&a=details&id=16365">Imamelia's timer</a>
