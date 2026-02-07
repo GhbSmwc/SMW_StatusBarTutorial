@@ -1196,19 +1196,11 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;
 	; Template for making a user-friendly countdown timer:
 	;
-	; function TimeToFrames(Hours, Minutes, Seconds, Frame) = (Hours*216000)+(Minutes*3600)+(Seconds*60)+Frame
-	;    ;^NOTE: Due to a bug on how Asar handles "includeonce", includeonce does not reconize the same ASM file
-	;    ; when 2 or more other ASM files includes (incsrc <path_to_includeonce_ASM_File>) using different paths:
-	;    ;  https://github.com/RPGHacker/asar/issues/287
-	;    ; thus causes a depreciation or an error that a function is redefined. Use guard statement to prevent
-	;    ; this (Open "StatusBarDefines.asm" and CTRL+F "FunctionGuard_StatusBarFunctionDefined" and you'll see
-	;    ; an if statement to prevent this).
-	;
 	;	!StartTimerHour = 0
 	;	!StartTimerMinute = 3
 	;	!StartTimerSeconds = 30
 	;
-	;	!TotalFrames = TimeToFrames(!StartTimerHour, !StartTimerMinute, !StartTimerSeconds, 0)
+	;	!TotalFrames = TimerToFrames(!StartTimerHour, !StartTimerMinute, !StartTimerSeconds, 0)
 	;
 	;	REP #$20
 	;	LDA.w #!TotalFrames
