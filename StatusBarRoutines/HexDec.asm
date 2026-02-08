@@ -777,7 +777,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		BRA ..Write
 		
 		..Blank
-		LDA #!OverWorldBorderBlankTile
+		LDA #!OverworldBorderBlankTile
 		
 		..Write
 		STA !Scratchram_16bitHexDecOutput,x
@@ -811,7 +811,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		BRA ..Write
 		
 		..Blank
-		LDA #!OverWorldBorderBlankTile
+		LDA #!OverworldBorderBlankTile
 		
 		..Write
 		STA !Scratchram_32bitHexDecOutput,x
@@ -1093,22 +1093,22 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			
 			;Stuff below here are the tile numbers to convert to.
 			..Blank
-				LDA #!OverWorldBorderBlankTile
+				LDA #!OverworldBorderBlankTile
 				BRA ..Write
 			..Slash
-				LDA #!OverWorldBorderSlashCharacterTileNumb
+				LDA #!OverworldBorderSlashCharacterTileNumb
 				BRA ..Write
 			..Percent
-				LDA #!OverWorldBorderPercentTile
+				LDA #!OverworldBorderPercentTile
 				BRA ..Write
 			..Dot
-				LDA #!OverWorldBorderDotTile
+				LDA #!OverworldBorderDotTile
 				BRA ..Write
 			..Minus
-				LDA #!OverWorldBorderMinusSymbol
+				LDA #!OverworldBorderMinusSymbol
 				BRA ..Write
 			..Plus
-				LDA #!OverWorldBorderPlusSymbol
+				LDA #!OverworldBorderPlusSymbol
 				BRa ..Write
 			..Digits
 				CLC			;\Status bar digits are at tile numbers $00-$09 and Overworld digits are at tile numbers $22-$2B, so we can just add whats in $00-$09 by $22.

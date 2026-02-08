@@ -53,3 +53,8 @@
  - Added even slower counting animation for sample use of "CountingAnimation16Bit" by only
    counting by 1 on certain frames if the Gradual value and actual value difference is low enough.
  - Corrected "Supress" to "Suppress".
+02-08-2026 v3.2.1 - minor changes
+ - Fixed several potential crashes with tile properties.
+ - Made tile properties settings be split into individual parts (Page, Palette, Priority, XFlip,
+   and YFlip).
+ - Replaced every instances of "OverWorldBorder" with "OverworldBorder" of some inconsistency.
