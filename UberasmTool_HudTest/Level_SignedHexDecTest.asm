@@ -90,7 +90,7 @@ main:
 		LDA #!StatusBarBlankTile
 		STA !StatusBarPos_ClearLocation_Tile,x
 		if !StatusBar_UsingCustomProperties
-			LDA #!StatusBar_TileProp
+			LDA.b #!StatusBar_TileProp
 			STA !StatusBarPos_ClearLocation_Prop,x
 		endif
 		DEX #!StatusbarFormat

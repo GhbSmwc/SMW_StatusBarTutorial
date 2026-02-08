@@ -2147,7 +2147,7 @@ main:
 							TXA						;\Write 10s place
 							STA !StatusBarAddressTile-(2*!StatusbarFormat)	;/
 					if !StatusBar_UsingCustomProperties != 0
-						LDA #!StatusBar_TileProp
+						LDA.b #!StatusBar_TileProp
 						STA !StatusBarAddressProps-(0*!StatusbarFormat)
 						STA !StatusBarAddressProps-(1*!StatusbarFormat)
 						STA !StatusBarAddressProps-(2*!StatusbarFormat)
@@ -2192,7 +2192,7 @@ main:
 						LDA.b #!StatusBarAddressProps : STA $03
 						LDA.b #!StatusBarAddressProps&gt;&gt;8 : STA $04
 						LDA.b #!StatusBarAddressProps&gt;&gt;16 : STA $05
-						LDA #!StatusBar_TileProp : STA $06
+						LDA.b #!StatusBar_TileProp : STA $06
 					endif
 					if !StatusbarFormat == $01
 						JSL HexDec_WriteStringDigitsToHUD
@@ -2219,7 +2219,7 @@ main:
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarAddressTile-(1*!StatusbarFormat)	;&gt;1/10ths
 					LDA #!StatusBarPercentTile : STA !StatusBarAddressTile-(0*!StatusbarFormat)		;&gt;%
 					if !StatusBar_UsingCustomProperties != 0
-						LDA #!StatusBar_TileProp
+						LDA.b #!StatusBar_TileProp
 						STA !StatusBarAddressProps-(5*!StatusbarFormat)	;&gt;100s
 						STA !StatusBarAddressProps-(4*!StatusbarFormat)	;&gt;10s
 						STA !StatusBarAddressProps-(3*!StatusbarFormat)	;&gt;1s
@@ -2244,7 +2244,7 @@ main:
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA !StatusBarAddressTile-(1*!StatusbarFormat)	;&gt;1/100s
 					LDA #!StatusBarPercentTile : STA !StatusBarAddressTile-(0*!StatusbarFormat)		;&gt;%
 					if !StatusBar_UsingCustomProperties != 0
-						LDA #!StatusBar_TileProp
+						LDA.b #!StatusBar_TileProp
 						STA !StatusBarAddressProps-(6*!StatusbarFormat)	;&gt;100s
 						STA !StatusBarAddressProps-(5*!StatusbarFormat)	;&gt;10s
 						STA !StatusBarAddressProps-(4*!StatusbarFormat)	;&gt;1s
@@ -2289,7 +2289,7 @@ main:
 						LDA.b #!StatusBarAddressProps : STA $03
 						LDA.b #!StatusBarAddressProps&gt;&gt;8 : STA $04
 						LDA.b #!StatusBarAddressProps&gt;&gt;16 : STA $05
-						LDA #!StatusBar_TileProp : STA $06
+						LDA.b #!StatusBar_TileProp : STA $06
 					endif
 					if !StatusbarFormat == $01
 						JSL HexDec_WriteStringDigitsToHUD
@@ -3291,9 +3291,9 @@ main:
 					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/10s place
 					JSL HexDec_SixteenBitHexDecDivisionToOWB
 					
-					LDA !Scratchram_16bitHexDecOutput+$01 : STA !OverworldBorderPositionTile-(5*2) : LDA #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(5*2)	;&gt;100s place
-					LDA !Scratchram_16bitHexDecOutput+$02 : STA !OverworldBorderPositionTile-(4*2) : LDA #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(4*2)	;&gt;10s place
-					LDA !Scratchram_16bitHexDecOutput+$03 : STA !OverworldBorderPositionTile-(3*2) : LDA #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(3*2)	;&gt;1s place
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA !OverworldBorderPositionTile-(5*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(5*2)	;&gt;100s place
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA !OverworldBorderPositionTile-(4*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(4*2)	;&gt;10s place
+					LDA !Scratchram_16bitHexDecOutput+$03 : STA !OverworldBorderPositionTile-(3*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(3*2)	;&gt;1s place
 					LDA #!OverWorldBorderDotTile : STA !OverworldBorderPositionTile-(2*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(2*2)		;&gt;Decimal point symbol
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA !OverworldBorderPositionTile-(1*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(1*2)	;&gt;1/10ths place
 					LDA #!OverWorldBorderPercentTile : STA !OverworldBorderPositionTile-(0*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(0*2)		;&gt;percent symbol
@@ -3308,9 +3308,9 @@ main:
 					;!Scratchram_16bitHexDecOutput+$04 (1s place) -&gt; 1/100s place
 					JSL HexDec_SixteenBitHexDecDivisionToOWB
 					
-					LDA !Scratchram_16bitHexDecOutput+$00 : STA !OverworldBorderPositionTile-(6*2) : LDA #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(6*2)	;&gt;100s place
-					LDA !Scratchram_16bitHexDecOutput+$01 : STA !OverworldBorderPositionTile-(5*2) : LDA #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(5*2)	;&gt;10s place
-					LDA !Scratchram_16bitHexDecOutput+$02 : STA !OverworldBorderPositionTile-(4*2) : LDA #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(4*2)	;&gt;1s place
+					LDA !Scratchram_16bitHexDecOutput+$00 : STA !OverworldBorderPositionTile-(6*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(6*2)	;&gt;100s place
+					LDA !Scratchram_16bitHexDecOutput+$01 : STA !OverworldBorderPositionTile-(5*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(5*2)	;&gt;10s place
+					LDA !Scratchram_16bitHexDecOutput+$02 : STA !OverworldBorderPositionTile-(4*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(4*2)	;&gt;1s place
 					LDA #!OverWorldBorderDotTile : STA !OverworldBorderPositionTile-(3*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(3*2)		;&gt;Decimal point symbol
 					LDA !Scratchram_16bitHexDecOutput+$03 : STA !OverworldBorderPositionTile-(2*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(2*2)	;&gt;1/10ths place
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA !OverworldBorderPositionTile-(1*2) : LDA.b #!OverWorldBorder_TileProp : STA !OverworldBorderPositionProp-(1*2)	;&gt;1/100ths place
@@ -3963,7 +3963,7 @@ init:
 	LDA #$01 : STA $7F837D+4+(1*2)+0,x
 	LDA #$02 : STA $7F837D+4+(2*2)+0,x
 	LDA #$03 : STA $7F837D+4+(3*2)+0,x
-	LDA #!StatusBar_TilePropRed
+	LDA.b #!StatusBar_TilePropRed
 	STA $7F837D+4+(0*2)+1,x
 	STA $7F837D+4+(1*2)+1,x
 	STA $7F837D+4+(2*2)+1,x
@@ -3985,7 +3985,7 @@ init:
 	LDA #$01 : STA $7F837D+4+(1*2)+0,x
 	LDA #$02 : STA $7F837D+4+(2*2)+0,x
 	LDA #$03 : STA $7F837D+4+(3*2)+0,x
-	LDA #!StatusBar_TilePropRed
+	LDA.b #!StatusBar_TilePropRed
 	STA $7F837D+4+(0*2)+1,x
 	STA $7F837D+4+(1*2)+1,x
 	STA $7F837D+4+(2*2)+1,x
@@ -4008,7 +4008,7 @@ init:
 	LDA #$01 : STA $7F837D+4+(1*2)+0,x
 	LDA #$02 : STA $7F837D+4+(2*2)+0,x
 	LDA #$03 : STA $7F837D+4+(3*2)+0,x
-	LDA #!StatusBar_TilePropRed
+	LDA.b #!StatusBar_TilePropRed
 	STA $7F837D+4+(0*2)+1,x
 	STA $7F837D+4+(1*2)+1,x
 	STA $7F837D+4+(2*2)+1,x
@@ -4831,7 +4831,7 @@ main:
 							LDA #!StatusBarBlankTile			;&gt;If 0, replace 10s digit with blank.
 						...WriteTens
 							STA $7F8381+(1*2),x				;&gt;Write 10s place
-						LDA #!StatusBar_TileProp
+						LDA.b #!StatusBar_TileProp
 						STA $7F8381+(0*2)+1,x
 						STA $7F8381+(1*2)+1,x
 						STA $7F8381+(2*2)+1,x
@@ -4921,7 +4921,7 @@ main:
 					LDA #$24 : STA $7F8381+(3*2),x					;&gt;.
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA $7F8381+(4*2),x	;&gt;1/10ths
 					LDA #!StatusBarPercentTile : STA $7F8381+(5*2),x		;&gt;%
-					LDA #!StatusBar_TileProp
+					LDA.b #!StatusBar_TileProp
 					STA $7F8381+(0*2)+1,x						;&gt;100s
 					STA $7F8381+(1*2)+1,x						;&gt;10s
 					STA $7F8381+(2*2)+1,x						;&gt;1s
@@ -4946,7 +4946,7 @@ main:
 					LDA !Scratchram_16bitHexDecOutput+$03 : STA $7F8381+(4*2),x	;&gt;1/10s
 					LDA !Scratchram_16bitHexDecOutput+$04 : STA $7F8381+(5*2),x	;&gt;1/100s
 					LDA #!StatusBarPercentTile : STA $7F8381+(6*2),x		;&gt;%
-					LDA #!StatusBar_TileProp
+					LDA.b #!StatusBar_TileProp
 					STA $7F8381+(0*2)+1,x						;&gt;100s
 					STA $7F8381+(1*2)+1,x						;&gt;10s
 					STA $7F8381+(2*2)+1,x						;&gt;1s
@@ -5012,7 +5012,7 @@ main:
 					INC					;|
 					STA $03					;/
 					SEP #$30
-					LDA #!StatusBar_TileProp		;\Tile properties to use
+					LDA.b #!StatusBar_TileProp		;\Tile properties to use
 					STA $06					;/
 					LDX $07
 					JSL HexDec_WriteStringDigitsToHUDFormat2
