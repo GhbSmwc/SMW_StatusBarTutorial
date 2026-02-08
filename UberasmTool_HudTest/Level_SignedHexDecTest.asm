@@ -56,6 +56,34 @@ main:
 	PHB
 	PHK
 	PLB
+	;Controller number test
+		LDA $15				;>%byetUDLR
+		if !NumberSize == 0
+			LSR #2				;>%00byetUD
+			AND.b #%00000011		;>%000000UD
+		else
+			LSR				;>%0byetUDL
+			AND.b #%00000110		;>%00000UD0
+		endif
+		TAY
+		if !NumberSize == 0
+			LDA !RAMToRead
+			CLC
+			ADC ControllerIncrementDecrement,y
+			STA !RAMToRead
+		else
+			REP #$20
+			LDA !RAMToRead
+			CLC
+			ADC ControllerIncrementDecrement,y
+			STA !RAMToRead
+			if !NumberSize == 2
+				LDA !RAMToRead+2
+				ADC ControllerIncrementDecrementHighWord,y
+				STA !RAMToRead+2
+			endif
+			SEP #$20
+		endif
 	;Clear tiles and properties
 		LDX.b #(!NumberOfTilesUsed-1)*2
 		-
@@ -269,4 +297,23 @@ main:
 		db !StatusBarPlusSymbol
 	else
 		db !StatusBarBlankTile
+	endif
+	ControllerIncrementDecrement:
+	if !NumberSize == 0
+		db $00 ;>%00000000 ($00)
+		db $FF ;>%00000001 ($01)
+		db $01 ;>%00000010 ($02)
+		db $00 ;>%00000011 ($03)
+	else
+		dw $0000 ;>%00000000 ($00)
+		dw $FFFF ;>%00000010 ($02)
+		dw $0001 ;>%00000100 ($04)
+		dw $0000 ;>%00000110 ($06)
+		if !NumberSize == 2
+			ControllerIncrementDecrementHighWord:
+				dw $0000 ;>%00000000 ($00)
+				dw $FFFF ;>%00000010 ($02)
+				dw $0000 ;>%00000100 ($04)
+				dw $0000 ;>%00000110 ($06)
+		endif
 	endif
