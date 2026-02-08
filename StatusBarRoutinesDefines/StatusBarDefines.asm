@@ -75,12 +75,25 @@ endif
 				!StatusBar8x16TopSlash = $2C
 				!StatusBar8x16BottomSlash = $2D
 			
-			!StatusBar_TileProp = %00111000
+			;Tile properties (YXPCCCTT), see function "GetLayer3YXPCCCTT".
+				!StatusBar_TileProp_Page     = 0 ;>Valid values: 0-3.
+				!StatusBar_TileProp_Palette  = 6 ;>Valid values: 0-7.
+				!StatusBar_TileProp_Priority = 1 ;>Valid values: 0-1.
+				!StatusBar_TileProp_XFlip    = 0 ;>Valid values: 0-1.
+				!StatusBar_TileProp_YFlip    = 0 ;>Valid values: 0-1.
 			
 			!StatusBar_RepeatedSymbols_FullTile = $2E
-			!StatusBar_RepeatedSymbols_FullProp = %00111000
+			;Tile properties for repeated symbols for full tiles. NOTE: tile priority is shared with !StatusBar_TileProp_Priority.
+				!StatusBar_RepeatedSymbols_Full_TileProp_Page     = 0 ;>Valid values: 0-3.
+				!StatusBar_RepeatedSymbols_Full_TileProp_Palette  = 6 ;>Valid values: 0-7.
+				!StatusBar_RepeatedSymbols_Full_TileProp_XFlip    = 0 ;>Valid values: 0-1.
+				!StatusBar_RepeatedSymbols_Full_TileProp_YFlip    = 0 ;>Valid values: 0-1.
 			!StatusBar_RepeatedSymbols_EmptyTile = $26
-			!StatusBar_RepeatedSymbols_EmptyProp = %00111000
+			;Tile properties for repeated symbols for empty tiles. Same as before.
+				!StatusBar_RepeatedSymbols_Empty_TileProp_Page     = 0 ;>Valid values: 0-3.
+				!StatusBar_RepeatedSymbols_Empty_TileProp_Palette  = 6 ;>Valid values: 0-7.
+				!StatusBar_RepeatedSymbols_Empty_TileProp_XFlip    = 0 ;>Valid values: 0-1.
+				!StatusBar_RepeatedSymbols_Empty_TileProp_YFlip    = 0 ;>Valid values: 0-1.
 		;Overworld border tiles for various symbols
 			!OverWorldBorderSlashCharacterTileNumb = $91
 			!OverWorldBorderBlankTile = $1F
@@ -88,9 +101,12 @@ endif
 			!OverWorldBorderPercentTile = $92
 			!OverWorldBorderPlusSymbol = $15
 			!OverWorldBorderMinusSymbol = $14
-			
-			
-			!OverWorldBorder_TileProp = %00111001
+			;Tile properties for most symbols.
+				!OverworldBorder_TileProp_Page     = 1 ;>Valid values: 0-3.
+				!OverworldBorder_TileProp_Palette  = 6 ;>Valid values: 0-7.
+				!OverworldBorder_TileProp_Priority = 1 ;>Valid values: 0-1.
+				!OverworldBorder_TileProp_XFlip    = 0 ;>Valid values: 0-1.
+				!OverworldBorder_TileProp_YFlip    = 0 ;>Valid values: 0-1.
 		;Misc
 			!TileNumb_PercentSymbol = $2A
 	;Below here, defines involving XY positions are positions (in units of tiles) to place the display element
@@ -276,7 +292,12 @@ endif
 		;Mark that the macros and functions are now defined
 			!FunctionGuard_StatusBarFunctionDefined = 1
 	endif
-	;Frames2Timer (this converts multiple units of time into total number of frames).
+	;Tile properties
+		!StatusBar_TileProp = GetLayer3YXPCCCTT(!StatusBar_TileProp_YFlip,!StatusBar_TileProp_XFlip,!StatusBar_TileProp_Priority,!StatusBar_TileProp_Palette,!StatusBar_TileProp_Page)
+		!StatusBar_RepeatedSymbols_FullProp = GetLayer3YXPCCCTT(!StatusBar_RepeatedSymbols_Full_TileProp_YFlip,!StatusBar_RepeatedSymbols_Full_TileProp_XFlip,!StatusBar_TileProp_Priority,!StatusBar_RepeatedSymbols_Full_TileProp_Palette,!StatusBar_RepeatedSymbols_Full_TileProp_Page)
+		!StatusBar_RepeatedSymbols_EmptyProp = GetLayer3YXPCCCTT(!StatusBar_RepeatedSymbols_Empty_TileProp_YFlip,!StatusBar_RepeatedSymbols_Empty_TileProp_XFlip,!StatusBar_TileProp_Priority,!StatusBar_RepeatedSymbols_Empty_TileProp_Palette,!StatusBar_RepeatedSymbols_Empty_TileProp_Page)
+		!OverWorldBorder_TileProp = GetLayer3YXPCCCTT(!OverworldBorder_TileProp_YFlip,!OverworldBorder_TileProp_XFlip,!OverworldBorder_TileProp_Priority,!OverworldBorder_TileProp_Palette,!OverworldBorder_TileProp_Page)
+	;Timer to frames (this converts multiple units of time into total number of frames).
 		function TimerToFrames(Hours, Minutes, Seconds, Frames) = (Hours*216000)+(Minutes*3600)+(Seconds*60)+Frames
 	!StatusBar_TestDisplayElement_Pos_Tile = VanillaStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !RAM_0EF9)
 	if !UsingCustomStatusBar != 0
