@@ -1,4 +1,4 @@
-;This ASM file demonstrates the display of two's complement signed numbers.
+;This ASM file demonstrates the display of two's complement signed numbers. Use debugger and up/down on the D-pad to see its conversion.
 ;Note: This does not support leading spaces between the sign and the non-leading zero digit, edit yourself if you somehow want this.
 
 ;Don't touch these unless you know what you're doing
