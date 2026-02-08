@@ -41,16 +41,20 @@ endif
 			;For use on making status bar codes that have hybrid format support.
 		
 		!StatusBar_UsingCustomProperties           = 1
-			;^0 = Change only the tile numbers, 1 = allow changing the tile properties.
-			; Set this to 0 if you don't want to edit the tile properties for status bar, OWB+,
-			; and stripe image. When set to 1, some subroutines in HexDec require inputs relating
-			; to properties (you can just CTRL+F "!StatusBar_UsingCustomProperties"), otherwise
-			; they will not use them at all.
+			;^Set this to 0 if you are only using vanilla status bar, status bar patches, and/or overworld border
+			; plus patch that have tile properties automatically set proper. Otherwise set this to 1 (if you need
+			; to set the tile properties).
+			;
+			; This define is needed as there are subroutines that either write only to tile numbers, or both tile
+			; numbers and properties.
 			
 			;So far, as of writing this, all status bar patches SMWC allow editing the tile properties.
 			;Also note that this does not have hybrid-support (using vanilla status bar, which didn't
 			;allow property editing, and using stripe/OWB+ which allows property editing) unless you
 			;create 2 versions of subroutines with one utilizing the tile properties and the other not.
+			;
+			;If using stripe image, this is needed to be set to 1 else invalid tile properties will be used,
+			;resulting in garbage tiles appearing.
 		!UsingCustomStatusBar = 1
 			;^0 = Using vanilla SMW status bar
 			; 1 = Using any layer 3 custom status bar.
@@ -267,6 +271,8 @@ endif
 			else
 				!RAM_0EF9 = $400EF9
 			endif
+		;Get YXPCCCTT
+			function GetLayer3YXPCCCTT(Y,X,P,CCC,TT) = ((Y<<7)+(X<<6)+(P<<5)+(CCC<<2)+TT)
 		;Mark that the macros and functions are now defined
 			!FunctionGuard_StatusBarFunctionDefined = 1
 	endif
