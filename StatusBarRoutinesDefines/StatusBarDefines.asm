@@ -289,33 +289,36 @@ endif
 			endif
 		;Get YXPCCCTT
 			function GetLayer3YXPCCCTT(Y,X,P,CCC,TT) = ((Y<<7)+(X<<6)+(P<<5)+(CCC<<2)+TT)
+		;Timer to frames (this converts multiple units of time into total number of frames).
+			function TimerToFrames(Hours, Minutes, Seconds, Frames) = (Hours*216000)+(Minutes*3600)+(Seconds*60)+Frames
 		;Mark that the macros and functions are now defined
 			!FunctionGuard_StatusBarFunctionDefined = 1
 	endif
 	;Tile properties
-		!StatusBar_TileProp = GetLayer3YXPCCCTT(!StatusBar_TileProp_YFlip,!StatusBar_TileProp_XFlip,!StatusBar_TileProp_Priority,!StatusBar_TileProp_Palette,!StatusBar_TileProp_Page)
-		!StatusBar_RepeatedSymbols_FullProp = GetLayer3YXPCCCTT(!StatusBar_RepeatedSymbols_Full_TileProp_YFlip,!StatusBar_RepeatedSymbols_Full_TileProp_XFlip,!StatusBar_TileProp_Priority,!StatusBar_RepeatedSymbols_Full_TileProp_Palette,!StatusBar_RepeatedSymbols_Full_TileProp_Page)
-		!StatusBar_RepeatedSymbols_EmptyProp = GetLayer3YXPCCCTT(!StatusBar_RepeatedSymbols_Empty_TileProp_YFlip,!StatusBar_RepeatedSymbols_Empty_TileProp_XFlip,!StatusBar_TileProp_Priority,!StatusBar_RepeatedSymbols_Empty_TileProp_Palette,!StatusBar_RepeatedSymbols_Empty_TileProp_Page)
-		!OverworldBorder_TileProp = GetLayer3YXPCCCTT(!OverworldBorder_TileProp_YFlip,!OverworldBorder_TileProp_XFlip,!OverworldBorder_TileProp_Priority,!OverworldBorder_TileProp_Palette,!OverworldBorder_TileProp_Page)
-	;Timer to frames (this converts multiple units of time into total number of frames).
-		function TimerToFrames(Hours, Minutes, Seconds, Frames) = (Hours*216000)+(Minutes*3600)+(Seconds*60)+Frames
-	!StatusBar_TestDisplayElement_Pos_Tile = VanillaStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !RAM_0EF9)
-	if !UsingCustomStatusBar != 0
-		!StatusBar_TestDisplayElement_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
-		!StatusBar_TestDisplayElement_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
-		
-		!StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayRightAlignedNumber_PosX, !StatusBar_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
-		!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayRightAlignedNumber_PosX, !StatusBar_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
-		
-		!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
-		!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
-		
-		!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_Pos_Tile = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
-		!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_Pos_Prop = PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
-		
-		!OverworldBorder_TestDisplayElement_Pos_Tile = PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayElement_PosX, !OverworldBorder_TestDisplayElement_PosY, !FreeramFromAnotherPatch_OWBorderTileStart, $02)
-		!OverworldBorder_TestDisplayElement_Pos_Prop = PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayElement_PosX, !OverworldBorder_TestDisplayElement_PosY, !FreeramFromAnotherPatch_OWBorderPropStart, $02)
-		
-		!OverworldBorder_TestDisplayElement_RightAlignedText_Pos_Tile = PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayRightAlignedNumber_PosX, !OverworldBorder_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_OWBorderTileStart, $02)
-		!OverworldBorder_TestDisplayElement_RightAlignedText_Pos_Prop = PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayRightAlignedNumber_PosX, !OverworldBorder_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_OWBorderPropStart, $02)
-	endif
+		!StatusBar_TileProp #= GetLayer3YXPCCCTT(!StatusBar_TileProp_YFlip,!StatusBar_TileProp_XFlip,!StatusBar_TileProp_Priority,!StatusBar_TileProp_Palette,!StatusBar_TileProp_Page)
+		!StatusBar_RepeatedSymbols_FullProp #= GetLayer3YXPCCCTT(!StatusBar_RepeatedSymbols_Full_TileProp_YFlip,!StatusBar_RepeatedSymbols_Full_TileProp_XFlip,!StatusBar_TileProp_Priority,!StatusBar_RepeatedSymbols_Full_TileProp_Palette,!StatusBar_RepeatedSymbols_Full_TileProp_Page)
+		!StatusBar_RepeatedSymbols_EmptyProp #= GetLayer3YXPCCCTT(!StatusBar_RepeatedSymbols_Empty_TileProp_YFlip,!StatusBar_RepeatedSymbols_Empty_TileProp_XFlip,!StatusBar_TileProp_Priority,!StatusBar_RepeatedSymbols_Empty_TileProp_Palette,!StatusBar_RepeatedSymbols_Empty_TileProp_Page)
+		!OverworldBorder_TileProp #= GetLayer3YXPCCCTT(!OverworldBorder_TileProp_YFlip,!OverworldBorder_TileProp_XFlip,!OverworldBorder_TileProp_Priority,!OverworldBorder_TileProp_Palette,!OverworldBorder_TileProp_Page)
+	;Tile address from a given XY position
+		!StatusBar_TestDisplayElement_Pos_Tile #= VanillaStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !RAM_0EF9)
+		if !UsingCustomStatusBar == 0
+			%CheckValidVanillaStatusBarPos(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY)
+		else
+			!StatusBar_TestDisplayElement_Pos_Tile #= PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
+			!StatusBar_TestDisplayElement_Pos_Prop #= PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_PosX, !StatusBar_TestDisplayElement_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
+			
+			!StatusBar_TestDisplayElement_RightAlignedText_Pos_Tile #= PatchedStatusBarXYToAddress(!StatusBar_TestDisplayRightAlignedNumber_PosX, !StatusBar_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
+			!StatusBar_TestDisplayElement_RightAlignedText_Pos_Prop #= PatchedStatusBarXYToAddress(!StatusBar_TestDisplayRightAlignedNumber_PosX, !StatusBar_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
+			
+			!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_Pos_Tile #= PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
+			!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_Pos_Prop #= PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsDownwards_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
+			
+			!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_Pos_Tile #= PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY, !FreeramFromAnotherPatch_StatusBarTileStart, !StatusbarFormat)
+			!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_Pos_Prop #= PatchedStatusBarXYToAddress(!StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosX, !StatusBar_TestDisplayElement_VerticalRepeatedIconsUpwards_PosY, !FreeramFromAnotherPatch_StatusBarPropStart, !StatusbarFormat)
+			
+			!OverworldBorder_TestDisplayElement_Pos_Tile #= PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayElement_PosX, !OverworldBorder_TestDisplayElement_PosY, !FreeramFromAnotherPatch_OWBorderTileStart, $02)
+			!OverworldBorder_TestDisplayElement_Pos_Prop #= PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayElement_PosX, !OverworldBorder_TestDisplayElement_PosY, !FreeramFromAnotherPatch_OWBorderPropStart, $02)
+			
+			!OverworldBorder_TestDisplayElement_RightAlignedText_Pos_Tile #= PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayRightAlignedNumber_PosX, !OverworldBorder_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_OWBorderTileStart, $02)
+			!OverworldBorder_TestDisplayElement_RightAlignedText_Pos_Prop #= PatchedStatusBarXYToAddress(!OverworldBorder_TestDisplayRightAlignedNumber_PosX, !OverworldBorder_TestDisplayRightAlignedNumber_PosY, !FreeramFromAnotherPatch_OWBorderPropStart, $02)
+		endif

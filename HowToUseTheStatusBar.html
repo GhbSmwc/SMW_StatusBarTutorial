@@ -4060,6 +4060,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 !RemoveLeadingZeroes = 0					;&gt;0 = no, 1 = yes
 
+;Check if the user have attempted to use stripe images without writing the tile properties.
+	assert !StatusBar_UsingCustomProperties != 0, "Using stripe images MUST have tile properties written, else garbage tiles can appear."
+
 	main:
 	.StripeNumberTest
 		LDA.b #!Layer3Stripe_TestDisplayElement_PosX	;\Position
@@ -4105,6 +4108,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 
 
 !RemoveLeadingZeroes = 0					;&gt;0 = no, 1 = yes
+
+;Check if the user have attempted to use stripe images without writing the tile properties.
+	assert !StatusBar_UsingCustomProperties != 0, "Using stripe images MUST have tile properties written, else garbage tiles can appear."
 
 	main:
 	.StripeNumberTest
@@ -4176,6 +4182,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 !RemoveLeadingZeroes = 0					;&gt;0 = no, 1 = yes
 !NumberOfDigitsDisplayed = 3					;&gt;How many digits, enter 1-5 (pointless if you enter less than 3).
 
+;Check if the user have attempted to use stripe images without writing the tile properties.
+	assert !StatusBar_UsingCustomProperties != 0, "Using stripe images MUST have tile properties written, else garbage tiles can appear."
+
 	main:
 	.StripeNumberTest
 		LDA.b #!Layer3Stripe_TestDisplayElement_PosX	;\Position
@@ -4240,6 +4249,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;(the number digits stored in each byte in !Scratchram_32bitHexDecOutput), else garbage will appear.
 	!NumberOfDigitsDisplayed = 9		;&gt;How many digits, enter 1-10 (pointless if you enter less than 5).
 
+;Check if the user have attempted to use stripe images without writing the tile properties.
+	assert !StatusBar_UsingCustomProperties != 0, "Using stripe images MUST have tile properties written, else garbage tiles can appear."
 
 	main:
 	.StripeNumberTest
@@ -4320,6 +4331,10 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		endif
 	;Detect user trying to make a right-aligned single number (which avoids unnecessarily uses suppress leading zeroes)
 		!IsUsingRightAlignedSingleNumber = and(notequal(!RightAligned, 0),equal(!DisplayTwoNumbers, 0))
+		
+		
+	;Check if the user have attempted to use stripe images without writing the tile properties.
+		assert !StatusBar_UsingCustomProperties != 0, "Using stripe images MUST have tile properties written, else garbage tiles can appear."
 ;Code below
 	main:
 	.NumberDisplayTest
@@ -4516,6 +4531,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 		endif
 	;Detect user trying to make a right-aligned single number (which avoids unnecessarily uses suppress leading zeroes)
 		!IsUsingRightAlignedSingleNumber = and(notequal(!RightAligned, 0),equal(!DisplayTwoNumbers, 0))
+	;Check if the user have attempted to use stripe images without writing the tile properties.
+		assert !StatusBar_UsingCustomProperties != 0, "Using stripe images MUST have tile properties written, else garbage tiles can appear."
 ;Code below
 	main:
 	.NumberDisplayTest
@@ -4715,7 +4732,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	elseif !Default_PercentagePrecision == 2
 		!NumberOfCharactersMaxedMinus1 = 6 ;&gt;"100.00%". 7 -&gt; 6
 	endif
-
+	;Check if the user have attempted to use stripe images without writing the tile properties.
+		assert !StatusBar_UsingCustomProperties != 0, "Using stripe images MUST have tile properties written, else garbage tiles can appear."
 main:
 	;Setup stripe
 		if !RightAligned == 0
@@ -5040,6 +5058,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 !Vertical = $00				;&gt;$00 = horizontal, $80 = vertical. Best not to use other values
 !Leftwards = 1				;&gt;0 = left-to-right (top to bottom if vertical) when filling, 1 = right-to-left (bottom to top if vertical) when filling.
 
+;Check if the user have attempted to use stripe images without writing the tile properties.
+	assert !StatusBar_UsingCustomProperties != 0, "Using stripe images MUST have tile properties written, else garbage tiles can appear."
 ;Code below
 
 	main:

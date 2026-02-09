@@ -27,6 +27,10 @@
 ;Don't touch
 	incsrc "../StatusBarRoutinesDefines/Defines.asm"
 	incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
+	
+	
+	;Check if the user have attempted to use stripe images without writing the tile properties.
+		assert !StatusBar_UsingCustomProperties != 0, "Using stripe images MUST have tile properties written, else garbage tiles can appear."
 	%require_uber_ver(2, 0)
 
 	init:
@@ -146,7 +150,6 @@
 				;!Scratchram_Frames2TimeOutput+1: Minutes
 				;!Scratchram_Frames2TimeOutput+2: Seconds
 				;!Scratchram_Frames2TimeOutput+3: Centiseconds
-				wdm
 			REP #$20
 			PLA										;\Restore extra bytes address
 			STA $00										;/
