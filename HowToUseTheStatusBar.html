@@ -2375,7 +2375,18 @@ The function <kbd>ConvertToPercentage</kbd>, <kbd>ConvertToPercentageRoundDown</
 			Needed to compare the remainder with half the denominator (for rounding).
 		</td>
 	</tr>
-</table>
+</table><br>
+Please note that these subroutines needfully checks the remainder after division to determine a round-up or a round-half-up, rather than doing rounded integer division like these:
+<div class="CodeBlock" style="height: 78px; width: 1018px;"><pre>;Round A/B:
+Round-Half-up Division: (A + (B/2)) / B
+Ceiling division: (A + (B-1)) / B
+Source: https://www.reddit.com/r/C_Programming/comments/gqpuef/comment/fru7tmu/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+</pre></div>
+Mainly because:<br>
+<ul>
+	<li>It prevents overflow, if A is close to 65535, then adds B, and exceeds 65535.</li>
+	<li>It would have the information needed to distinguish if a value is <i>close</i> to 0% or 100%, vs exactly equal to one of these two values.</li>
+</ul>
 I've made a left-aligned code that automatically writes the decimal point, so no worries if you wanted this format. That template code should have everything you need.<br><br>
 
 You may be wondering, why am I using 16-bit on some areas (including within the <kbd>ConvertToPercentage</kbd>) when I don't need to? Well, this is designed to prevent potential overflows and displaying wrong values.</p>
