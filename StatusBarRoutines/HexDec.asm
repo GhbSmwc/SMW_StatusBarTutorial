@@ -272,7 +272,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	; 1/10     = Q: 0    R: 1 /
 	;
 	;Input:
-	; - $00-$01 = the value you want to display
+	; - $00 to $01 = the value you want to display
 	;Output:
 	; - !Scratchram_16bitHexDecOutput to !Scratchram_16bitHexDecOutput+4 = a digit 0-9 per byte table
 	;   (used for 1-digit per 8x8 tile):
@@ -343,7 +343,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;32-bit hex-dec (using right-2-left division)
 	;input:
-	; - $00-$03 = the 32-bit number, in little endian, example:
+	; - $00 to $03 = the 32-bit number, in little endian, example:
 	;   $11223344 ([$44,$33,$22,$11]) should output 287454020.
 	;   Maximum value is 4,294,967,295.
 	;output:
@@ -462,7 +462,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;16-bit signed HexDec
 	;
 	;Input:
-	; - $00-$01 = the value you want to display
+	; - $00 to $01 = the value you want to display
 	;Output:
 	; - Y = Sign, values are:
 	; -- $00 = Negative
@@ -507,7 +507,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;32-bit signed HexDec
 	;input:
-	; - $00-$03 = the 32-bit number, in little endian, example:
+	; - $00 to $03 = the 32-bit number, in little endian, example:
 	;   $11223344 ([$44,$33,$22,$11]) should output 287454020.
 	;   Maximum value is 4,294,967,295.
 	;output:
@@ -716,7 +716,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				PHA						;|We want to get the digit tables at $008E06
 				PLB						;/
 				LDA.w $008E06,y					;\Convert digits to corresponding 8x16 digit graphics
-				STA !Scratchram_CharacterTileTable,x		;|($008E06-$008E19 contains 8x16 digit graphics, each digit is 2 bytes, top then bottom half)
+				STA !Scratchram_CharacterTileTable,x		;|($008E06 to $008E19 contains 8x16 digit graphics, each digit is 2 bytes, top then bottom half)
 				LDA.w $008E07,y					;|
 				STA !Scratchram_CharacterTileTable_Line2,x	;/
 				PLB						;>Restore bank
@@ -993,19 +993,19 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;does NOT account to changing the bank byte (address $XX****), so be aware of
 	;having status bar tables that crosses bank borders ($7EFFFF, then $7F0000,
 	;as an made-up example, but its unlikely though). This routine basically takes
-	;a given RAM address stored in $00-$02, subtract by how many tiles (minus 1), then
-	;$00-$02 is now the left tile position.
+	;a given RAM address stored in $00 to $02, subtract by how many tiles (minus 1), then
+	;$00 to $02 is now the left tile position.
 	;
 	;Input:
-	; - $00-$02 = 24-bit address location to write to status bar tile number.
+	; - $00 to $02 = 24-bit address location to write to status bar tile number.
 	; - If tile properties are edit-able:
-	; -- $03-$05 = Same as $00-$02 but tile properties.
+	; -- $03 to $05 = Same as $00 to $02 but tile properties.
 	; - X = The number of characters to write, ("123" would have X = 3)
 	;Output:
-	; - $00-$02 and $03-$05 are subtracted by [(NumberOfCharacters-1)*!StatusbarFormat]
+	; - $00 to $02 and $03 to $05 are subtracted by [(NumberOfCharacters-1)*!StatusbarFormat]
 	;   so that the last character is always at a fixed location and as the number
 	;   of characters increase, the string would extend leftwards. Therefore,
-	;   $00-$02 and $03-$05 before calling this routine contains the ending address
+	;   $00 to $02 and $03 to $05 before calling this routine contains the ending address
 	;   which the last character will be written.
 	;
 	;Note:
@@ -1127,9 +1127,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;Write string to Status bar/OWB+
 	;
 	;Input:
-	; - $00-$02 = 24-bit address location to write to status bar tile number.
+	; - $00 to $02 = 24-bit address location to write to status bar tile number.
 	; - If tile properties are edit-able (if !StatusBar_UsingCustomProperties != 0):
-	; -- $03-$05 = Same as $00-$02 but tile properties
+	; -- $03 to $05 = Same as $00 to $02 but tile properties
 	; -- $06 = Tile properties to use for all tiles of the string.
 	; - X = The number of characters to write, ("123" would have X = 3)
 	; - !Scratchram_CharacterTileTable-(!Scratchram_CharacterTileTable+N-1)
@@ -1321,7 +1321,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	; -- $01 = out of 1000 (display 1/10 precision (1 digit after decimal), can be converted to XXX.X% via fixed point)
 	; -- $02 = out of 10000 (display 1/100 precision (2 digits after decimal), can be converted to XXX.XX%, same as a above)
 	;Output:
-	; - $00-$03: Percentage, using fixed-point notation (an integer here, then scaled by 1/(10**!Scratchram_PercentageFixedPointPrecision)),
+	; - $00 to $03: Percentage, using fixed-point notation (an integer here, then scaled by 1/(10**!Scratchram_PercentageFixedPointPrecision)),
 	;   rounded 1/2 up to the nearest 1*10**(-!Scratchram_PercentageFixedPointPrecision). Using 32-bit unsigned integer to prevent
 	;   potential overflow (mainly going beyond 65535) if your hack allows going higher than 100% and with higher
 	;   !Scratchram_PercentageFixedPointPrecision precision. If the denominator is zero, will be 0% or 100% (division by zero).
@@ -1333,7 +1333,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	; -- Y=$01: Rounded to 0 ([0 < X < 5*10**(-Precision)] would've round to 0% misleadingly)
 	; -- Y=$02: Rounded from 99 to 100 ([100-(5*10**(-Precision-1)) <= X < 100] would've round to 100% misleadingly)
 	;Destroyed:
-	; - $06-$07: Needed to compare the remainder with half the denominator.
+	; - $06 to $07: Needed to compare the remainder with half the denominator.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		ConvertToPercentage:
 			JSL ConvertToPercentageRoundDown
@@ -1464,9 +1464,9 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ;  Gradual -= floor((Gradual - Actual)/Rate) + 1
 ;
 ;Input:
-; - $04-$06 (3 bytes): RAM address of the 16-bit number that is the "Actual"
+; - $04 to $06 (3 bytes): RAM address of the 16-bit number that is the "Actual"
 ;   amount
-; - $07-$09 (3 bytes): RAM address of the 16-bit number that is the "Gradual"
+; - $07 to $09 (3 bytes): RAM address of the 16-bit number that is the "Gradual"
 ;   which increases or decreases to the actual amount at a rate proportional how big the difference.
 ; - $0A (1 byte): The "change rate" per execution of this routine, higher
 ;   number written here = slower.
