@@ -2384,7 +2384,7 @@ Source: https://www.reddit.com/r/C_Programming/comments/gqpuef/comment/fru7tmu/?
 </pre></div>
 Mainly because:<br>
 <ul>
-	<li>It prevents overflow, if A is close to 65535, then adds B, and exceeds 65535.</li>
+	<li>It prevents overflow, if A is close to 65535, then adds by modification of B, and exceeds 65535.</li>
 	<li>It would have the information needed to distinguish if a value is <i>close</i> to 0% or 100%, vs exactly equal to one of these two values.</li>
 </ul>
 I've made a left-aligned code that automatically writes the decimal point, so no worries if you wanted this format. That template code should have everything you need.<br><br>
