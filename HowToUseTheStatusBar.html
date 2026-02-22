@@ -158,7 +158,7 @@ certain sprite combinations on screen.</li>
 <h2 id="WarmUp"><a href="#WarmUpBack">^</a>The warm-up: SMW's status bar.</h2>
 <p>Here, consider looking at this image (note that RAM-controlled tiles covers only some of the status bar tiles):<br>
 <img src="Readme_Files/StatusBarMap.png"><br>
-RAM address <kbd>$7E0EF9-$7E0F2E</kbd> controls what tile to display. How do you modify it? Well you edit the
+RAM address <kbd>$7E0EF9-$7E0F2F</kbd> controls what tile to display. How do you modify it? Well you edit the
 contents in the mentioned RAM address. There are 2 ways you can edit RAM addresses:
 <ul>
 <li>Most recommended: a debugger, specifically, <a href="https://github.com/SourMesen/Mesen2">Mesen</a>. After running your game on the emulator, go to the menu bar, &ldquo;Debug&rdquo; &rightarrow; &ldquo;Memory Viewer&rdquo;. On the
@@ -248,7 +248,7 @@ and then you can use that coordinate and CTRL+F here on this HTML file to locate
 </ul>
 I've made a <a href="Readme_Files/JS_YXPCCCTT.html" id="JS_YXPCCCTT">simple converter</a> since most debuggers only allow hex for editing and viewing values.
 
-Now there are 2 formats on how a pair of bytes are being stored. SMW uses both, where default tiles are the &ldquo;2-bytes together&rdquo; format while RAM address <kbd>$7E0EF9-$7E0F2E</kbd>
+Now there are 2 formats on how a pair of bytes are being stored. SMW uses both, where default tiles are the &ldquo;2-bytes together&rdquo; format while RAM address <kbd>$7E0EF9-$7E0F2F</kbd>
 are &ldquo;TileNumber and Props in their own table&rdquo; format but without the properties.
 <table>
 <tr>
