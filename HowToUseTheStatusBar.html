@@ -156,7 +156,7 @@ certain sprite combinations on screen.</li>
 <hr>
 <p>I have provided several routines to make writing codes much user-friendly as possible. So lets begin.</p>
 <h2 id="WarmUp"><a href="#WarmUpBack">^</a>The warm-up: SMW's status bar.</h2>
-<p>Here, consider looking at this image:<br>
+<p>Here, consider looking at this image (note that RAM-controlled tiles covers only some of the status bar tiles):<br>
 <img src="Readme_Files/StatusBarMap.png"><br>
 RAM address <kbd>$7E0EF9-$7E0F2E</kbd> controls what tile to display. How do you modify it? Well you edit the
 contents in the mentioned RAM address. There are 2 ways you can edit RAM addresses:
@@ -5250,7 +5250,8 @@ left to right is much faster).</p>
 				
 				let TableCell_Coordinate = document.createElement("td")
 				TableCell_Coordinate.style.fontFamily = "monospace"
-				TableCell_Coordinate.appendChild(document.createTextNode("(" + (StartOfLineXPos+i-OnSecondRow).toString(10) + ", " + CurrentRowYPos.toString(10) + "), Hex: ($" + (StartOfLineXPos+i-OnSecondRow).toString(16).toUpperCase() + ", $" + CurrentRowYPos.toString(16).toUpperCase() + ")" ))
+				TableCell_Coordinate.style.whiteSpace = "nowrap"
+				TableCell_Coordinate.appendChild(document.createTextNode("(" + (StartOfLineXPos+i-OnSecondRow).toString(10).padStart(2, "0") + ", " + CurrentRowYPos.toString(10).padStart(2, "0") + "), Hex: ($" + (StartOfLineXPos+i-OnSecondRow).toString(16).toUpperCase().padStart(2, "0") + ", $" + CurrentRowYPos.toString(16).toUpperCase().padStart(2, "0") + ")" ))
 				TableRow_TileData.appendChild(TableCell_Coordinate)
 				
 				let TableCell_Addresses = document.createElement("td")
@@ -5267,11 +5268,6 @@ left to right is much faster).</p>
 				OutputTable.appendChild(TableRow_TileData)
 			}
 		
-	}
-	function pad(num, size) {
-		let s = num+"";
-		while (s.length < size) s = "0" + s;
-		return s;
 	}
 	function ParseBigIntValue(string, radix) {
 		//Acts more closely to parseInt, unlike other methods (other functions, like CorrectBinBigIntValue)
