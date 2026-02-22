@@ -58,3 +58,5 @@
  - Made tile properties settings be split into individual parts (Page, Palette, Priority, XFlip,
    and YFlip).
  - Replaced every instances of "OverWorldBorder" with "OverworldBorder" of some inconsistency.
+ - Fixed typos that falsely says that the status bar RAM ends at $7E0F2E when it supposed to be
+   $7E0F2F.
