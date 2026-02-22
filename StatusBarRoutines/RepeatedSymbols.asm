@@ -16,12 +16,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 ; - $01 (1 byte): the total amount (or maximum)
 ; - $02 (1 byte): Tile number for empty
 ; - $03 (1 byte): Tile number for full
-; - $04-$06 (3 bytes): The status bar address of tiles to write (leftmost tile position,
+; - $04 to $06 (3 bytes): The status bar address of tiles to write (leftmost tile position,
 ;   for both rightwards and leftwards).
 ; -If you have !StatusBar_UsingCustomProperties set to 1, the following will be used:
 ; -- $07 (1 byte): Tile properties for empty
 ; -- $08 (1 byte): Tile properties for full
-; -- $09-$0B (3 bytes): The status bar address of tile properties to write
+; -- $09 to $0B (3 bytes): The status bar address of tile properties to write
 
 ;Output:
 ; - $00: How many extra fills if exceeding max, otherwise 0; FillsLeft = max(AmountFilled - TotalAmount, 0)
@@ -176,12 +176,12 @@ WriteRepeatedSymbolsLeftwardsFormat2:
 ; - $01 (1 byte): the total amount (or maximum)
 ; - $02 (1 byte): Tile number for empty
 ; - $03 (1 byte): Tile number for full
-; - $04-$06 (3 bytes): The status bar address of tile numbers to write (position of the first tile
+; - $04 to $06 (3 bytes): The status bar address of tile numbers to write (position of the first tile
 ;   that fills up when increasing; the bottom tile for upwards, top tile for downwards).
 ; - Not used if !StatusBar_UsingCustomProperties == 0:
 ; -- $07 (1 byte): Tile properties for empty
 ; -- $08 (1 byte): Tile properties for full
-; -- $09-$0B (3 bytes): Same as $04-$06 but for tile properties.
+; -- $09 to $0B (3 bytes): Same as $04 to $06 but for tile properties.
 ; - $0C (1 byte): Direction, only use these values: $00 = upwards, $02 = downwards. Don't use any
 ;   other values.
 ;Output:
@@ -194,9 +194,9 @@ WriteRepeatedSymbolsLeftwardsFormat2:
 ; -- [RAM_In_Addr09]-(X*32*!StatusbarFormat) where X increases from 0 to NumberOfTiles-1
 ;    for upwards, [RAM_In_Addr09]+(X*32*!StatusbarFormat) where X increases from 0 to
 ;    NumberOfTiles-1 for downwards: the tile properties written to status bar
-; - $04-$06 (3 bytes): The address after writing the last tile (as if writing the amount
+; - $04 to $06 (3 bytes): The address after writing the last tile (as if writing the amount
 ;   of tiles plus 1), can be used for writing a tile where the last tile is written.
-; - $09-$0B (2 bytes): Same as above.
+; - $09 to $0B (2 bytes): Same as above.
 ;
 ;NOTE: this only works with status bars having a row of 32 8x8 tiles, rows are lined up vertically,
 ;and each row being contiguous to each other. Else your tiles won't line up vertically. Don't use this
