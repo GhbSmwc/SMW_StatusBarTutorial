@@ -45,7 +45,7 @@
 		LDY #$02						;\EXB 3-4
 		LDA ($00),y						;/
 		STA !Freeram_ValueDisplay1_4Bytes
-		LDY #$04						;\EXN 5-6
+		LDY #$04						;\EXB 5-6
 		LDA ($00),y						;/
 		STA !Freeram_ValueDisplay1_4Bytes+2
 		SEP #$20
