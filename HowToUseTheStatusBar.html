@@ -190,15 +190,15 @@ lines of the item box:
 <table>
 <tr><th>Coordinate</th><th>Address (%TTTTTTTT, %YXPCCCTT)</th></tr>
 <tr><th colspan="2">Top line of item box</th></tr>
-<tr><td><kbd>(14,1)</kbd> (<kbd>($E,$1)</kbd>)</td><td><kbd>$008C81</kbd>, <kbd>$008C82</kbd></td></tr>
-<tr><td><kbd>(15,1)</kbd> (<kbd>($F,$1)</kbd>)</td><td><kbd>$008C83</kbd>, <kbd>$008C84</kbd></td></tr>
-<tr><td><kbd>(16,1)</kbd> (<kbd>($10,$1)</kbd>)</td><td><kbd>$008C85</kbd>, <kbd>$008C86</kbd></td></tr>
-<tr><td><kbd>(17,1)</kbd> (<kbd>($11,$1)</kbd>)</td><td><kbd>$008C87</kbd>, <kbd>$008C88</kbd></td></tr>
+<tr><td><kbd>(14,01)</kbd> (<kbd>($0E,$01)</kbd>)</td><td><kbd>$008C81</kbd>, <kbd>$008C82</kbd></td></tr>
+<tr><td><kbd>(15,01)</kbd> (<kbd>($0F,$01)</kbd>)</td><td><kbd>$008C83</kbd>, <kbd>$008C84</kbd></td></tr>
+<tr><td><kbd>(16,01)</kbd> (<kbd>($10,$01)</kbd>)</td><td><kbd>$008C85</kbd>, <kbd>$008C86</kbd></td></tr>
+<tr><td><kbd>(17,01)</kbd> (<kbd>($11,$01)</kbd>)</td><td><kbd>$008C87</kbd>, <kbd>$008C88</kbd></td></tr>
 <tr><th colspan="2">bottom line of item box</th></tr>
-<tr><td><kbd>(14,4)</kbd> (<kbd>($E,$4)</kbd>)</td><td><kbd>$008CF7</kbd>, <kbd>$008CF8</kbd></td></tr>
-<tr><td><kbd>(15,4)</kbd> (<kbd>($F,$4)</kbd>)</td><td><kbd>$008CF9</kbd>, <kbd>$008CFA</kbd></td></tr>
-<tr><td><kbd>(16,4)</kbd> (<kbd>($10,$4)</kbd>)</td><td><kbd>$008CFB</kbd>, <kbd>$008CFC</kbd></td></tr>
-<tr><td><kbd>(17,4)</kbd> (<kbd>($11,$4)</kbd>)</td><td><kbd>$008CFD</kbd>, <kbd>$008CFE</kbd></td></tr>
+<tr><td><kbd>(14,04)</kbd> (<kbd>($0E,$04)</kbd>)</td><td><kbd>$008CF7</kbd>, <kbd>$008CF8</kbd></td></tr>
+<tr><td><kbd>(15,04)</kbd> (<kbd>($0F,$04)</kbd>)</td><td><kbd>$008CF9</kbd>, <kbd>$008CFA</kbd></td></tr>
+<tr><td><kbd>(16,04)</kbd> (<kbd>($10,$04)</kbd>)</td><td><kbd>$008CFB</kbd>, <kbd>$008CFC</kbd></td></tr>
+<tr><td><kbd>(17,04)</kbd> (<kbd>($11,$04)</kbd>)</td><td><kbd>$008CFD</kbd>, <kbd>$008CFE</kbd></td></tr>
 </table>
 If you modify these hardcoded values through a debugger, the changes will only apply on the next level reload, since the hardcoded upload only occurs on level load.</p>
 
@@ -318,7 +318,7 @@ every byte. Therefore, to get to the next 8x8 tile, is a move of 2 bytes instead
 
 <p>You may be wondering:
 <ul>
-<li><sup>1</sup>Uses the &ldquo;2-bytes together&rdquo; format, the <kbd>[TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]</kbd></li>
+<li><sup>1</sup>Uses the &ldquo;2-bytes together&rdquo; format (interweaved), the <kbd>[TTTTTTTT, YXPCCCTT, TTTTTTTT, YXPCCCTT...]</kbd></li>
 <li><sup>2</sup>Uses the &ldquo;TileNumber and Props in their own table&rdquo; format, the <kbd>[TTTTTTTT, TTTTTTTT,...], [YXPCCCTT, YXPCCCTT,...]</kbd></li>
 </ul>
 Therefore, many ASM patches that display on the status bar that I made are hybrid-support of these two formats. The define <kbd>!StatusbarFormat</kbd> is what
@@ -706,8 +706,8 @@ Miscellaneous routines:
 </div>
 
 <p>Lets start with something very simple with small number of digits.</p>
-<p>Do note that all subroutines here will always have leading zeroes stored (either as in the registers for 2-3 digits or as an array of digits for 4+ digit displays) when there are fewer
-digits than the maximum by default. If you wanted to remove leading zeroes, I will explain that in the next section.</p>
+<p>Do note that <kbd>HexDec</kbd> subroutines here will have leading zeroes in the output (either as in the registers for 8-bit 2-3 digit <kbd>HexDec</kbd> or as an array of digits for 3+ digit displays for 16 or more bits of the number size) when there are fewer
+significant digits than the maximum. If you wanted to remove leading zeroes, I will explain that in the next section.</p>
 
 <p>For the overworld border (<abbr title="So far, there isn't any other patches that lets you edit the overworld border similarly to the status bar.">assuming you're using the Overworld Border+ patch</abbr>),
 which is stored in <kbd>GFX2A</kbd>, after calling the HexDec routine, you must add each digit by #$22 (<a href="Readme_Files/OWB_Digits.png" target="_blank">digit graphics are stored as tile numbers $22-$2B</a>),
@@ -802,7 +802,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 <p>What about if I wanted to convert 16-bit numbers (or if you have 3-5 digits and want to go above 255)? Well, good news for you, I've provided more than just 8-bit HexDec
 converters. Introducing <kbd>SixteenBitHexDecDivision</kbd>. Here is the following code in question (up to 65535). Example, RAM $60 contains the value <kbd>$1234</kbd>
 (in memory, its <kbd>$34, $12</kbd>), I write my 16-bit number to address <kbd>$00-$01</kbd>, then call the subroutine <kbd>SixteenBitHexDecDivision</kbd> after that,
-the digits of 4660 are stored. Note that this is ordered in decreasing significant decimal digits (<abbr title="!Scratchram_16bitHexDecOutput+4">last</abbr> byte = 1s, second-last = 10s...):
+the digits of 04660 are stored. Note that this is ordered in decreasing significant decimal digits (<abbr title="!Scratchram_16bitHexDecOutput+4">last</abbr> byte = 1s, second-last = 10s...):
 <table>
 <tr><th>Define relative address</th><th>RAM address (normal/Sa-1)</th><th>Output value</th></tr>
 <tr><td><kbd>!Scratchram_16bitHexDecOutput+0</kbd></td><td><kbd>$02/$04</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; for 10000s place)</td></tr>
@@ -812,7 +812,7 @@ the digits of 4660 are stored. Note that this is ordered in decreasing significa
 <tr><td><kbd>!Scratchram_16bitHexDecOutput+4</kbd></td><td><kbd>$06/$08</kbd></td><td><kbd>$00</kbd> (represents &ldquo;0&rdquo; 1s place)</td></tr>
 </table><br>
 As a side note, all &ldquo;bigger number&rdquo; (handles more bytes to handle larger values) hexdec subroutines can work with &ldquo;smaller numbers&rdquo; (less bytes) hexdec subroutines by masking out
-the higher byte(s). For example: using a 16-bit hexdec, an 8-bit number #$FF, when supplied into the input, you then zero out the high byte (<kbd>STZ $01</kbd>) so that it treats the value as <kbd>#$00FF</kbd>. However,
+the higher byte(s). For example: using a 16-bit hexdec, an 8-bit number <kbd>#$FF</kbd>, when supplied into the input, you then zero out the high byte (<kbd>STZ $01</kbd>) so that it treats the value as <kbd>#$00FF</kbd>. However,
 if the number is signed, then the high byte(s) must be <kbd>$FF</kbd> if the input number is negative. For the same example, if the 8-bit number is within <kbd>$80-$FF</kbd>, then the high byte needs to be <kbd>$FF</kbd>
 e.g. <kbd>$80 &rightarrow; $FF80</kbd>, otherwise <kbd>$7F &rightarrow; $007F</kbd>. As a side note, this technique is called <a href="https://en.wikipedia.org/wiki/Two%27s_complement#Sign_extension">signed-bit extension</a>,
 when having the same value but a larger number of bits, you take the sign bit of the lower-number-of-bit value and duplicate it on the left side of the number.
@@ -853,7 +853,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	
 	<p>Greater than 65535? (unlikely for other stuff besides a huge currency counter or custom score). This one is a 32-bit (4 bytes) HexDec, up to
 	4,294,967,295 (<kbd>$FFFFFFFF</kbd>) can be properly displayed. Remember, this is little endian, for example: a number
-	<abbr title="287454020 in decimal">$11223344</abbr> must be inputted as
+	<kbd><abbr title="287454020 in decimal">$11223344</abbr></kbd> must be inputted as
 	<kbd>[$44, $33, $22, $11]</kbd> into <kbd>$00-$03</kbd> and should output as <kbd>[$02, $08, $07, $04, $05, $04, $00, $02, $00]</kbd> in
 	<kbd>!Scratchram_32bitHexDecOutput</kbd>.<br>
 	
@@ -1038,7 +1038,9 @@ When written to the status bar:<br>
 
 </p>
 
-<p>To use the routine, here is the code template:
+<p>To use the routine, here is the code template.<br><br>
+
+Do note that you MUST clear out the tiles used by the aligned number display prior to writing it, else tiles that should've disappear will persist. This applies to both left and right-aligned number display.
 <div class="CodeBlock"><pre>
 incsrc "../StatusBarRoutinesDefines/Defines.asm"
 incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
@@ -2600,7 +2602,7 @@ Graphical bar, as in this:<br>
 	<li>
 		<p>Have multiple values per symbol, instead of 1 unit per icon. Meaning, fractions of a symbol are displayed. In <i>Legend of zelda</i> series,
 		before <i>Ocarina of Time</i>, Each heart have 2 values, therefore 1/2 a heart can be shown, <i>Ocarina of Time</i> and later games have 4
-		units per heart, so 1/4 hearts displayed</p>
+		units per heart, so 1/4 hearts displayed.</p>
 	</li>
 	<li>
 		<p>Display a value of something more &ldquo;continuous&rdquo;, or more precise, as the amount increases. Not only that, you don't need long bars
@@ -5129,7 +5131,7 @@ For a timer display, like the status bar version, is in a seperate ASM file due 
 		are kept the same ($7E0EF9 &rightarrow; $400EF9).</p>
 	</li>
 	<li>
-		<p>SMW does actually have a 32-bit (up to 999,999, but <abbr title="6 changeable digits, there are 7 displayed, but the rightmost 0 is static.">up to 6 digits</abbr>) HexDec handling routine, this is used for displaying the score and strangely, the bonus stars. Unlike the 2-digit simple HexDec,
+		<p>SMW does actually have a 32-bit (up to 999,999, but <abbr title="6 changeable (&ldquo;active&rdquo;) digits, there are 7 displayed, but the rightmost 0 is static (&ldquo;inactive&rdquo; or &ldquo;fake&rdquo;).">up to 6 digits</abbr>) HexDec handling routine, this is used for displaying the score and strangely, the bonus stars. Unlike the 2-digit simple HexDec,
 		it is handled from left-to-right (just <a href="#Left2RightHexDec">like this</a>), and by subtracting by 10<sup>(NumberOfDigits-1) &rightarrow; 0</sup> repeatedly. Here is what I mean with the example of a number 123456 ($01E240).
 		Note that the score is stored internally as the displayed number, divided by 10 (&ldquo;1234560&rdquo; is 123456, which that is $01E240 in hex, stored in little endian as
 		<kbd>[$40, $E2, $01]</kbd>, not as $12D680/<kbd>[$80, $D6, $12]</kbd>.), here is an example showing that same number:
@@ -5174,7 +5176,7 @@ $000002 (000002, SubtractCount = 4) -&gt;
 $000001 (000001, SubtractCount = 5) -&gt;
 $000000 (000000, SubtractCount = <u>6</u>), cannot subtract anymore, so SubtractCount (6) is the correct 1s place.
 </pre></div>
-The routine is handled at address $009012-$009044, and the 10<sup>n</sup> table at $008FFA-$009011. This one is better
+The routine is handled at address <kbd>$009012</kbd>-<kbd>$009044</kbd>, and the 10<sup>n</sup> table at <kbd>$008FFA</kbd>-<kbd>$009011</kbd>. This one is better
 than doing digits from right to left using subtraction by 10 only (I mean, a number 999999 would take ages to finally get
 the ones place, and then another ages to get the 10s, and so on. Which is why subtraction by <i>powers</i> of 10 from
 left to right is much faster).</p>
