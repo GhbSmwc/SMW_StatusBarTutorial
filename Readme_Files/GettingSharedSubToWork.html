@@ -15,7 +15,17 @@
 			span.NoLineBreak {
 				white-space: nowrap;
 			}
-			
+			div.CodeBlock {
+				overflow: auto;
+				width: 1000px;
+				height: 250px;
+				border: 1px solid white;
+				resize: both;
+				background-color: #101010;
+			}
+			pre {
+				margin: 0px;
+			}
 			input[type='text'] { font-family: monospace;}
 			input[type='number'] { font-family: monospace;}
 			abbr{cursor: help;}
@@ -35,12 +45,11 @@
 			but on <kbd>SharedSub_Defines</kbd> (you also have to copy this to anywhere that uses the shared subroutines patch, mainly because these ASM files uses <kbd>JSL</kbd> to jump to one of SharedSub's JML in the JML list).</li>
 			<li>
 				Open <kbd>sharedsub.asm</kbd>, and add this:
-<table><tr><td><pre>
+<div class="CodeBlock" style="width: 446px; height: 52px;"><pre>
 incsrc "SharedSub_Defines/OtherDefines.asm"
 incsrc "SharedSub_Defines/SubroutineDefs.asm"
 <span style="text-decoration: underline;">incsrc "StatusBarRoutinesDefines/Defines.asm"</span> ;&gt;This one!
-
-</pre></td></tr></table>
+</pre></div>
 			
 			</li>
 		</ol>
@@ -49,7 +58,7 @@ incsrc "SharedSub_Defines/SubroutineDefs.asm"
 			<li>Copy the codes, as text, <b>inside</b> each ASM file in <kbd>StatusBarTutorial/StatusBarRoutines</kbd>, and paste them in <kbd>subroutinecode.asm</kbd> (therefore <kbd>subroutinecode</kbd> will contain all the subroutines in one ASM file).</li>
 			<li>Get rid of the <kbd>incsrc "../StatusBarRoutinesDefines/Defines.asm"</kbd> in those pasted code, since it is now referenced in <kbd>sharedsub.asm</kbd>.</li>
 			<li>Add the subroutines into the JML list:
-<table><tr><td><pre>autoclean JML MathDiv
+<div class="CodeBlock"><pre>autoclean JML MathDiv
 autoclean JML MathDiv32_16
 autoclean JML MathMul16_16
 autoclean JML EightBitHexDec
@@ -80,45 +89,76 @@ autoclean JML CenterRepeatingIcons
 autoclean JML WriteStringAsSpriteOAM_OAMOnly
 autoclean JML GetStringXPositionCentered16Bit
 autoclean JML WriteRepeatedIconsAsOAM_OAMOnly
-autoclean JML CenterRepeatingIcons_OAMOnly</pre></td></tr></table>
+autoclean JML CenterRepeatingIcons_OAMOnly</pre></div>
 			</li>
 			<li>
 			And defined them (and don't forget to copy and paste <kbd>SharedSub_Defines</kbd> in places like pixi and anything else that are using sharedsub, and reference it via <kbd>incsrc &lt;file_path_to_defines_asm&gt;</kbd> on
 			those ASM files using its routines):
-<table><tr><td><pre>%SetDefine(MathDiv)
-%SetDefine(MathDiv32_16)
-%SetDefine(MathMul16_16)
-%SetDefine(EightBitHexDec)
-%SetDefine(EightBitHexDec3Digits)
-%SetDefine(SixteenBitHexDecDivision)
-%SetDefine(Convert32bitIntegerToDecDigits)
-%SetDefine(RemoveLeadingZeroes16Bit)
-%SetDefine(RemoveLeadingZeroes32Bit)
-%SetDefine(RemoveLeadingZeroes16BitLeaveLast2)
-%SetDefine(RemoveLeadingZeroes16BitLeaveLast3)
-%SetDefine(SixteenBitHexDecDivisionToOWB)
-%SetDefine(ThirtyTwoBitHexDecDivisionToOWB)
-%SetDefine(SuppressLeadingZeros)
-%SetDefine(SuppressLeadingZerosPercentageLeaveLast2)
-%SetDefine(SuppressLeadingZerosPercentageLeaveLast3)
-%SetDefine(ConvertToRightAligned)
-%SetDefine(ConvertToRightAlignedFormat2)
-%SetDefine(Convert16BitAlignedDigitToOWB)
-%SetDefine(WriteStringDigitsToHUD)
-%SetDefine(WriteStringDigitsToHUDFormat2)
-%SetDefine(Frames2Timer)
-%SetDefine(ConvertToPercentage)
-%SetDefine(CountingAnimation16Bit)
-%SetDefine(WriteStringAsSpriteOAM)
-%SetDefine(GetStringXPositionCentered)
-%SetDefine(WriteRepeatedIconsAsOAM)
-%SetDefine(CenterRepeatingIcons)
-%SetDefine(WriteStringAsSpriteOAM_OAMOnly)
-%SetDefine(GetStringXPositionCentered16Bit)
-%SetDefine(WriteRepeatedIconsAsOAM_OAMOnly)
-%SetDefine(CenterRepeatingIcons_OAMOnly)</pre></td></tr></table>
+<div class="CodeBlock"><pre>%SetSharedSubDefine(MathDiv)
+%SetSharedSubDefine(MathDiv32_16)
+%SetSharedSubDefine(MathMul16_16)
+%SetSharedSubDefine(EightBitHexDec)
+%SetSharedSubDefine(EightBitHexDec3Digits)
+%SetSharedSubDefine(SixteenBitHexDecDivision)
+%SetSharedSubDefine(Convert32bitIntegerToDecDigits)
+%SetSharedSubDefine(RemoveLeadingZeroes16Bit)
+%SetSharedSubDefine(RemoveLeadingZeroes32Bit)
+%SetSharedSubDefine(RemoveLeadingZeroes16BitLeaveLast2)
+%SetSharedSubDefine(RemoveLeadingZeroes16BitLeaveLast3)
+%SetSharedSubDefine(SixteenBitHexDecDivisionToOWB)
+%SetSharedSubDefine(ThirtyTwoBitHexDecDivisionToOWB)
+%SetSharedSubDefine(SuppressLeadingZeros)
+%SetSharedSubDefine(SuppressLeadingZerosPercentageLeaveLast2)
+%SetSharedSubDefine(SuppressLeadingZerosPercentageLeaveLast3)
+%SetSharedSubDefine(ConvertToRightAligned)
+%SetSharedSubDefine(ConvertToRightAlignedFormat2)
+%SetSharedSubDefine(Convert16BitAlignedDigitToOWB)
+%SetSharedSubDefine(WriteStringDigitsToHUD)
+%SetSharedSubDefine(WriteStringDigitsToHUDFormat2)
+%SetSharedSubDefine(Frames2Timer)
+%SetSharedSubDefine(ConvertToPercentage)
+%SetSharedSubDefine(CountingAnimation16Bit)
+%SetSharedSubDefine(WriteStringAsSpriteOAM)
+%SetSharedSubDefine(GetStringXPositionCentered)
+%SetSharedSubDefine(WriteRepeatedIconsAsOAM)
+%SetSharedSubDefine(CenterRepeatingIcons)
+%SetSharedSubDefine(WriteStringAsSpriteOAM_OAMOnly)
+%SetSharedSubDefine(GetStringXPositionCentered16Bit)
+%SetSharedSubDefine(WriteRepeatedIconsAsOAM_OAMOnly)
+%SetSharedSubDefine(CenterRepeatingIcons_OAMOnly)</pre></div>
 			</li>
 		</ol>
 		<li>Now run asar.exe to insert the patch to insert the subroutines.</li>
 		<li>If you get labels being redefined, make sure you rename it on both in <kbd>SubroutineDefs.asm</kbd> and in <kbd>sharedsub.asm</kbd>.</li>
 	</ol>
+<script>
+//These makes all <pre>...</pre> have an effect that double-clicking will select all the text
+//in it, to make it easy to copy code and paste it in your ASM stuff.
+//
+//Credit:
+// https://keestalkstech.com/2014/04/click-to-select-all-on-the-pre-element/
+// https://www.sanwebe.com/2014/04/select-all-text-in-element-on-click
+document.addEventListener('dblclick', e => {
+  let pre = getClosest(e.target, "PRE");
+  if (pre && e.ctrlKey) {
+    let range = new Range();
+    range.selectNodeContents(pre);
+    document.getSelection().removeAllRanges();
+    document.getSelection().addRange(range);
+  }
+});
+
+function getClosest(el, tagName) {
+  tagName = tagName && tagName.toUpperCase();
+
+  if (!tagName || !el)
+    return null;
+
+  do
+    if (el.nodeName === tagName)
+      return el;
+  while (el = el.parentNode);
+
+  return null;
+}
+</script>
