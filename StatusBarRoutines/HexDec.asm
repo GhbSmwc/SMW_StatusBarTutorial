@@ -1344,18 +1344,18 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 					..GetHalfDenominatorPoint
 						REP #$20
 						LDA !Scratchram_PercentageMaxQuantity	;\Half the denominator
-						LSR					;/
+						LSR					;/(to round half up, check if remainder is greater than half of denominator)
 						BCC ...NoRoundHalfPoint			
 						
 						...RoundHalfWayPoint
-							INC				;>Round halfpoint upwards
+							INC				;>Round halfpoint upwards (we don't want a value TrueHalfwayPoint+0.5 (when MaxQuantity is odd) to round down)
 						
 						...NoRoundHalfPoint
 				.CheckQuotientShouldRoundUp
 					;You may be wondering, why am I handling this 16-bit?
 					;Well this is to prevent overflow if your hack allows
 					;displaying greater than 100%.
-					CMP $04			;>Remainder
+					CMP $04			;>Compare with remainder
 					BEQ ..RoundUp		;\If HalfPoint is >= Remainder (or Remainder is < HalfPoint), don't round up
 					BCS ..NoRoundUp		;/
 					..RoundUp
@@ -1394,6 +1394,8 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				dw 10000	;>Scaled by 1/100 to display the hundredths place.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;A variant of ConvertToPercentage, rounds down.
+	;Note: X will be the value of what's stored in
+	;!Scratchram_PercentageFixedPointPrecision
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		ConvertToPercentageRoundDown:
 			LDA !Scratchram_PercentageFixedPointPrecision
@@ -1439,14 +1441,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 			LDA $04				;\If remainder 0 (result is exact integer), don't increment
 			BEQ .NoRoundUp			;/
 			.RoundUp
-			INC $00				;>Quotient+1
-			LDA !Scratchram_PercentageFixedPointPrecision
-			TAX
-			LDA.l PercentageFixedPointScaling,x	;>The "Maximum", which is 100, 1000 (100.x), or 10000 (100.xx)
-			LDY #$00				;>Default Y=$00 (not rounded)
-			CMP $00					;\If not rounded up to maximum, leave Y=$00
-			BNE .NoRoundToMax			;/
-			LDY #$02				;>Otherwise indicate a round up to 100 with Y=$02
+				INC $00				;>floor(Quotient)+1
+				LDA.l PercentageFixedPointScaling,x	;>The "Maximum", which is 100, 1000 (100.x), or 10000 (100.xx)
+				LDY #$00				;>Default Y=$00 (not rounded)
+				CMP $00					;\If not rounded up to maximum, leave Y=$00
+				BNE .NoRoundToMax			;/
+				LDY #$02				;>Otherwise indicate a round up to 100 with Y=$02
 			.NoRoundToMax
 			.NoRoundUp
 			SEP #$20
