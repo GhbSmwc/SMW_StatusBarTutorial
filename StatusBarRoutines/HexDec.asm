@@ -1321,14 +1321,19 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	; -- $01 = out of 1000 (display 1/10 precision (1 digit after decimal), can be converted to XXX.X% via fixed point)
 	; -- $02 = out of 10000 (display 1/100 precision (2 digits after decimal), can be converted to XXX.XX%, same as a above)
 	;Output:
-	; - $00 to $03: Percentage, using fixed-point notation (an integer here, then scaled by 1/(10**!Scratchram_PercentageFixedPointPrecision)),
-	;   rounded 1/2 up to the nearest 1*10**(-!Scratchram_PercentageFixedPointPrecision). Using 32-bit unsigned integer to prevent
-	;   potential overflow (mainly going beyond 65535) if your hack allows going higher than 100% and with higher
-	;   !Scratchram_PercentageFixedPointPrecision precision. If the denominator is zero, will be 0% or 100% (division by zero).
-	; - Y register: Detect rounding to 0 or 100. Can be used to display 1% if exclusively between 0 and 1%
-	;   and 99% if exclusively between 99 and 100%. This is useful for avoid misleading 0 and 100% displays when actually close
-	;   to such numbers. This also applies to higher precision, but instead of by the ones place, it is actually the
-	;   rightmost/last digit:
+	; - $00 to $03: Percentage, using fixed-point notation (value here is the percentage value, multiplied by
+	;   (10**!Scratchram_PercentageFixedPointPrecision)).
+	;   This uses 32-bit unsigned integer to prevent potential overflow (greater than 65535), especially if you're allowing greater than 100%
+	;   and higher !Scratchram_PercentageFixedPointPrecision setting.
+	;   If denominator is 0, then it's either 0 (if numerator is non-zero) or 65535 (both numerator and denominator is zero).
+	;   Rounding would be based on the following subroutines:
+	; -- ConvertToPercentage: Rounds 1/2 up to the nearest 1*10**(-!Scratchram_PercentageFixedPointPrecision).
+	; -- ConvertToPercentageRoundDown: Always round down.
+	; -- ConvertToPercentageRoundUp: Always round up (if division have non-zero remainder).
+	; - Y register: Detect rounding to 0% or 100%. Can be used to display 1*10**(-!Scratchram_PercentageFixedPointPrecision) if nonzero
+	;   percentage have rounded down to 0 and 100-1*10**(-!Scratchram_PercentageFixedPointPrecision) if rounded upward to 100%.
+	;   This is useful for avoid misleading 0% and 100% displays when actually close
+	;   to such numbers by rounding away from the two values:
 	; -- Y=$00: no
 	; -- Y=$01: Rounded to 0 ([0 < X < 5*10**(-Precision)] would've round to 0% misleadingly)
 	; -- Y=$02: Rounded from 99 to 100 ([100-(5*10**(-Precision-1)) <= X < 100] would've round to 100% misleadingly)
@@ -1343,12 +1348,12 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				.RoundHalfUp
 					..GetHalfDenominatorPoint
 						REP #$20
-						LDA !Scratchram_PercentageMaxQuantity	;\Half the denominator
+						LDA !Scratchram_PercentageMaxQuantity	;\Half the denominator (MaxQuantity)
 						LSR					;/(to round half up, check if remainder is greater than half of denominator)
 						BCC ...NoRoundHalfPoint			
 						
 						...RoundHalfWayPoint
-							INC				;>Round halfpoint upwards (we don't want a remainder == TrueHalfwayPoint-0.5 (when MaxQuantity is odd) to round up)
+							INC				;>Round halfpoint upwards (When MaxQuantity is odd, we don't want Remainder == floor(MaxQuantity/2) to round up (e.g. if MaxQuantity is 9, half of it is 4.5, and we don't want to round up if Remainder == 4))
 						
 						...NoRoundHalfPoint
 				.CheckQuotientShouldRoundUp
