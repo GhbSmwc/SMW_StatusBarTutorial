@@ -1348,7 +1348,7 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 						BCC ...NoRoundHalfPoint			
 						
 						...RoundHalfWayPoint
-							INC				;>Round halfpoint upwards (we don't want a value TrueHalfwayPoint+0.5 (when MaxQuantity is odd) to round down)
+							INC				;>Round halfpoint upwards (we don't want a remainder == TrueHalfwayPoint-0.5 (when MaxQuantity is odd) to round up)
 						
 						...NoRoundHalfPoint
 				.CheckQuotientShouldRoundUp
