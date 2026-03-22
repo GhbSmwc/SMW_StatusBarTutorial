@@ -4058,7 +4058,7 @@ init:
 	</ul>
 </div>
 
-After calling that, all you have to do is write your tile data to <kbd>$7F837D+4,x</kbd> (XY register will be 16-bit) and beyond, but be careful not to overwrite the terminating byte (and potentially the bytes after) if this is your last stripe within a frame.
+After calling that, all you have to do is write your tile data to <kbd>$7F837D+4,x</kbd> (XY register will be 16-bit) and beyond, but be careful not to overwrite the terminating byte <kbd>$FF</kbd> (and potentially the bytes after) if this is your last stripe within a frame (the subroutine automatically sets the terminating byte).
 Just like the Super Status Bar patch and OWB+, its tile data format is &ldquo;2-bytes together&rdquo;. Unlike the status bar however, you absolutely must write the tile properties bytes, because whatever location in the stripe data to be written on may not
 always be initialized, causing possible garbage tile properties.</p>
 
