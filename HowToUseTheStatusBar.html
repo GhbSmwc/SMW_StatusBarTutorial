@@ -2384,7 +2384,8 @@ The function <kbd>ConvertToPercentage</kbd>, <kbd>ConvertToPercentageRoundDown</
 		</td>
 	</tr>
 </table><br>
-Please note that these subroutines needfully checks the remainder after division to determine a round-up or a round-half-up, rather than doing rounded integer division like these:
+Please note that these subroutines needfully check the remainder after division to determine rounding-down (integer division's default rounding), round-up or round-half-up, rather than doing
+rounded integer division by adding prior like these:
 <div class="CodeBlock" style="height: 78px; width: 1018px;"><pre>;Round A/B:
 Round-Half-up Division: (A + (B/2)) / B
 Ceiling division: (A + (B-1)) / B
