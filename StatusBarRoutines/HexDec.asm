@@ -860,29 +860,30 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;    bar, overworld border, etc.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	SuppressLeadingZeros:
-		LDY #$00				;>Start looking at the leftmost (highest) digit
-		LDA #$00				;\When the value is 0, display it as single digit as zero
+		LDY #$00								;>Start looking at the leftmost (highest) digit
+		LDA #$00								;\When the value is 0, display it as single digit as zero
 		STA !Scratchram_CharacterTileTable,x	;/(gets overwritten should nonzero input exist)
 
 		.Loop
 			LDA.w !Scratchram_16bitHexDecOutput|!dp,Y	;\If there is a leading zero, move to the next digit to check without moving the position to
-			BEQ ..NextDigit					;/place the tile in the table
+			BEQ ..LeadingZero							;/place the tile in the table
 		
-			..FoundDigit
+			..NonLeadingZeroes
 				LDA.w !Scratchram_16bitHexDecOutput|!dp,Y	;\Place digit
-				STA !Scratchram_CharacterTileTable,x	;/
-				INX					;>Next string position in table
-				INY					;\Next digit
-				CPY #$05				;|
-				BCC ..FoundDigit			;/
+				STA !Scratchram_CharacterTileTable,x		;/
+				INX											;>Next string position in table
+				INY											;\Next digit
+				CPY #$05									;|
+				BCC ..NonLeadingZeroes						;/
 				RTL
 		
-			..NextDigit
+			..LeadingZero
 				INY			;>1 digit to the right
 				CPY #$05		;\Loop until no digits left (minimum is 1 digit)
 				BCC .Loop		;/
-				INX			;>Next item in table
-				RTL
+				...AllZeroes
+					INX			;>We wrote a default "0", thus X must be incremented here.
+					RTL
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Same as above, but this is for fixed-point numbers.
 	;Input for fixed-point numbers:
@@ -891,22 +892,22 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 	;   must be #$0D.
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	SuppressLeadingZerosPercentageLeaveLast2:
-		;XXX.X% (XXXX.X%)
+		;XXX.X% (XXXX.X%), leaves the last 2 characters (".X")
 		LDY #$00
 		.Loop
-			CPY #$03					;\Avoid skipping the last two digits (force to write the last two digits, ones and tenths)
-			BCS ..FoundDigit				;/
+			CPY #$03									;\Avoid skipping the last two digits (force to write the last two digits, ones and tenths)
+			BCS ..NonLeadingZeroes						;/
 			LDA.w !Scratchram_16bitHexDecOutput|!dp,Y	;\If there is a leading zero, move to the next digit to check without moving the position to
-			BEQ ..NextDigit					;/place the tile in the table
+			BEQ ..LeadingZero							;/place the tile in the table
 		
-			..FoundDigit
+			..NonLeadingZeroes
 				LDA.w !Scratchram_16bitHexDecOutput|!dp,Y	;\Place digit
 				STA !Scratchram_CharacterTileTable,x		;/
-				INX						;>Next string position in table
-				INY						;\Write next digit
-				CPY #$04					;|
-				BCC ..FoundDigit				;/
-				LDA $09						;\Write decimal point (".")
+				INX											;>Next string position in table
+				INY											;\Write next digit
+				CPY #$04									;|>Position $04 is where the decimal point is at
+				BCC ..NonLeadingZeroes						;/
+				LDA $09										;\Write decimal point (".")
 				STA !Scratchram_CharacterTileTable,x		;/
 				INX
 				LDA !Scratchram_16bitHexDecOutput+$04		;\Write tenths place.
@@ -914,30 +915,31 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				INX
 				RTL
 		
-			..NextDigit
-				INY			;>1 digit to the right
+			..LeadingZero
+				INY				;>1 digit to the right
 				CPY #$04		;\Loop until no digits left (minimum is 1 digit)
 				BCC .Loop		;/
-				INX			;>Next item in table
-				RTL
+				...AllZeroes
+					INX				;>Next item in table
+					RTL
 	SuppressLeadingZerosPercentageLeaveLast3:
-		;XXX.XX%
+		;XXX.XX%, leaves the last 3 characters (".XX")
 		LDY #$00
 		
 		.Loop
-			CPY #$02					;\Avoid skipping the last three digits
-			BCS ..FoundDigit				;/
+			CPY #$02									;\Avoid skipping the last three digits
+			BCS ..NonLeadingZeroes						;/
 			LDA.w !Scratchram_16bitHexDecOutput|!dp,Y	;\If there is a leading zero, move to the next digit to check without moving the position to
-			BEQ ..NextDigit					;/place the tile in the table
+			BEQ ..LeadingZero							;/place the tile in the table
 		
-			..FoundDigit
+			..NonLeadingZeroes
 				LDA.w !Scratchram_16bitHexDecOutput|!dp,Y	;\Place digit
 				STA !Scratchram_CharacterTileTable,x		;/
-				INX						;>Next string position in table
-				INY						;\Write next digit
-				CPY #$03					;|
-				BCC ..FoundDigit				;/
-				LDA $09						;\Write decimal point (".")
+				INX											;>Next string position in table
+				INY											;\Write next digit
+				CPY #$03									;|>Position $03 is where the decimal point is at
+				BCC ..NonLeadingZeroes						;/
+				LDA $09										;\Write decimal point (".")
 				STA !Scratchram_CharacterTileTable,x		;/
 				INX
 				LDA !Scratchram_16bitHexDecOutput+$03		;\Write tenths place.
@@ -948,43 +950,45 @@ incsrc "../StatusBarRoutinesDefines/StatusBarDefines.asm"
 				INX
 				RTL
 		
-			..NextDigit
+			..LeadingZero
 				INY			;>1 digit to the right
 				CPY #$03		;\Loop until no digits left (minimum is 1 digit)
 				BCC .Loop		;/
-				INX			;>Next item in table
-				RTL
+				...AllZeroes
+					INX			;>Next item in table
+					RTL
 	SuppressLeadingZeros32Bit:
-		LDY #$00				;>Start looking at the leftmost (highest) digit
-		LDA #$00				;\When the value is 0, display it as single digit as zero
+		LDY #$00								;>Start looking at the leftmost (highest) digit
+		LDA #$00								;\When the value is 0, display it as single digit as zero
 		STA !Scratchram_CharacterTileTable,x	;/(gets overwritten should nonzero input exist)
 
 		.Loop
-			PHX						;>Had to do PHX : TYX : LDA $xxxxxx,x because LDA $xxxxxx,y does not exist.
+			PHX									;>Had to do PHX : TYX : LDA $xxxxxx,x because LDA $xxxxxx,y does not exist.
 			TYX
 			LDA !Scratchram_32bitHexDecOutput,x		;\If there is a leading zero, move to the next digit to check without moving the position to
 			PLX
-			CMP #$00					;>Compare A, not X.
-			BEQ ..NextDigit					;/place the tile in the table
+			CMP #$00							;>Compare A, not X.
+			BEQ ..LeadingZero					;/place the tile in the table
 		
-			..FoundDigit
-				PHX					;>...Again, LDA $xxxxxx,y does not exist
+			..NonLeadingZeroes
+				PHX								;>...Again, LDA $xxxxxx,y does not exist
 				TYX
 				LDA !Scratchram_32bitHexDecOutput,x	;\Place digit
 				PLX
-				STA !Scratchram_CharacterTileTable,x	;/
-				INX					;>Next string position in table
-				INY					;\Next digit
-				CPY.b #!Setting_32bitHexDec_MaxNumberOfDigits		;|
-				BCC ..FoundDigit			;/
+				STA !Scratchram_CharacterTileTable,x			;/
+				INX												;>Next string position in table
+				INY												;\Next digit
+				CPY.b #!Setting_32bitHexDec_MaxNumberOfDigits	;|
+				BCC ..NonLeadingZeroes							;/
 				RTL
 		
-			..NextDigit
-				INY				;>1 digit to the right
+			..LeadingZero
+				INY												;>1 digit to the right
 				CPY.b #!Setting_32bitHexDec_MaxNumberOfDigits	;\Loop until no digits left (minimum is 1 digit)
-				BCC .Loop			;/
-				INX				;>Next item in table
-				RTL
+				BCC .Loop										;/
+				...AllZeroes
+					INX											;>Next item in table
+					RTL
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;Convert left-aligned to right-aligned.
 	;
